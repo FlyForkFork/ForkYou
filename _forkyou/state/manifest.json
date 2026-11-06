@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T18:13:29.391Z",
+  "updated_at": "2026-11-06T18:35:28.972Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -38,8 +38,8 @@
         "windows"
       ],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-06T17:21:07.062Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-06T18:35:28.970Z",
       "branches": [
         {
           "name": "main",
@@ -54,7 +54,22 @@
           "diffstat": "3975 files changed, 497 insertions(+), 670579 deletions(-)"
         }
       ],
-      "prepared_at": "2026-11-06T18:13:29.391Z"
+      "prepared_at": "2026-11-06T18:13:29.391Z",
+      "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
+      "analyzed_at": "2026-11-07T01:30:00+08:00",
+      "docs": [
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-routing.md",
+        "04-deep-dive-network.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": "guide.html"
     }
   }
 }

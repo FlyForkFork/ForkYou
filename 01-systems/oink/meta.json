@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "id": "github:oinkvm/oink",
+  "name": "oink",
+  "provider": "github",
+  "upstream": "oinkvm/oink",
+  "fork": "FlyForkFork/oink",
+  "category": "01-systems",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
+  "analyzed_at": "2026-11-07T01:30:00+08:00",
+  "upstream_url": "https://github.com/oinkvm/oink",
+  "homepage": null,
+  "license": "GPL-3.0-only",
+  "stars": 456,
+  "language": "Rust",
+  "topics": [
+    "audio-sharing",
+    "barrier-alternative",
+    "clipboard-sync",
+    "cross-platform",
+    "drag-and-drop",
+    "keyboard-sharing",
+    "kvm",
+    "macos",
+    "mouse-sharing",
+    "rust",
+    "software-kvm",
+    "synergy-alternative",
+    "tauri",
+    "universal-control",
+    "windows"
+  ],
+  "branches": ["main", "update-feed-state"],
+  "docs": [
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-routing.md",
+    "04-deep-dive-network.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": "guide.html",
+  "sources": [
+    {
+      "title": "oinkvm/oink README",
+      "url": "https://github.com/oinkvm/oink",
+      "date": "2026-11-06"
+    },
+    {
+      "title": "oinkvm/oink Cargo.toml",
+      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/Cargo.toml",
+      "date": "2026-11-06"
+    }
+  ]
+}
