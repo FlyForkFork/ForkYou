@@ -11,7 +11,7 @@
   "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
   "analyzed_at": "2026-11-07T01:30:00+08:00",
   "upstream_url": "https://github.com/oinkvm/oink",
-  "homepage": null,
+  "homepage": "https://github.com/oinkvm/oink/releases",
   "license": "GPL-3.0-only",
   "stars": 456,
   "language": "Rust",

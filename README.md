@@ -15,13 +15,13 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **1** 个项目。最后更新：2026-11-06 18:35:28。
+已分析 **1** 个项目。最后更新：2026-11-06 18:36:05。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
 | 项目 | 一句话 | 上游 | 应用地址 | 深度 | 更新 | 分析 |
 |---|---|---|---|---|---|---|
-| [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。 | [oinkvm/oink](https://github.com/oinkvm/oink) | — | L2 | 2026-11-07 | [Wiki](01-systems/oink/README.md) · [Guide](01-systems/oink/guide.html) |
+| [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | L2 | 2026-11-07 | [Wiki](01-systems/oink/README.md) · [Guide](01-systems/oink/guide.html) |
 
 <!-- FORKYOU:INDEX:END -->
 

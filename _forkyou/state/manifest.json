@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T18:35:28.972Z",
+  "updated_at": "2026-11-06T18:36:05.407Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -9,7 +9,7 @@
       "upstream": "oinkvm/oink",
       "fork": "FlyForkFork/oink",
       "upstream_url": "https://github.com/oinkvm/oink",
-      "homepage": null,
+      "homepage": "https://github.com/oinkvm/oink/releases",
       "description": "Your computers, working as one. Share keyboard, mouse, trackpad, clipboard, drag and drop and audio across Macs and PCs.",
       "one_liner": "把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。",
       "category": "01-systems",
@@ -39,7 +39,7 @@
       ],
       "default_branch": "main",
       "status": "analyzed",
-      "updated_at": "2026-11-06T18:35:28.970Z",
+      "updated_at": "2026-11-06T18:36:05.405Z",
       "branches": [
         {
           "name": "main",
