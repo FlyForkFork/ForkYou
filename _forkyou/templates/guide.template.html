@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>__TITLE__ · ForkYou Guide</title>
+<style>
+  :root{
+    --bg:#070b12; --bg2:#0b1220; --panel:#111a28; --panel2:#162235;
+    --line:#23324a; --text:#e8eef7; --muted:#8fa3bd; --dim:#5d7290;
+    --accent:#4cc9f0; --accent2:#f72585; --ok:#3ddc97; --warn:#ffb703;
+    --radius:16px; --shadow:0 18px 60px rgba(0,0,0,.45);
+    --max:1180px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:
+      radial-gradient(1000px 600px at 15% -10%, rgba(76,201,240,.14), transparent 60%),
+      radial-gradient(900px 500px at 95% 5%, rgba(247,37,133,.10), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  #progress{position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2)); z-index:100}
+  .topbar{
+    position:sticky; top:0; z-index:90; backdrop-filter:blur(14px);
+    background:rgba(7,11,18,.82); border-bottom:1px solid rgba(35,50,74,.7);
+  }
+  .topbar-inner{max-width:var(--max); margin:0 auto; padding:12px 22px; display:flex; align-items:center; gap:18px}
+  .brand{font-weight:800; letter-spacing:.5px; white-space:nowrap}
+  .brand span{color:var(--accent)}
+  .nav{display:flex; gap:14px; overflow:auto; scrollbar-width:none; flex:1}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{color:var(--muted); font-size:13px; white-space:nowrap; padding:4px 0; border-bottom:2px solid transparent}
+  .nav a.active,.nav a:hover{color:var(--text); border-bottom-color:var(--accent); text-decoration:none}
+  main{max-width:var(--max); margin:0 auto; padding:0 22px 80px}
+  .section{padding:64px 0 12px}
+  .section-head{margin-bottom:24px}
+  .eyebrow{font-size:12px; letter-spacing:2.4px; text-transform:uppercase; color:var(--accent); font-weight:700}
+  .section-title{font-size:clamp(24px,3.2vw,36px); line-height:1.2; margin:8px 0 6px; letter-spacing:-.5px}
+  .section-sub{color:var(--muted); margin:0; max-width:780px}
+  .hero{padding:80px 0 30px; display:grid; grid-template-columns:1.25fr .75fr; gap:44px; align-items:center}
+  .hero-kicker{font-size:13px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; font-weight:700}
+  .hero-title{font-size:clamp(46px,8vw,92px); line-height:.95; letter-spacing:-3px; margin:12px 0 18px; font-weight:900}
+  .hero-title .grad{background:linear-gradient(90deg,var(--accent),#a78bfa 55%,var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero-sub{font-size:clamp(16px,2vw,21px); color:#c4d2e5; max-width:680px; margin:0 0 22px}
+  .meta-row{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 24px}
+  .chip{border:1px solid var(--line); background:rgba(22,34,53,.75); color:#b9c9dd; border-radius:999px; padding:5px 11px; font-size:12px; font-family:var(--mono)}
+  .chip strong{color:var(--text)}
+  .actions{display:flex; flex-wrap:wrap; gap:10px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border-radius:12px; padding:11px 16px; font-weight:700; font-size:14px; border:1px solid var(--line); color:var(--text); background:var(--panel); cursor:pointer}
+  .btn:hover{text-decoration:none; border-color:#35527a; transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2f8fd8); color:#04121f; border-color:transparent}
+  .hero-side{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:22px; padding:22px; box-shadow:var(--shadow)}
+  .hero-side h3{margin:0 0 12px; font-size:13px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .stat{background:rgba(7,11,18,.45); border:1px solid rgba(35,50,74,.8); border-radius:12px; padding:12px}
+  .stat .v{font-size:19px; font-weight:800; line-height:1.2}
+  .stat .l{font-size:11px; color:var(--muted); margin-top:3px}
+  .cards-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .card{background:linear-gradient(180deg,rgba(22,34,53,.86),rgba(12,20,33,.86)); border:1px solid var(--line); border-radius:var(--radius); padding:20px; transition:transform .2s,border-color .2s}
+  .card:hover{transform:translateY(-3px); border-color:#35527a}
+  .card .num{font-family:var(--mono); color:var(--accent); font-size:12px; letter-spacing:1px}
+  .card h3{margin:8px 0 8px; font-size:18px}
+  .card p{margin:0; color:var(--muted); font-size:14px}
+  .arch-wrap{display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:stretch}
+  .arch-canvas{background:rgba(10,17,28,.72); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; min-height:420px}
+  .arch-svg{width:100%; height:auto; display:block}
+  .arch-detail{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:20px}
+  .arch-detail h3{margin:0 0 8px; font-size:18px}
+  .arch-detail p{margin:0; color:var(--muted); font-size:14px}
+  .arch-detail .who{font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:10px}
+  .node{cursor:pointer}
+  .node rect{fill:#111d2e; stroke:#2a4264; stroke-width:1.5; rx:12}
+  .node:hover rect,.node.active rect{fill:#162b46; stroke:var(--accent); stroke-width:2}
+  .node.hl rect{fill:#1d3a5c; stroke:var(--accent2); stroke-width:2.5; filter:drop-shadow(0 0 10px rgba(247,37,133,.35))}
+  .node text{fill:#dce9f8; font-family:var(--sans); font-size:14px; font-weight:700; pointer-events:none}
+  .node .sub{fill:#7f95b2; font-size:10px; font-weight:500}
+  .edge{fill:none; stroke:#2b4a6d; stroke-width:1.6; marker-end:url(#arrow)}
+  .edge-label{fill:#6e86a4; font-size:10px; font-family:var(--mono)}
+  .mech{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
+  .mech-list{display:flex; flex-direction:column; gap:8px}
+  .mech-step{text-align:left; border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:12px; padding:12px 14px; cursor:pointer; display:flex; gap:10px; align-items:flex-start}
+  .mech-step:hover{border-color:#35527a; color:var(--text)}
+  .mech-step.active{border-color:var(--accent); color:var(--text); background:#132238}
+  .mech-step .idx{font-family:var(--mono); color:var(--accent); font-size:11px; margin-top:2px}
+  .mech-panel{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:22px; min-height:330px}
+  .mech-panel h3{margin:0 0 10px; font-size:22px}
+  .mech-panel p{color:#b9c9dd; margin:0 0 14px; white-space:pre-wrap}
+  .mech-panel pre{margin:0; background:#07101b; border:1px solid #1c2c44; border-radius:10px; padding:12px; overflow:auto; font-family:var(--mono); font-size:12px; color:#b7d7ff; max-height:180px; white-space:pre-wrap}
+  .mech-controls{display:flex; gap:8px; margin-top:16px; align-items:center}
+  .mech-controls .btn{padding:7px 12px; font-size:13px}
+  .mech-controls .hint{color:var(--dim); font-size:12px; margin-left:auto}
+  .code-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .code-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; grid-template-columns:36px 1fr; gap:12px}
+  .code-card .ord{font-family:var(--mono); color:var(--accent); font-size:12px; padding-top:2px}
+  .code-card .path{font-family:var(--mono); font-size:12px; color:#cfe3ff; word-break:break-all}
+  .code-card .role{font-size:12px; color:var(--muted); margin-top:4px}
+  .run-list{display:flex; flex-direction:column; gap:10px}
+  .run-row{display:grid; grid-template-columns:150px 1fr auto; gap:12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .run-row .label{font-weight:700; font-size:14px}
+  .run-row code{font-family:var(--mono); font-size:12.5px; color:#b7d7ff; overflow:auto; white-space:nowrap}
+  .copy{border:1px solid var(--line); background:#0d1726; color:var(--muted); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px}
+  .copy:hover{color:var(--text); border-color:#35527a}
+  .branch-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .branch{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .branch h3{margin:0 0 6px; font-family:var(--mono); font-size:15px}
+  .branch p{margin:0 0 8px; color:var(--muted); font-size:13px}
+  .branch .diff{font-family:var(--mono); font-size:11px; color:var(--warn)}
+  .cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+  .cheat{perspective:1000px; height:150px; background:none; border:0; padding:0; cursor:pointer; text-align:left}
+  .cheat-inner{position:relative; width:100%; height:100%; transition:transform .55s cubic-bezier(.2,.8,.2,1); transform-style:preserve-3d}
+  .cheat.flipped .cheat-inner{transform:rotateY(180deg)}
+  .cheat-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:center}
+  .cheat-front{background:linear-gradient(140deg,#14243a,#0d1726)}
+  .cheat-back{background:linear-gradient(140deg,#2a1630,#160f24); transform:rotateY(180deg); overflow:auto}
+  .cheat-face .q{font-size:15px; font-weight:800; line-height:1.4}
+  .cheat-face .a{font-size:13px; color:#d7c9e8; line-height:1.55}
+  .cheat-face .tag{font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:1px; margin-bottom:8px}
+  .source-list{color:var(--muted); font-size:13px}
+  .source-list li{margin:6px 0}
+  .footer{border-top:1px solid var(--line); color:var(--dim); font-size:12px; padding:24px 0 40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between}
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1; transform:none}
+  .empty{color:var(--dim); font-size:14px; padding:14px; border:1px dashed var(--line); border-radius:12px}
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr; gap:24px}
+    .arch-wrap{grid-template-columns:1fr}
+    .cards-3{grid-template-columns:1fr}
+    .code-grid{grid-template-columns:1fr}
+    .branch-grid{grid-template-columns:1fr}
+    .cheat-grid{grid-template-columns:1fr}
+    .mech{grid-template-columns:1fr}
+    .mech-list{flex-direction:row; overflow:auto; padding-bottom:4px}
+    .mech-step{min-width:220px}
+  }
+  @media (max-width:620px){
+    main{padding:0 14px 60px}
+    .topbar-inner{padding:10px 14px}
+    .run-row{grid-template-columns:1fr auto}
+    .run-row .label{grid-column:1/-1}
+    .hero{padding-top:48px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{scroll-behavior:auto!important; animation:none!important; transition:none!important}
+    .reveal{opacity:1; transform:none}
+  }
+  @media print{
+    body{background:#fff;color:#111}
+    .topbar,#progress,.actions,.mech-controls,.copy{display:none!important}
+    .card,.hero-side,.arch-detail,.mech-panel,.code-card,.run-row,.branch,.cheat-face{border-color:#ddd;background:#fff;color:#111}
+    .section{padding:24px 0}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Fork<span>You</span></div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#model">心智模型</a>
+      <a href="#architecture">架构</a>
+      <a href="#mechanism">核心机制</a>
+      <a href="#code">代码地图</a>
+      <a href="#run">跑起来</a>
+      <a href="#branches">分支</a>
+      <a href="#contribute">贡献</a>
+      <a href="#cheats">吹B卡片</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <div>
+      <div class="hero-kicker" id="heroKicker">ForkYou · Deep Guide</div>
+      <h1 class="hero-title"><span class="grad" id="heroTitle">__TITLE__</span></h1>
+      <p class="hero-sub" id="heroSub">__SUBTITLE__</p>
+      <div class="meta-row" id="metaRow"></div>
+      <div class="actions" id="heroActions"></div>
+    </div>
+    <aside class="hero-side">
+      <h3>一眼看穿</h3>
+      <div class="stat-grid" id="statGrid"></div>
+    </aside>
+  </section>
+
+  <section class="section reveal" id="model">
+    <div class="section-head">
+      <div class="eyebrow">01 · Mental Model</div>
+      <h2 class="section-title">60 秒心智模型</h2>
+      <p class="section-sub" id="modelSub">先用三句话建立地图，再往下看细节。</p>
+    </div>
+    <div class="cards-3" id="modelGrid"></div>
+  </section>
+
+  <section class="section reveal" id="architecture">
+    <div class="section-head">
+      <div class="eyebrow">02 · Architecture</div>
+      <h2 class="section-title" id="archTitle">架构图</h2>
+      <p class="section-sub">点一个模块，右侧看它负责什么。核心机制播放时，相关模块会高亮。</p>
+    </div>
+    <div class="arch-wrap">
+      <div class="arch-canvas"><div id="archSvg"></div></div>
+      <aside class="arch-detail" id="archDetail"></aside>
+    </div>
+  </section>
+
+  <section class="section reveal" id="mechanism">
+    <div class="section-head">
+      <div class="eyebrow">03 · Mechanism</div>
+      <h2 class="section-title" id="mechTitle">核心机制</h2>
+      <p class="section-sub">按步骤走一遍真实链路。可以自动播放，也可以手动翻。</p>
+    </div>
+    <div class="mech">
+      <div class="mech-list" id="mechList" role="tablist" aria-label="机制步骤"></div>
+      <div class="mech-panel">
+        <div id="mechBody"></div>
+        <div class="mech-controls">
+          <button class="btn" id="mechPrev" type="button">← 上一步</button>
+          <button class="btn primary" id="mechPlay" type="button">▶ 播放</button>
+          <button class="btn" id="mechNext" type="button">下一步 →</button>
+          <span class="hint" id="mechHint"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="code">
+    <div class="section-head">
+      <div class="eyebrow">04 · Code Map</div>
+      <h2 class="section-title">先读这几个文件</h2>
+      <p class="section-sub">按顺序读，别从 3000 个文件里随机游走。</p>
+    </div>
+    <div class="code-grid" id="codeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="run">
+    <div class="section-head">
+      <div class="eyebrow">05 · Run It</div>
+      <h2 class="section-title">跑起来</h2>
+      <p class="section-sub">复制命令即可。平台差异写在备注里。</p>
+    </div>
+    <div class="run-list" id="runList"></div>
+  </section>
+
+  <section class="section reveal" id="branches">
+    <div class="section-head">
+      <div class="eyebrow">06 · Branches</div>
+      <h2 class="section-title">分支差异</h2>
+      <p class="section-sub">默认分支之外的代码，可能才是你要找的答案。</p>
+    </div>
+    <div class="branch-grid" id="branchGrid"></div>
+  </section>
+
+  <section class="section reveal" id="contribute">
+    <div class="section-head">
+      <div class="eyebrow">07 · Contribute</div>
+      <h2 class="section-title">怎么参与</h2>
+      <p class="section-sub">从能跑、能测，到第一个能被接受的改动。</p>
+    </div>
+    <div class="cards-3" id="contributeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="cheats">
+    <div class="section-head">
+      <div class="eyebrow">08 · Cheat Cards</div>
+      <h2 class="section-title">面试 / 吹B卡片</h2>
+      <p class="section-sub">点卡片翻面。先自己答，再看答案。</p>
+    </div>
+    <div class="cheat-grid" id="cheatGrid"></div>
+  </section>
+
+  <section class="section reveal" id="sources">
+    <div class="section-head">
+      <div class="eyebrow">Sources</div>
+      <h2 class="section-title">来源</h2>
+    </div>
+    <ol class="source-list" id="sourceList"></ol>
+  </section>
+
+  <footer class="footer">
+    <div>Generated by ForkYou · <span id="genDate">__GENERATED__</span> · commit <span id="genCommit">__COMMIT__</span></div>
+    <div><a href="__UPSTREAM_URL__" target="_blank" rel="noreferrer">上游仓库</a> · <a href="README.md">项目 README</a></div>
+  </footer>
+</main>
+
+<script>window.GUIDE_DATA = __GUIDE_DATA__;</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/animejs/3.2.2/anime.min.js" onerror="this.onerror=null;this.src='https://cdn.staticfile.org/animejs/3.2.2/anime.min.js'"></script>
+<script>
+(function(){
+  "use strict";
+  const D = window.GUIDE_DATA || {};
+  const $ = (s, el) => (el || document).querySelector(s);
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = (v) => {
+    const s = String(v || "");
+    return /^https?:\/\//i.test(s) ? s : "";
+  };
+  const setText = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v; };
+
+  setText("heroTitle", D.title || "Unknown Project");
+  setText("heroSub", D.subtitle || D.one_liner || "");
+  setText("heroKicker", "ForkYou · " + (D.category || "Deep Guide"));
+  document.title = (D.title || "Project") + " · ForkYou Guide";
+
+  // meta chips
+  const meta = D.meta || {};
+  const links = D.links || {};
+  const chips = [];
+  if (meta.language) chips.push(["语言", meta.language]);
+  if (meta.license) chips.push(["License", meta.license]);
+  if (meta.stars != null) chips.push(["Stars", meta.stars]);
+  if (meta.commit) chips.push(["Commit", String(meta.commit).slice(0, 8)]);
+  if (meta.updated) chips.push(["更新", meta.updated]);
+  $("#metaRow").innerHTML = chips.map(([k,v]) => `<span class="chip">${esc(k)} <strong>${esc(v)}</strong></span>`).join("");
+
+  // actions
+  const actions = [];
+  if (safeUrl(links.github)) actions.push([links.github, "上游 GitHub", "primary"]);
+  if (safeUrl(links.homepage)) actions.push([links.homepage, "应用 / 官网", ""]);
+  if (safeUrl(links.docs)) actions.push([links.docs, "官方文档", ""]);
+  actions.push(["README.md", "项目 README", ""]);
+  $("#heroActions").innerHTML = actions.map(([href,label,cls]) =>
+    `<a class="btn ${cls}" href="${esc(href)}" ${safeUrl(href) ? 'target="_blank" rel="noreferrer"' : ""}>${esc(label)}</a>`
+  ).join("");
+
+  // stats
+  const stats = Array.isArray(D.stats) ? D.stats : [];
+  $("#statGrid").innerHTML = stats.length ? stats.map(s =>
+    `<div class="stat"><div class="v">${esc(s.value)}</div><div class="l">${esc(s.label)}</div></div>`
+  ).join("") : `<div class="empty">暂无统计数据</div>`;
+
+  // mental model
+  const model = Array.isArray(D.mental_model) ? D.mental_model : [];
+  $("#modelGrid").innerHTML = model.length ? model.map((m,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(m.title)}</h3><p>${esc(m.body)}</p></article>`
+  ).join("") : `<div class="empty">暂无内容</div>`;
+
+  // architecture
+  const arch = D.architecture || {};
+  setText("archTitle", arch.title || "架构图");
+  const layers = Array.isArray(arch.layers) ? arch.layers : [];
+  const positions = {};
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = [];
+  const W = 1000;
+  const rowH = 150;
+  const nodeW = 170, nodeH = 64;
+  const H = Math.max(420, layers.length * rowH + 100);
+  layers.forEach((layer, li) => {
+    const nodes = Array.isArray(layer.nodes) ? layer.nodes : [];
+    const n = Math.max(1, nodes.length);
+    const gap = n > 1 ? Math.min(230, 820 / (n - 1)) : 0;
+    const totalW = gap * (n - 1) + nodeW;
+    const startX = (W - totalW) / 2;
+    nodes.forEach((node, ni) => {
+      positions[node.id] = { x: startX + ni * gap, y: 60 + li * rowH, w: nodeW, h: nodeH, node, layer: layer.name };
+    });
+  });
+  const edges = Array.isArray(arch.edges) ? arch.edges : [];
+  svg.push(`<svg class="arch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(arch.title || "architecture diagram")}">`);
+  svg.push(`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b648f"/></marker></defs>`);
+  // layer labels
+  layers.forEach((layer, li) => {
+    svg.push(`<text x="24" y="${60 + li * rowH + 36}" fill="#4f6b8c" font-size="11" font-family="ui-monospace,monospace">${esc(layer.name || "")}</text>`);
+  });
+  // edges first
+  edges.forEach((e, i) => {
+    const a = positions[e.from], b = positions[e.to];
+    if (!a || !b) return;
+    let x1, y1, x2, y2, d;
+    if (a.layer === b.layer) {
+      const right = a.x < b.x;
+      x1 = right ? a.x + a.w : a.x; y1 = a.y + a.h/2;
+      x2 = right ? b.x : b.x + b.w; y2 = b.y + b.h/2;
+      d = `M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}`;
+    } else {
+      const down = a.y < b.y;
+      x1 = a.x + a.w/2; y1 = down ? a.y + a.h : a.y;
+      x2 = b.x + b.w/2; y2 = down ? b.y : b.y + b.h;
+      const midY = (y1 + y2) / 2;
+      d = `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+    }
+    svg.push(`<path class="edge" d="${d}" data-edge="${i}"/>`);
+    if (e.label) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      svg.push(`<text class="edge-label" x="${mx}" y="${my - 6}" text-anchor="middle">${esc(e.label)}</text>`);
+    }
+  });
+  // nodes
+  Object.entries(positions).forEach(([id, p]) => {
+    svg.push(`<g class="node" data-id="${esc(id)}" tabindex="0" role="button" aria-label="${esc(p.node.label || id)}">`);
+    svg.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="12"/>`);
+    svg.push(`<text x="${p.x + p.w/2}" y="${p.y + 27}" text-anchor="middle">${esc(p.node.label || id)}</text>`);
+    svg.push(`<text class="sub" x="${p.x + p.w/2}" y="${p.y + 45}" text-anchor="middle">${esc(p.layer || "")}</text>`);
+    svg.push(`</g>`);
+  });
+  svg.push(`</svg>`);
+  $("#archSvg").innerHTML = layers.length ? svg.join("") : `<div class="empty" style="padding:24px">暂无架构数据</div>`;
+
+  let activeNode = null;
+  function selectNode(id) {
+    const p = positions[id];
+    if (!p) return;
+    activeNode = id;
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("active", el.dataset.id === id));
+    $("#archDetail").innerHTML = `<div class="who">${esc(p.layer || "")}</div><h3>${esc(p.node.label || id)}</h3><p>${esc(p.node.desc || "暂无说明")}</p>`;
+  }
+  document.querySelectorAll(".node").forEach(el => {
+    el.addEventListener("click", () => selectNode(el.dataset.id));
+    el.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(el.dataset.id); } });
+  });
+  const firstNode = Object.keys(positions)[0];
+  if (firstNode) selectNode(firstNode); else $("#archDetail").innerHTML = `<div class="empty">暂无模块</div>`;
+
+  function highlightNodes(ids) {
+    const set = new Set(Array.isArray(ids) ? ids : []);
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("hl", set.has(el.dataset.id)));
+  }
+
+  // mechanism
+  const mech = D.mechanism || {};
+  setText("mechTitle", mech.title || "核心机制");
+  const steps = Array.isArray(mech.steps) ? mech.steps : [];
+  let stepIndex = 0;
+  let timer = null;
+  $("#mechList").innerHTML = steps.map((s,i) =>
+    `<button class="mech-step" type="button" role="tab" data-i="${i}" aria-selected="${i===0}"><span class="idx">${String(i+1).padStart(2,"0")}</span><span>${esc(s.title || "步骤")}</span></button>`
+  ).join("") || `<div class="empty">暂无机制数据</div>`;
+  function renderStep(i) {
+    if (!steps.length) return;
+    stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+    const s = steps[stepIndex];
+    document.querySelectorAll(".mech-step").forEach(el => {
+      const on = Number(el.dataset.i) === stepIndex;
+      el.classList.toggle("active", on);
+      el.setAttribute("aria-selected", String(on));
+    });
+    $("#mechBody").innerHTML = `<h3>${esc(s.title || "")}</h3><p>${esc(s.detail || "")}</p>${s.code ? `<pre>${esc(s.code)}</pre>` : ""}`;
+    highlightNodes(s.highlight);
+    setText("mechHint", `${stepIndex + 1} / ${steps.length}`);
+  }
+  document.querySelectorAll(".mech-step").forEach(el => el.addEventListener("click", () => { stopPlay(); renderStep(Number(el.dataset.i)); }));
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; } const b = $("#mechPlay"); if (b) b.textContent = "▶ 播放"; }
+  $("#mechPrev").addEventListener("click", () => { stopPlay(); renderStep(stepIndex - 1); });
+  $("#mechNext").addEventListener("click", () => { stopPlay(); renderStep(stepIndex + 1); });
+  $("#mechPlay").addEventListener("click", () => {
+    if (timer) { stopPlay(); return; }
+    if (!steps.length) return;
+    if (stepIndex >= steps.length - 1) renderStep(0);
+    $("#mechPlay").textContent = "⏸ 暂停";
+    timer = setInterval(() => {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      renderStep(stepIndex + 1);
+    }, 2600);
+  });
+  renderStep(0);
+
+  // code map
+  const codeMap = Array.isArray(D.code_map) ? D.code_map : [];
+  $("#codeGrid").innerHTML = codeMap.length ? codeMap.map((c,i) =>
+    `<article class="code-card"><div class="ord">${String(c.read_order || i+1).padStart(2,"0")}</div><div><div class="path">${safeUrl(c.url) ? `<a href="${esc(c.url)}" target="_blank" rel="noreferrer">${esc(c.path)}</a>` : esc(c.path)}</div><div class="role">${esc(c.role)}</div></div></article>`
+  ).join("") : `<div class="empty">暂无代码地图</div>`;
+
+  // run
+  const runs = Array.isArray(D.run) ? D.run : [];
+  $("#runList").innerHTML = runs.length ? runs.map((r,i) =>
+    `<div class="run-row"><div class="label">${esc(r.label)}</div><div><code id="cmd-${i}">${esc(r.command)}</code><div class="role" style="color:var(--dim);font-size:11px;margin-top:3px">${esc(r.note || "")}</div></div><button class="copy" type="button" data-cmd="cmd-${i}">复制</button></div>`
+  ).join("") : `<div class="empty">暂无运行说明</div>`;
+  document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", async () => {
+    const el = document.getElementById(btn.dataset.cmd);
+    if (!el) return;
+    try { await navigator.clipboard.writeText(el.textContent); btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1400); }
+    catch { btn.textContent = "复制失败"; }
+  }));
+
+  // branches
+  const branches = Array.isArray(D.branches) ? D.branches : [];
+  $("#branchGrid").innerHTML = branches.length ? branches.map(b =>
+    `<article class="branch"><h3>${esc(b.name)}</h3><p>${esc(b.purpose || "")}</p><div class="diff">${esc(b.diff || "")}</div>${safeUrl(b.url) ? `<p style="margin-top:8px"><a href="${esc(b.url)}" target="_blank" rel="noreferrer">看 diff →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无分支数据</div>`;
+
+  // contribute
+  const contribute = Array.isArray(D.contribute) ? D.contribute : [];
+  $("#contributeGrid").innerHTML = contribute.length ? contribute.map((c,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(c.title)}</h3><p>${esc(c.detail)}</p>${safeUrl(c.url) ? `<p style="margin-top:10px"><a href="${esc(c.url)}" target="_blank" rel="noreferrer">入口 →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无贡献说明</div>`;
+
+  // cheats
+  const cheats = Array.isArray(D.cheats) ? D.cheats : [];
+  $("#cheatGrid").innerHTML = cheats.length ? cheats.map((c,i) =>
+    `<button class="cheat" type="button" aria-pressed="false" data-i="${i}"><span class="cheat-inner"><span class="cheat-face cheat-front"><span class="tag">Q${String(i+1).padStart(2,"0")}</span><span class="q">${esc(c.q)}</span></span><span class="cheat-face cheat-back"><span class="tag">A</span><span class="a">${esc(c.a)}</span></span></span></button>`
+  ).join("") : `<div class="empty">暂无卡片</div>`;
+  document.querySelectorAll(".cheat").forEach(el => el.addEventListener("click", () => {
+    const on = el.classList.toggle("flipped");
+    el.setAttribute("aria-pressed", String(on));
+  }));
+
+  // sources
+  const sources = Array.isArray(D.sources) ? D.sources : [];
+  $("#sourceList").innerHTML = sources.length ? sources.map(s =>
+    `<li>${safeUrl(s.url) ? `<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.title || s.url)}</a>` : esc(s.title || "")}${s.date ? ` <span style="color:var(--dim)">(${esc(s.date)})</span>` : ""}</li>`
+  ).join("") : `<li>暂无来源</li>`;
+
+  // nav active + progress
+  const navLinks = Array.from(document.querySelectorAll(".nav a"));
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  function onScroll() {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    $("#progress").style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    let current = sections[0];
+    for (const s of sections) if (s.getBoundingClientRect().top <= 140) current = s;
+    navLinks.forEach(a => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+  // anime.js enhancement (optional)
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (window.anime && !reduce) {
+    try {
+      anime.timeline({ easing: "easeOutExpo", duration: 800 })
+        .add({ targets: ".hero-title", translateY: [24, 0], opacity: [0, 1] })
+        .add({ targets: ".hero-sub, .meta-row, .actions", translateY: [14, 0], opacity: [0, 1] }, "-=500")
+        .add({ targets: ".hero-side", translateY: [18, 0], opacity: [0, 1] }, "-=600")
+        .add({ targets: ".node", scale: [0.92, 1], opacity: [0, 1], delay: anime.stagger(45) }, "-=500");
+    } catch (e) { /* CSS fallback */ }
+  }
+})();
+</script>
+</body>
+</html>

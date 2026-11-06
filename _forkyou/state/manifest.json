@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "updated_at": "2026-11-06T17:21:07.062Z",
+  "projects": {
+    "github:oinkvm/oink": {
+      "id": "github:oinkvm/oink",
+      "name": "oink",
+      "provider": "github",
+      "upstream": "oinkvm/oink",
+      "fork": "FlyForkFork/oink",
+      "upstream_url": "https://github.com/oinkvm/oink",
+      "homepage": null,
+      "description": "Your computers, working as one. Share keyboard, mouse, trackpad, clipboard, drag and drop and audio across Macs and PCs.",
+      "one_liner": "Your computers, working as one. Share keyboard, mouse, trackpad, clipboard, drag and drop and audio across Macs and PCs.",
+      "category": "01-systems",
+      "path": "01-systems/oink",
+      "depth": "L2",
+      "length": "default",
+      "license": "GPL-3.0-only",
+      "language": "Rust",
+      "stars": 456,
+      "topics": [
+        "audio-sharing",
+        "barrier-alternative",
+        "clipboard-sync",
+        "cross-platform",
+        "drag-and-drop",
+        "keyboard-sharing",
+        "kvm",
+        "macos",
+        "mouse-sharing",
+        "productivity",
+        "rust",
+        "software-kvm",
+        "synergy-alternative",
+        "tauri",
+        "universal-control",
+        "windows"
+      ],
+      "default_branch": "main",
+      "status": "prepared",
+      "updated_at": "2026-11-06T17:21:07.062Z"
+    }
+  }
+}

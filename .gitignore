@@ -1,0 +1,7 @@
+# ForkYou 本地缓存
+# 源码克隆不在这里；这里只放预览、任务单、临时文件。
+_preview/
+_work/
+_tmp/
+*.log
+.DS_Store

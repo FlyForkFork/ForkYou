@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "workspace": "..",
+  "cache_dir": "../_cache",
+  "provider": {
+    "name": "github",
+    "org": "FlyForkFork",
+    "content_repo": "ForkYou",
+    "protocol": "ssh",
+    "token_env": "FORKYOU_GITHUB_TOKEN"
+  },
+  "analysis": {
+    "default_depth": "L2",
+    "default_length": "default",
+    "max_sources": 5,
+    "concurrency": 2,
+    "clone_depth": 1,
+    "max_branches": 20,
+    "categories": [
+      { "id": "01-systems", "label": "系统 / 桌面 / 跨设备" },
+      { "id": "02-ai-cv", "label": "AI / 计算机视觉" },
+      { "id": "03-infra", "label": "基础设施 / 运维" },
+      { "id": "04-data", "label": "数据 / 存储" },
+      { "id": "05-devtools", "label": "开发工具" },
+      { "id": "06-web", "label": "Web / 前端" },
+      { "id": "07-other", "label": "其他" }
+    ],
+    "category_overrides": {
+      "oink": "01-systems"
+    }
+  },
+  "publish": {
+    "branch": "main",
+    "author_name": "ForkYou Bot",
+    "author_email": "forkyou@users.noreply.github.com"
+  },
+  "pages": {
+    "enabled": false,
+    "base_url": ""
+  }
+}

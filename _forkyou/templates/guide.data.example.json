@@ -1,0 +1,70 @@
+{
+  "slug": "example",
+  "title": "Example",
+  "subtitle": "一句话说明它把什么变得更好",
+  "one_liner": "一句话说明它是什么。",
+  "category": "01-systems",
+  "tags": ["Rust", "Tauri"],
+  "meta": {
+    "upstream": "owner/repo",
+    "license": "MIT",
+    "stars": 1000,
+    "language": "Rust",
+    "commit": "0123456789abcdef",
+    "updated": "2026-11-07"
+  },
+  "links": {
+    "github": "https://github.com/owner/repo",
+    "homepage": null,
+    "docs": "https://github.com/owner/repo#readme"
+  },
+  "stats": [
+    { "label": "代码规模", "value": "1000 文件" },
+    { "label": "语言", "value": "Rust" },
+    { "label": "License", "value": "MIT" },
+    { "label": "分支", "value": "2" }
+  ],
+  "mental_model": [
+    { "title": "它是谁", "body": "用一句话建立角色。" },
+    { "title": "怎么工作", "body": "用一句话建立数据流。" },
+    { "title": "为什么特别", "body": "用一句话建立差异点。" }
+  ],
+  "architecture": {
+    "title": "分层架构",
+    "layers": [
+      { "name": "接入层", "nodes": [{ "id": "ui", "label": "UI", "desc": "负责展示与交互。" }] },
+      { "name": "核心层", "nodes": [{ "id": "core", "label": "Core", "desc": "负责核心状态机。" }] },
+      { "name": "平台层", "nodes": [{ "id": "os", "label": "OS Adapter", "desc": "封装平台差异。" }] }
+    ],
+    "edges": [
+      { "from": "ui", "to": "core", "label": "IPC" },
+      { "from": "core", "to": "os", "label": "syscall" }
+    ]
+  },
+  "mechanism": {
+    "title": "一次请求发生了什么",
+    "steps": [
+      { "title": "捕获", "detail": "说明第一步。", "highlight": ["ui"], "code": "example()" },
+      { "title": "路由", "detail": "说明第二步。", "highlight": ["core"], "code": "route()" },
+      { "title": "落地", "detail": "说明第三步。", "highlight": ["os"], "code": "apply()" }
+    ]
+  },
+  "code_map": [
+    { "path": "src/main.rs", "role": "程序入口", "read_order": 1, "url": "https://github.com/owner/repo/blob/commit/src/main.rs" }
+  ],
+  "run": [
+    { "label": "构建", "command": "cargo build", "note": "需要 Rust 1.80+" }
+  ],
+  "branches": [
+    { "name": "main", "purpose": "默认分支", "diff": "—", "url": "https://github.com/owner/repo" }
+  ],
+  "contribute": [
+    { "title": "第一个 PR", "detail": "从 good first issue 开始。", "url": "https://github.com/owner/repo/issues" }
+  ],
+  "cheats": [
+    { "q": "面试官问：它最大的设计亮点是什么？", "a": "30 秒答案。" }
+  ],
+  "sources": [
+    { "title": "README", "url": "https://github.com/owner/repo", "date": "2026-11-07" }
+  ]
+}
