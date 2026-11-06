@@ -54,7 +54,7 @@
     "author_email": "vipxyz@vip.qq.com"
   },
   "pages": {
-    "enabled": false,
+    "enabled": true,
     "base_url": "https://flyforkfork.github.io/ForkYou/"
   }
 }
