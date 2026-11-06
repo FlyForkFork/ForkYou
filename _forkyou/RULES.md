@@ -153,7 +153,7 @@ guide.html
 - 读代码建议：先读哪个分支，哪些分支可以忽略。
 - 分支风险：未合并、实验性、长期偏离。
 
-数据来源：`_cache/snapshots/github/<owner>/<repo>/snapshot.json` 和本地 `git diff`。不要靠猜。
+数据来源：`_cache/work/<id>/work.json` 的 `branches` 字段（分支 SHA/diffstat）和本地 `git diff`。不要靠猜。
 
 ### 07-contribute.md
 
@@ -215,6 +215,7 @@ guide.html
 - 动画基础用 CSS；anime.js 作为增强，CDN 用 BootCDN，Staticfile 兜底；加载失败不影响阅读。
 - 响应式；键盘可操作；尊重 `prefers-reduced-motion`。
 - 数据来自 `guide.data.json`，由 `render-guide` 注入模板，不手写 HTML。
+- 正常分析只做结构校验，不每次启动 headless Chrome/截图；用户报告 HTML 显示问题时再单独调试。
 
 ## 6. 分支分析
 

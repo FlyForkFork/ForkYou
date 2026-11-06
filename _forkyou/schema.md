@@ -5,23 +5,23 @@
 ```json
 {
   "schema": 1,
-  "id": "github:oinkvm/oink",
-  "name": "oink",
+  "id": "github:example-org/example-repo",
+  "name": "example-repo",
   "provider": "github",
-  "upstream": "oinkvm/oink",
-  "fork": "FlyForkFork/oink",
+  "upstream": "example-org/example-repo",
+  "fork": "example-org/example-repo",
   "category": "01-systems",
   "depth": "L2",
   "length": "default",
   "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
   "analyzed_at": "2026-11-07T01:30:00+08:00",
-  "upstream_url": "https://github.com/oinkvm/oink",
+  "upstream_url": "https://github.com/example-org/example-repo",
   "homepage": null,
   "license": "GPL-3.0-only",
-  "stars": 456,
+  "stars": 123,
   "language": "Rust",
   "topics": ["kvm", "tauri"],
-  "branches": ["main", "update-feed-state"],
+  "branches": ["main", "feature-x"],
   "docs": ["01-positioning.md", "..."],
   "guide": "guide.html",
   "sources": [{"title": "...", "url": "...", "date": "..."}]
@@ -37,14 +37,14 @@
   "schema": 1,
   "updated_at": "2026-11-07T01:30:00+08:00",
   "projects": {
-    "github:oinkvm/oink": {
-      "id": "github:oinkvm/oink",
-      "name": "oink",
+    "github:example-org/example-repo": {
+      "id": "github:example-org/example-repo",
+      "name": "example-repo",
       "provider": "github",
-      "upstream": "oinkvm/oink",
-      "fork": "FlyForkFork/oink",
+      "upstream": "example-org/example-repo",
+      "fork": "example-org/example-repo",
       "category": "01-systems",
-      "path": "01-systems/oink",
+      "path": "01-systems/example-repo",
       "status": "analyzed",
       "depth": "L2",
       "length": "default",
@@ -52,7 +52,7 @@
       "analyzed_at": "...",
       "upstream_commit": "546f65b...",
       "upstream_checked_at": "...",
-      "branches": ["main", "update-feed-state"],
+      "branches": ["main", "feature-x"],
       "error": null
     }
   }
@@ -65,27 +65,27 @@
 
 ```json
 {
-  "slug": "oink",
-  "title": "oink",
-  "subtitle": "把 Mac 和 PC 变成一套键鼠/剪贴板/音频",
+  "slug": "example-repo",
+  "title": "example-repo",
+  "subtitle": "一句话描述这个项目",
   "one_liner": "一句话",
   "category": "01-systems",
-  "tags": ["Rust", "Tauri"],
+  "tags": ["Rust", "CLI"],
   "meta": {
-    "upstream": "oinkvm/oink",
+    "upstream": "example-org/example-repo",
     "license": "GPL-3.0-only",
-    "stars": 456,
+    "stars": 123,
     "language": "Rust",
     "commit": "546f65b...",
     "updated": "2026-11-06"
   },
   "links": {
-    "github": "https://github.com/oinkvm/oink",
+    "github": "https://github.com/example-org/example-repo",
     "homepage": null,
-    "docs": "https://github.com/oinkvm/oink#readme"
+    "docs": "https://github.com/example-org/example-repo#readme"
   },
   "stats": [
-    {"label": "代码规模", "value": "3944 文件"},
+    {"label": "代码规模", "value": "1000 文件"},
     {"label": "语言", "value": "Rust + TypeScript"},
     {"label": "License", "value": "GPL-3.0-only"},
     {"label": "分支", "value": "2"}
@@ -98,7 +98,7 @@
   "architecture": {
     "title": "分层架构",
     "layers": [
-      {"name": "接入层", "nodes": [{"id": "ui", "label": "Tauri UI", "desc": "..."}]},
+      {"name": "接入层", "nodes": [{"id": "ui", "label": "UI", "desc": "..."}]},
       {"name": "核心层", "nodes": [{"id": "agent", "label": "Agent", "desc": "..."}]}
     ],
     "edges": [
@@ -112,7 +112,7 @@
     ]
   },
   "code_map": [
-    {"path": "crates/oink-routing/src/router.rs", "role": "路由状态机", "read_order": 1, "url": "https://github.com/..."}
+    {"path": "src/router.rs", "role": "路由状态机", "read_order": 1, "url": "https://github.com/..."}
   ],
   "run": [
     {"label": "构建", "command": "cargo build", "note": "..."}

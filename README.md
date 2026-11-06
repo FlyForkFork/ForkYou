@@ -1,16 +1,24 @@
 # ForkYou
 
-> 把我感兴趣的开源项目 fork 过来，用一套可复现的流程拆开看：它解决什么问题、怎么设计、代码怎么读、能偷什么。
+> 把我感兴趣的开源项目 fork 过来，用一套可复现的流程拆开看：它解决什么问题、怎么设计、代码怎么读、能借鉴什么。
 
 ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的源码克隆放在工作区根目录，与 `ForkYou` 同级：
 
 ```text
 <workspace>/
   ForkYou/          # 本仓库：分析文档、guide、规则、脚本
-  oink/             # 源码克隆（所有分支）
-  WechatOnCloud/    # 下一个源码克隆
+  <fork-a>/         # 源码克隆（所有分支）
+  <fork-b>/         # 下一个源码克隆
   _cache/           # 预览、任务单、临时文件（不进 Git）
 ```
+
+## 项目索引
+
+<!-- FORKYOU:INDEX:START -->
+还没有分析结果。
+
+运行 `node ForkYou/_forkyou/scripts/forkyou.mjs sync` 开始。
+<!-- FORKYOU:INDEX:END -->
 
 ## 怎么用
 
@@ -22,33 +30,25 @@ node ForkYou/_forkyou/scripts/forkyou.mjs doctor
 node ForkYou/_forkyou/scripts/forkyou.mjs sync
 
 # 3. 只处理一个 / 多个新 fork
-node ForkYou/_forkyou/scripts/forkyou.mjs sync --only oink,WechatOnCloud
+node ForkYou/_forkyou/scripts/forkyou.mjs sync --only my-fork-a,my-fork-b
 
 # 4. 强制分析指定项目（不论新旧）
-node ForkYou/_forkyou/scripts/forkyou.mjs analyze oink
+node ForkYou/_forkyou/scripts/forkyou.mjs analyze my-fork
 
 # 5. 上游有更新时刷新
-node ForkYou/_forkyou/scripts/forkyou.mjs refresh oink
+node ForkYou/_forkyou/scripts/forkyou.mjs refresh my-fork
 
 # 6. 全量重建
 node ForkYou/_forkyou/scripts/forkyou.mjs rebuild --all
 
 # 7. 发布到 GitHub
-node ForkYou/_forkyou/scripts/forkyou.mjs publish --project oink
+node ForkYou/_forkyou/scripts/forkyou.mjs publish --project my-fork
 
 # 8. 首次启用 GitHub Pages
 node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable
 ```
 
 Agent 的完整工作流在 [`_forkyou/SKILL.md`](_forkyou/SKILL.md)，分析规则在 [`_forkyou/RULES.md`](_forkyou/RULES.md)。
-
-## 项目索引
-
-<!-- FORKYOU:INDEX:START -->
-还没有分析结果。
-
-运行 `node ForkYou/_forkyou/scripts/forkyou.mjs sync` 开始。
-<!-- FORKYOU:INDEX:END -->
 
 ## 目录约定
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { ensureDir, runCommand, writeJson, nowIso, shortSha } from './util.mjs';
+import { ensureDir, runCommand, nowIso, shortSha } from './util.mjs';
 
 export function git(args, cwd, opts = {}) {
   return runCommand('git', args, {
@@ -63,15 +63,7 @@ export function ensureLocalBranches(repoDir, branches) {
   }
 }
 
-function removeWorktree(repoDir, dir) {
-  if (!fs.existsSync(dir)) return;
-  git(['worktree', 'remove', '--force', dir], repoDir, { allowFail: true });
-  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
-  git(['worktree', 'prune'], repoDir, { allowFail: true });
-}
-
-export function prepareSnapshot({ provider, upstream, cloneDir, snapshotRoot, defaultBranch, maxBranches = 20 }) {
-  ensureDir(snapshotRoot);
+export function collectBranchInfo({ provider, upstream, cloneDir, defaultBranch, maxBranches = 20 }) {
   const branches = listRemoteBranches(cloneDir);
   if (!branches.length) throw new Error(`No remote branches in ${cloneDir}`);
   const selected = branches.slice(0, Math.max(1, maxBranches));
@@ -79,25 +71,19 @@ export function prepareSnapshot({ provider, upstream, cloneDir, snapshotRoot, de
     schema: 1,
     provider,
     upstream,
-    fetched_at: nowIso(),
+    inspected_at: nowIso(),
     clone_dir: cloneDir,
     default_branch: defaultBranch || branches[0],
     branches: [],
     branches_skipped: branches.slice(selected.length)
   };
   for (const branch of selected) {
-    const safe = branch.replace(/[\\/]/g, '__');
-    const dir = path.join(snapshotRoot, safe);
-    removeWorktree(cloneDir, dir);
-    git(['worktree', 'add', '--force', '--detach', dir, `origin/${branch}`], cloneDir);
-    const sha = git(['rev-parse', 'HEAD'], dir).stdout.trim();
+    const sha = remoteBranchSha(cloneDir, branch);
     const files = Number(git(['ls-tree', '-r', '--name-only', `origin/${branch}`], cloneDir).stdout.split(/\r?\n/).filter(Boolean).length);
     const entry = {
       name: branch,
-      safe_name: safe,
       sha,
       short_sha: shortSha(sha),
-      dir,
       files,
       default: branch === info.default_branch
     };
@@ -122,7 +108,6 @@ export function prepareSnapshot({ provider, upstream, cloneDir, snapshotRoot, de
     }
     info.branches.push(entry);
   }
-  writeJson(path.join(snapshotRoot, 'snapshot.json'), info);
   return info;
 }
 

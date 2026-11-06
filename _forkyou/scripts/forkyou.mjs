@@ -11,7 +11,7 @@ import {
 } from './lib/github.mjs';
 import {
   cloneOrFetch, listRemoteBranches, remoteBranchSha, ensureLocalBranches,
-  prepareSnapshot, ensureIdentity, commitPaths, repoStatus
+  collectBranchInfo, ensureIdentity, commitPaths, repoStatus
 } from './lib/git.mjs';
 import {
   loadManifest, saveManifest, projectId, classify, upsertProject, findByName,
@@ -22,7 +22,6 @@ import { renderGuide, renderRootReadme } from './lib/render.mjs';
 const CACHE = path.join(WORKSPACE, '_cache');
 const WORK = path.join(CACHE, 'work');
 const PREVIEW = path.join(CACHE, 'preview');
-const SNAPSHOTS = path.join(CACHE, 'snapshots');
 
 function out(s = '') { console.log(s); }
 function err(s = '') { console.error(s); }
@@ -78,11 +77,6 @@ function cloneDir(project) {
   return path.join(WORKSPACE, project.name);
 }
 
-function snapshotDir(project) {
-  const [owner, repo] = project.upstream.split('/');
-  return path.join(SNAPSHOTS, project.provider, owner, repo);
-}
-
 function workOrderPath(project, preview) {
   return path.join(preview ? PREVIEW : WORK, project.name, 'work.json');
 }
@@ -91,8 +85,8 @@ function outputDir(project, preview) {
   return preview ? path.join(PREVIEW, project.name) : path.join(REPO_ROOT, project.path);
 }
 
-function metaSeed(project, snapshot) {
-  const main = snapshot.branches.find(b => b.default) || snapshot.branches[0];
+function metaSeed(project, branchInfo) {
+  const main = branchInfo.branches.find(b => b.default) || branchInfo.branches[0];
   return {
     id: project.id,
     name: project.name,
@@ -112,12 +106,11 @@ function metaSeed(project, snapshot) {
     stars: project.stars || 0,
     analyzed_commit: main.sha,
     analyzed_at: nowIso(),
-    branches: snapshot.branches.map(b => ({
+    branches: branchInfo.branches.map(b => ({
       name: b.name, sha: b.sha, default: b.default, ahead: b.ahead, behind: b.behind, diffstat: b.diffstat
     })),
     docs: [
       'README.md', '01-positioning.md', '02-architecture.md', '03-code-tour.md',
-      '04-deep-dive-routing.md', '04-deep-dive-network.md',
       '05-performance.md', '06-branches.md', '07-contribute.md', '08-takeaways.md', '09-ops.md'
     ],
     guide: 'guide.html'
@@ -134,11 +127,10 @@ async function prepareOne(project, opts) {
   });
   const branches = listRemoteBranches(repoDir);
   ensureLocalBranches(repoDir, branches);
-  const snap = prepareSnapshot({
+  const branchInfo = collectBranchInfo({
     provider: project.provider,
     upstream: project.upstream,
     cloneDir: repoDir,
-    snapshotRoot: snapshotDir(project),
     defaultBranch: project.default_branch,
     maxBranches: Number(config.analysis.max_branches || 20)
   });
@@ -151,14 +143,12 @@ async function prepareOne(project, opts) {
     preview,
     project,
     clone_dir: repoDir,
-    snapshot_dir: snapshotDir(project),
-    snapshot_file: path.join(snapshotDir(project), 'snapshot.json'),
     output_dir: dir,
     rules: path.join(REPO_ROOT, '_forkyou', 'RULES.md'),
     skill: path.join(REPO_ROOT, '_forkyou', 'SKILL.md'),
     templates: TEMPLATES_DIR,
-    meta_seed: metaSeed(project, snap),
-    branches: snap.branches.map(b => ({
+    meta_seed: metaSeed(project, branchInfo),
+    branches: branchInfo.branches.map(b => ({
       name: b.name, sha: b.sha, default: b.default, ahead: b.ahead, behind: b.behind,
       files: b.files, diffstat: b.diffstat,
       changed_files_total: b.changed_files_total, changed_files: b.changed_files,
@@ -169,18 +159,18 @@ async function prepareOne(project, opts) {
   };
   writeJson(workOrderPath(project, preview), order);
   out(`[work] ${path.relative(WORKSPACE, workOrderPath(project, preview))}`);
-  out(`[snapshot] ${snap.branches.length} branch(es), default=${snap.default_branch}`);
-  return { order, snap, repoDir, dir, preview };
+  out(`[branches] ${branchInfo.branches.length} branch(es), default=${branchInfo.default_branch}`);
+  return { order, branchInfo, repoDir, dir, preview };
 }
 
-function updateProjectFromPrepare(project, snap, preview) {
+function updateProjectFromPrepare(project, branchInfo, preview) {
   if (preview) return;
   const manifest = loadManifest();
   const p = manifest.projects[project.id];
   if (!p) return;
   p.status = 'prepared';
-  p.branches = snap.branches.map(b => ({ name: b.name, sha: b.sha, default: b.default, diffstat: b.diffstat }));
-  p.default_branch = snap.default_branch;
+  p.branches = branchInfo.branches.map(b => ({ name: b.name, sha: b.sha, default: b.default, diffstat: b.diffstat }));
+  p.default_branch = branchInfo.default_branch;
   p.prepared_at = nowIso();
   saveManifest(manifest);
 }
@@ -261,8 +251,8 @@ async function sync(opts) {
     upsertProject(manifest, project);
     saveManifest(manifest);
     try {
-      const { snap, preview } = await prepareOne(project, opts);
-      updateProjectFromPrepare(project, snap, preview);
+      const { branchInfo, preview } = await prepareOne(project, opts);
+      updateProjectFromPrepare(project, branchInfo, preview);
       out(`  ready: ${project.name} (${project.depth}/${project.length})`);
     } catch (e) {
       manifest.projects[project.id].status = 'failed';
@@ -300,8 +290,8 @@ async function analyze(opts) {
     if (opts.length) project.length = String(opts.length);
     project.path = projectPath(project);
     const preview = bool(opts['dry-run']) || bool(opts.preview);
-    const { snap } = await prepareOne(project, opts);
-    updateProjectFromPrepare(project, snap, preview);
+    const { branchInfo } = await prepareOne(project, opts);
+    updateProjectFromPrepare(project, branchInfo, preview);
     out(`  output: ${path.relative(WORKSPACE, outputDir(project, preview))}`);
   }
 }
@@ -325,8 +315,8 @@ async function refresh(opts) {
     }
     p.depth = opts.depth || p.depth;
     p.length = String(opts.length || p.length || 'default');
-    const { snap } = await prepareOne(p, opts);
-    updateProjectFromPrepare(p, snap, bool(opts['dry-run']));
+    const { branchInfo } = await prepareOne(p, opts);
+    updateProjectFromPrepare(p, branchInfo, bool(opts['dry-run']));
     out(`  refreshed: ${p.name} ${shortSha(sha)}`);
   }
 }
@@ -339,8 +329,8 @@ async function rebuild(opts) {
     const p = findByName(manifest, name);
     if (!p) { err(`skip ${name}: not in manifest`); continue; }
     const project = { ...p, path: projectPath(p) };
-    const { snap } = await prepareOne(project, opts);
-    updateProjectFromPrepare(project, snap, bool(opts['dry-run']));
+    const { branchInfo } = await prepareOne(project, opts);
+    updateProjectFromPrepare(project, branchInfo, bool(opts['dry-run']));
     out(`  rebuilt: ${project.name}`);
   }
 }
@@ -496,28 +486,11 @@ async function pagesCmd(opts) {
 }
 
 function cacheGc(opts) {
-  const snapshots = path.join(CACHE, 'snapshots');
   let removed = 0;
-  if (fs.existsSync(snapshots)) {
-    for (const provider of fs.readdirSync(snapshots)) {
-      const pdir = path.join(snapshots, provider);
-      for (const owner of fs.readdirSync(pdir)) {
-        const odir = path.join(pdir, owner);
-        for (const repo of fs.readdirSync(odir)) {
-          const rdir = path.join(odir, repo);
-          const snapFile = path.join(rdir, 'snapshot.json');
-          const snap = fs.existsSync(snapFile) ? readJson(snapFile) : null;
-          // One snapshot set per repo: keep every branch referenced by snapshot.json.
-          const keep = new Set((snap?.branches || []).map(b => b.safe_name).filter(Boolean));
-          for (const e of fs.readdirSync(rdir, { withFileTypes: true })) {
-            if (!e.isDirectory() || keep.has(e.name)) continue;
-            const target = path.join(rdir, e.name);
-            out(`remove ${path.relative(WORKSPACE, target)}`);
-            if (!bool(opts['dry-run'])) { fs.rmSync(target, { recursive: true, force: true }); removed += 1; }
-          }
-        }
-      }
-    }
+  for (const target of [path.join(CACHE, 'snapshots'), path.join(CACHE, 'tmp')]) {
+    if (!fs.existsSync(target)) continue;
+    out(`remove ${path.relative(WORKSPACE, target)}`);
+    if (!bool(opts['dry-run'])) { fs.rmSync(target, { recursive: true, force: true }); removed += 1; }
   }
   out(`cache gc: ${removed} removed${bool(opts['dry-run']) ? ' (dry-run)' : ''}`);
 }

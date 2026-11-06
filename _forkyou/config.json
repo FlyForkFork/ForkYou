@@ -46,17 +46,15 @@
         "label": "其他"
       }
     ],
-    "category_overrides": {
-      "oink": "01-systems"
-    }
+    "category_overrides": {}
   },
   "publish": {
     "branch": "main",
-    "author_name": "ForkYou Bot",
-    "author_email": "forkyou@users.noreply.github.com"
+    "author_name": "zhaofeifei",
+    "author_email": "vipxyz@vip.qq.com"
   },
   "pages": {
-    "enabled": true,
+    "enabled": false,
     "base_url": "https://flyforkfork.github.io/ForkYou/"
   }
 }

@@ -1,9 +1,9 @@
 # ForkYou 工作区
 
-- 这个工作区用来分析 `FlyForkFork` 组织下我 fork 的开源项目。
+- 这个工作区用来分析 `<你的 GitHub 组织>` 下我 fork 的开源项目。
 - 所有规则、技能、脚本、模板都在 `ForkYou/_forkyou/`。
 - 动手前先读 `ForkYou/_forkyou/SKILL.md`，再读 `ForkYou/_forkyou/RULES.md`。
 - 常用检查：`node ForkYou/_forkyou/scripts/forkyou.mjs doctor`
-- 每个 fork 的源码克隆放在工作区根目录的 `<仓库名>`，与 `ForkYou` 同级（当前机器是 `D:\FlyForkFork`）。
+- 每个 fork 的源码克隆放在工作区根目录的 `<仓库名>`，与 `ForkYou` 同级。
 - 分析结果放进 `ForkYou/<一级分类>/<项目名>/`，根索引是 `ForkYou/README.md`。
 - `_cache` 只放预览、任务单和临时文件，不放源码克隆。
