@@ -14,6 +14,7 @@
 | `schema.md` | `meta.json` / `manifest.json` / `guide.data.json` 字段说明 |
 | `templates/` | 项目 README、文档骨架、guide 模板 |
 | `scripts/forkyou.mjs` | CLI 主入口 |
+| `scripts/selftest.mjs` | 纯函数自检（分类、路径、参数解析） |
 | `scripts/lib/` | git、GitHub、manifest、render 工具 |
 | `state/manifest.json` | 所有项目的状态机 |
 
