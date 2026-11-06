@@ -15,7 +15,7 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **2** 个项目。最后更新：2026-11-06 19:32:55。
+已分析 **3** 个项目。最后更新：2026-11-06 19:33:32。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
@@ -23,6 +23,12 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 |---|---|---|---|---|---|---|
 | [mac-everything](01-systems/mac-everything/README.md) | based on Mac Everything | [YuSec2021/mac-everything](https://github.com/YuSec2021/mac-everything) | [打开](https://github.com/YuSec2021/mac-everything/releases) | L2 | 2026-11-07 | [Wiki](01-systems/mac-everything/README.md) · [Guide](01-systems/mac-everything/guide.html) |
 | [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | L2 | 2026-11-07 | [Wiki](01-systems/oink/README.md) · [Guide](01-systems/oink/guide.html) |
+
+### 03-infra · 基础设施 / 运维
+
+| 项目 | 一句话 | 上游 | 应用地址 | 深度 | 更新 | 分析 |
+|---|---|---|---|---|---|---|
+| [WechatOnCloud](03-infra/WechatOnCloud/README.md) | 云微WOC，云微信，自由连接 | [Gloridust/WechatOnCloud](https://github.com/Gloridust/WechatOnCloud) | [打开](https://github.com/Gloridust/WechatOnCloud#readme) | L2 | 2026-11-07 | [Wiki](03-infra/WechatOnCloud/README.md) · [Guide](03-infra/WechatOnCloud/guide.html) |
 
 <!-- FORKYOU:INDEX:END -->
 

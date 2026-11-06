@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>WechatOnCloud · 云微 · ForkYou Guide</title>
+<style>
+  :root{
+    --bg:#070b12; --bg2:#0b1220; --panel:#111a28; --panel2:#162235;
+    --line:#23324a; --text:#e8eef7; --muted:#8fa3bd; --dim:#5d7290;
+    --accent:#4cc9f0; --accent2:#f72585; --ok:#3ddc97; --warn:#ffb703;
+    --radius:16px; --shadow:0 18px 60px rgba(0,0,0,.45);
+    --max:1180px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:
+      radial-gradient(1000px 600px at 15% -10%, rgba(76,201,240,.14), transparent 60%),
+      radial-gradient(900px 500px at 95% 5%, rgba(247,37,133,.10), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  #progress{position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2)); z-index:100}
+  .topbar{
+    position:sticky; top:0; z-index:90; backdrop-filter:blur(14px);
+    background:rgba(7,11,18,.82); border-bottom:1px solid rgba(35,50,74,.7);
+  }
+  .topbar-inner{max-width:var(--max); margin:0 auto; padding:12px 22px; display:flex; align-items:center; gap:18px}
+  .brand{font-weight:800; letter-spacing:.5px; white-space:nowrap}
+  .brand span{color:var(--accent)}
+  .nav{display:flex; gap:14px; overflow:auto; scrollbar-width:none; flex:1}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{color:var(--muted); font-size:13px; white-space:nowrap; padding:4px 0; border-bottom:2px solid transparent}
+  .nav a.active,.nav a:hover{color:var(--text); border-bottom-color:var(--accent); text-decoration:none}
+  main{max-width:var(--max); margin:0 auto; padding:0 22px 80px}
+  .section{padding:64px 0 12px}
+  .section-head{margin-bottom:24px}
+  .eyebrow{font-size:12px; letter-spacing:2.4px; text-transform:uppercase; color:var(--accent); font-weight:700}
+  .section-title{font-size:clamp(24px,3.2vw,36px); line-height:1.2; margin:8px 0 6px; letter-spacing:-.5px}
+  .section-sub{color:var(--muted); margin:0; max-width:780px}
+  .hero{padding:80px 0 30px; display:grid; grid-template-columns:1.25fr .75fr; gap:44px; align-items:center}
+  .hero-kicker{font-size:13px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; font-weight:700}
+  .hero-title{font-size:clamp(46px,8vw,92px); line-height:.95; letter-spacing:-3px; margin:12px 0 18px; font-weight:900}
+  .hero-title .grad{background:linear-gradient(90deg,var(--accent),#a78bfa 55%,var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero-sub{font-size:clamp(16px,2vw,21px); color:#c4d2e5; max-width:680px; margin:0 0 22px}
+  .meta-row{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 24px}
+  .chip{border:1px solid var(--line); background:rgba(22,34,53,.75); color:#b9c9dd; border-radius:999px; padding:5px 11px; font-size:12px; font-family:var(--mono)}
+  .chip strong{color:var(--text)}
+  .actions{display:flex; flex-wrap:wrap; gap:10px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border-radius:12px; padding:11px 16px; font-weight:700; font-size:14px; border:1px solid var(--line); color:var(--text); background:var(--panel); cursor:pointer}
+  .btn:hover{text-decoration:none; border-color:#35527a; transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2f8fd8); color:#04121f; border-color:transparent}
+  .hero-side{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:22px; padding:22px; box-shadow:var(--shadow)}
+  .hero-side h3{margin:0 0 12px; font-size:13px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .stat{background:rgba(7,11,18,.45); border:1px solid rgba(35,50,74,.8); border-radius:12px; padding:12px}
+  .stat .v{font-size:19px; font-weight:800; line-height:1.2}
+  .stat .l{font-size:11px; color:var(--muted); margin-top:3px}
+  .cards-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .card{background:linear-gradient(180deg,rgba(22,34,53,.86),rgba(12,20,33,.86)); border:1px solid var(--line); border-radius:var(--radius); padding:20px; transition:transform .2s,border-color .2s}
+  .card:hover{transform:translateY(-3px); border-color:#35527a}
+  .card .num{font-family:var(--mono); color:var(--accent); font-size:12px; letter-spacing:1px}
+  .card h3{margin:8px 0 8px; font-size:18px}
+  .card p{margin:0; color:var(--muted); font-size:14px}
+  .arch-wrap{display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:stretch}
+  .arch-canvas{background:rgba(10,17,28,.72); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; min-height:420px}
+  .arch-svg{width:100%; height:auto; display:block}
+  .arch-detail{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:20px}
+  .arch-detail h3{margin:0 0 8px; font-size:18px}
+  .arch-detail p{margin:0; color:var(--muted); font-size:14px}
+  .arch-detail .who{font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:10px}
+  .node{cursor:pointer}
+  .node rect{fill:#111d2e; stroke:#2a4264; stroke-width:1.5; rx:12}
+  .node:hover rect,.node.active rect{fill:#162b46; stroke:var(--accent); stroke-width:2}
+  .node.hl rect{fill:#1d3a5c; stroke:var(--accent2); stroke-width:2.5; filter:drop-shadow(0 0 10px rgba(247,37,133,.35))}
+  .node text{fill:#dce9f8; font-family:var(--sans); font-size:14px; font-weight:700; pointer-events:none}
+  .node .sub{fill:#7f95b2; font-size:10px; font-weight:500}
+  .edge{fill:none; stroke:#2b4a6d; stroke-width:1.6; marker-end:url(#arrow)}
+  .edge-label{fill:#6e86a4; font-size:10px; font-family:var(--mono)}
+  .mech{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
+  .mech-list{display:flex; flex-direction:column; gap:8px}
+  .mech-step{text-align:left; border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:12px; padding:12px 14px; cursor:pointer; display:flex; gap:10px; align-items:flex-start}
+  .mech-step:hover{border-color:#35527a; color:var(--text)}
+  .mech-step.active{border-color:var(--accent); color:var(--text); background:#132238}
+  .mech-step .idx{font-family:var(--mono); color:var(--accent); font-size:11px; margin-top:2px}
+  .mech-panel{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:22px; min-height:330px}
+  .mech-panel h3{margin:0 0 10px; font-size:22px}
+  .mech-panel p{color:#b9c9dd; margin:0 0 14px; white-space:pre-wrap}
+  .mech-panel pre{margin:0; background:#07101b; border:1px solid #1c2c44; border-radius:10px; padding:12px; overflow:auto; font-family:var(--mono); font-size:12px; color:#b7d7ff; max-height:180px; white-space:pre-wrap}
+  .mech-controls{display:flex; gap:8px; margin-top:16px; align-items:center}
+  .mech-controls .btn{padding:7px 12px; font-size:13px}
+  .mech-controls .hint{color:var(--dim); font-size:12px; margin-left:auto}
+  .code-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .code-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; grid-template-columns:36px 1fr; gap:12px}
+  .code-card .ord{font-family:var(--mono); color:var(--accent); font-size:12px; padding-top:2px}
+  .code-card .path{font-family:var(--mono); font-size:12px; color:#cfe3ff; word-break:break-all}
+  .code-card .role{font-size:12px; color:var(--muted); margin-top:4px}
+  .run-list{display:flex; flex-direction:column; gap:10px}
+  .run-row{display:grid; grid-template-columns:150px 1fr auto; gap:12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .run-row .label{font-weight:700; font-size:14px}
+  .run-row code{font-family:var(--mono); font-size:12.5px; color:#b7d7ff; overflow:auto; white-space:nowrap}
+  .copy{border:1px solid var(--line); background:#0d1726; color:var(--muted); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px}
+  .copy:hover{color:var(--text); border-color:#35527a}
+  .branch-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .branch{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .branch h3{margin:0 0 6px; font-family:var(--mono); font-size:15px}
+  .branch p{margin:0 0 8px; color:var(--muted); font-size:13px}
+  .branch .diff{font-family:var(--mono); font-size:11px; color:var(--warn)}
+  .cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+  .cheat{perspective:1000px; height:150px; background:none; border:0; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit; display:block; width:100%; -webkit-appearance:none; appearance:none}
+  .cheat-inner{position:relative; width:100%; height:100%; transition:transform .55s cubic-bezier(.2,.8,.2,1); -webkit-transform-style:preserve-3d; transform-style:preserve-3d}
+  .cheat.flipped .cheat-inner{transform:rotateY(180deg)}
+  .cheat-face{position:absolute; inset:0; -webkit-backface-visibility:hidden; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:center}
+  .cheat-front{background:linear-gradient(140deg,#14243a,#0d1726)}
+  .cheat-back{background:linear-gradient(140deg,#2a1630,#160f24); transform:rotateY(180deg); overflow:auto}
+  .cheat-face .q{font-size:15px; font-weight:800; line-height:1.4}
+  .cheat-face .a{font-size:13px; color:#d7c9e8; line-height:1.55}
+  .cheat-face .tag{font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:1px; margin-bottom:8px}
+  .source-list{color:var(--muted); font-size:13px}
+  .source-list li{margin:6px 0}
+  .footer{border-top:1px solid var(--line); color:var(--dim); font-size:12px; padding:24px 0 40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between}
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1; transform:none}
+  .empty{color:var(--dim); font-size:14px; padding:14px; border:1px dashed var(--line); border-radius:12px}
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr; gap:24px}
+    .arch-wrap{grid-template-columns:1fr}
+    .cards-3{grid-template-columns:1fr}
+    .code-grid{grid-template-columns:1fr}
+    .branch-grid{grid-template-columns:1fr}
+    .cheat-grid{grid-template-columns:1fr}
+    .mech{grid-template-columns:1fr}
+    .mech-list{flex-direction:row; overflow:auto; padding-bottom:4px}
+    .mech-step{min-width:220px}
+  }
+  @media (max-width:620px){
+    main{padding:0 14px 60px}
+    .topbar-inner{padding:10px 14px}
+    .run-row{grid-template-columns:1fr auto}
+    .run-row .label{grid-column:1/-1}
+    .hero{padding-top:48px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{scroll-behavior:auto!important; animation:none!important; transition:none!important}
+    .reveal{opacity:1; transform:none}
+  }
+  @media print{
+    body{background:#fff;color:#111}
+    .topbar,#progress,.actions,.mech-controls,.copy{display:none!important}
+    .card,.hero-side,.arch-detail,.mech-panel,.code-card,.run-row,.branch,.cheat-face{border-color:#ddd;background:#fff;color:#111}
+    .section{padding:24px 0}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Fork<span>You</span></div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#model">心智模型</a>
+      <a href="#architecture">架构</a>
+      <a href="#mechanism">核心机制</a>
+      <a href="#code">代码地图</a>
+      <a href="#run">跑起来</a>
+      <a href="#branches">分支</a>
+      <a href="#contribute">贡献</a>
+      <a href="#cheats">吹B卡片</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <div>
+      <div class="hero-kicker" id="heroKicker">ForkYou · Deep Guide</div>
+      <h1 class="hero-title"><span class="grad" id="heroTitle">WechatOnCloud · 云微</span></h1>
+      <p class="hero-sub" id="heroSub">把一台登录着微信的 Linux 桌面放进容器，再用面板分给多个浏览器</p>
+      <div class="meta-row" id="metaRow"></div>
+      <div class="actions" id="heroActions"></div>
+    </div>
+    <aside class="hero-side">
+      <h3>一眼看穿</h3>
+      <div class="stat-grid" id="statGrid"></div>
+    </aside>
+  </section>
+
+  <section class="section reveal" id="model">
+    <div class="section-head">
+      <div class="eyebrow">01 · Mental Model</div>
+      <h2 class="section-title">60 秒心智模型</h2>
+      <p class="section-sub" id="modelSub">先用三句话建立地图，再往下看细节。</p>
+    </div>
+    <div class="cards-3" id="modelGrid"></div>
+  </section>
+
+  <section class="section reveal" id="architecture">
+    <div class="section-head">
+      <div class="eyebrow">02 · Architecture</div>
+      <h2 class="section-title" id="archTitle">架构图</h2>
+      <p class="section-sub">点一个模块，右侧看它负责什么。核心机制播放时，相关模块会高亮。</p>
+    </div>
+    <div class="arch-wrap">
+      <div class="arch-canvas"><div id="archSvg"></div></div>
+      <aside class="arch-detail" id="archDetail"></aside>
+    </div>
+  </section>
+
+  <section class="section reveal" id="mechanism">
+    <div class="section-head">
+      <div class="eyebrow">03 · Mechanism</div>
+      <h2 class="section-title" id="mechTitle">核心机制</h2>
+      <p class="section-sub">按步骤走一遍真实链路。可以自动播放，也可以手动翻。</p>
+    </div>
+    <div class="mech">
+      <div class="mech-list" id="mechList" role="tablist" aria-label="机制步骤"></div>
+      <div class="mech-panel">
+        <div id="mechBody"></div>
+        <div class="mech-controls">
+          <button class="btn" id="mechPrev" type="button">← 上一步</button>
+          <button class="btn primary" id="mechPlay" type="button">▶ 播放</button>
+          <button class="btn" id="mechNext" type="button">下一步 →</button>
+          <span class="hint" id="mechHint"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="code">
+    <div class="section-head">
+      <div class="eyebrow">04 · Code Map</div>
+      <h2 class="section-title">先读这几个文件</h2>
+      <p class="section-sub">按顺序读，别从 3000 个文件里随机游走。</p>
+    </div>
+    <div class="code-grid" id="codeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="run">
+    <div class="section-head">
+      <div class="eyebrow">05 · Run It</div>
+      <h2 class="section-title">跑起来</h2>
+      <p class="section-sub">复制命令即可。平台差异写在备注里。</p>
+    </div>
+    <div class="run-list" id="runList"></div>
+  </section>
+
+  <section class="section reveal" id="branches">
+    <div class="section-head">
+      <div class="eyebrow">06 · Branches</div>
+      <h2 class="section-title">分支差异</h2>
+      <p class="section-sub">默认分支之外的代码，可能才是你要找的答案。</p>
+    </div>
+    <div class="branch-grid" id="branchGrid"></div>
+  </section>
+
+  <section class="section reveal" id="contribute">
+    <div class="section-head">
+      <div class="eyebrow">07 · Contribute</div>
+      <h2 class="section-title">怎么参与</h2>
+      <p class="section-sub">从能跑、能测，到第一个能被接受的改动。</p>
+    </div>
+    <div class="cards-3" id="contributeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="cheats">
+    <div class="section-head">
+      <div class="eyebrow">08 · Cheat Cards</div>
+      <h2 class="section-title">面试 / 吹B卡片</h2>
+      <p class="section-sub">点卡片翻面。先自己答，再看答案。</p>
+    </div>
+    <div class="cheat-grid" id="cheatGrid"></div>
+  </section>
+
+  <section class="section reveal" id="sources">
+    <div class="section-head">
+      <div class="eyebrow">Sources</div>
+      <h2 class="section-title">来源</h2>
+    </div>
+    <ol class="source-list" id="sourceList"></ol>
+  </section>
+
+  <footer class="footer">
+    <div>Generated by ForkYou · <span id="genDate">2026-11-06</span> · commit <span id="genCommit">86d82519</span></div>
+    <div><a href="https://github.com/Gloridust/WechatOnCloud" target="_blank" rel="noreferrer">上游仓库</a> · <a href="README.md">项目 README</a></div>
+  </footer>
+</main>
+
+<script>window.GUIDE_DATA = {"slug":"wechatoncloud","title":"WechatOnCloud · 云微","subtitle":"把一台登录着微信的 Linux 桌面放进容器，再用面板分给多个浏览器","one_liner":"自部署的「服务端微信」：Docker + Xvfb + KasmVNC，一个面板管理微信 / QQ / Chromium 多实例，多端共享同一会话。","category":"03-infra","tags":["Docker","KasmVNC","TypeScript","Fastify","React","NAS"],"meta":{"upstream":"Gloridust/WechatOnCloud","license":"NOASSERTION","stars":3967,"language":"TypeScript + Docker/Shell","commit":"86d82519c5e6b28aae7ef3caa279086afa244d4d","updated":"2026-11-07"},"links":{"github":"https://github.com/Gloridust/WechatOnCloud","homepage":null,"docs":"https://github.com/Gloridust/WechatOnCloud#readme"},"stats":[{"label":"代码规模","value":"约 1.4 万行 TS/TSX/Shell"},{"label":"语言","value":"TypeScript + Docker/Shell"},{"label":"License","value":"NOASSERTION"},{"label":"分支","value":"10（1 个未合并）"},{"label":"镜像架构","value":"amd64 / arm64"},{"label":"面板端口","value":"36080"}],"mental_model":[{"title":"它是谁","body":"一套自部署的「服务端微信」：微信跑在 NAS 的容器里，面板是唯一入口，多端浏览器共享同一块远程桌面。"},{"title":"怎么工作","body":"面板经 docker.sock 创建实例容器（Xvfb + 应用 + KasmVNC），把 /desktop/:id/* 反代到实例 nginx，并注入 KasmVNC 凭据；浏览器只拿到面板会话 cookie。"},{"title":"为什么特别","body":"它把「容器编排 + 远程桌面 + RBAC + 升级回滚」缝成一套可运营的服务；代价是面板挂 docker.sock，等于宿主 root。"}],"architecture":{"title":"面板、实例与共享桌面","layers":[{"name":"接入层","nodes":[{"id":"browser","label":"浏览器 / PWA","desc":"登录面板、内嵌 noVNC iframe、WebSocket 桌面连接、文件与剪贴板工具。"},{"id":"tls","label":"可选 HTTPS 反代","desc":"Caddy/Nginx/飞牛反代；面板自身只跑 HTTP，TLS 由外层负责。"}]},{"name":"面板层","nodes":[{"id":"web","label":"React SPA","desc":"登录页、实例列表、管理页、桌面页；Desktop.tsx 负责输入桥与音频。"},{"id":"api","label":"Fastify API","desc":"会话鉴权、RBAC、实例 CRUD、文件/卷管理、反代与 WebSocket 升级。"},{"id":"auth","label":"认证 / Host 防护","desc":"bcrypt 密码、30 天滑动会话、双键登录限速、PANEL_ALLOWED_HOSTS 防 DNS rebinding。"}]},{"name":"编排层","nodes":[{"id":"lifecycle","label":"docker.ts 生命周期","desc":"建卷、建容器、启停、升级、自愈；每实例串行、先备镜像后删容器。"},{"id":"selfupdate","label":"自更新","desc":"helper 容器重建面板，健康检查失败自动回滚旧镜像。"}]},{"name":"实例层","nodes":[{"id":"nginx","label":"实例 nginx :3000","desc":"只接实例网络，不映射宿主端口；转发到 websockify。"},{"id":"kasm","label":"KasmVNC / Xvnc","desc":"Xvfb :1 + KasmVNC 1.5.2；-NeverShared 单连接，剥 PNG 剪贴板防 INCR 卡死。"},{"id":"app","label":"微信 / QQ / Chromium","desc":"微信与 QQ 运行时下载到 /config；Chromium 随镜像就绪。"}]},{"name":"数据层","nodes":[{"id":"paneldata","label":"./data-panel","desc":"accounts.json + sessions.json；账号、实例元数据、密码哈希。"},{"id":"volume","label":"woc-data-\u003cid>","desc":"挂到实例 /config；微信本体、聊天记录、浏览器 Cookie 全在这里。"}]}],"edges":[{"from":"browser","to":"tls","label":"HTTPS / WSS"},{"from":"tls","to":"api","label":"反代到 :36080"},{"from":"api","to":"auth","label":"每个请求先鉴权"},{"from":"api","to":"lifecycle","label":"docker.sock 创建/启停"},{"from":"api","to":"nginx","label":"反代 /desktop/:id/*"},{"from":"nginx","to":"kasm","label":"websockify"},{"from":"kasm","to":"app","label":"X11 显示"},{"from":"lifecycle","to":"volume","label":"挂载 /config"},{"from":"api","to":"paneldata","label":"读写 accounts/sessions"}]},"mechanism":{"title":"一次「打开桌面」发生了什么","steps":[{"title":"登录","detail":"POST /api/auth/login：双键限速 → bcrypt → 生成 32 字节会话 → httpOnly cookie（30 天，滑动续期）。","highlight":["api","auth"],"code":"panel/server/src/index.ts:302-334"},{"title":"拿实例列表","detail":"GET /api/instances 只返回 publicInstance，剔除 KasmVNC 用户名/密码。","highlight":["api"],"code":"panel/server/src/index.ts:494-511"},{"title":"打开 iframe","detail":"GET /desktop/:id/：会话校验 → userCanAccess → attachViewer（接管判定）→ 反代注入 Basic。","highlight":["api","nginx"],"code":"panel/server/src/index.ts:1886-1903"},{"title":"WebSocket 升级","detail":"raw upgrade 单独做三道闸门：实例网段拒绝、Host 白名单、cookie + 实例权限；然后 proxy.ws。","highlight":["api","kasm"],"code":"panel/server/src/index.ts:1947-2036"},{"title":"单连接接管","detail":"每个页面一个 viewer id；新页面连上时旧页面记为 superseded 并断 socket，被接管页面自动重连返回 409。","highlight":["api","kasm"],"code":"panel/server/src/index.ts:1085-1141"},{"title":"输入中文","detail":"前端 compositionend 整串发送 → /type 借容器剪贴板 + Ctrl+V；图片走 /paste-image。","highlight":["web","api"],"code":"panel/server/src/docker.ts:2136-2158"},{"title":"卡死自愈","detail":"真实请求 25s 无响应记一次 hang；10 分钟 2 次、运行满 3 分钟、15 分钟冷却外，keepImage 重启实例。","highlight":["api","lifecycle"],"code":"panel/server/src/index.ts:1738-1773"},{"title":"升级实例","detail":"先拉镜像 → 再判落后 → 逐个重建；升级失败且镜像没变时诚实报「未升级」，不白重启。","highlight":["lifecycle"],"code":"panel/server/src/docker.ts:868-926"}]},"code_map":[{"path":"README.md","role":"起读文档：定位/特性/资源/安全（README.md:7-41）","read_order":1,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/README.md"},{"path":"doc/dev/架构守则.md","role":"10 条从 P0 蒸馏的硬约束（doc/dev/架构守则.md:7-90）","read_order":2,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/doc/dev/%E6%9E%B6%E6%9E%84%E5%AE%88%E5%88%99.md"},{"path":"docker-compose.yml","role":"部署入口：面板/卷/socket/端口（docker-compose.yml:58-79）","read_order":3,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/docker-compose.yml"},{"path":"docker/Dockerfile","role":"实例镜像：KasmVNC 1.5.2 + 启动补丁（docker/Dockerfile:4-20）","read_order":4,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/docker/Dockerfile"},{"path":"panel/server/src/index.ts","role":"全部路由 + 反代 + WS + 看门狗（panel/server/src/index.ts:130-174）","read_order":5,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/index.ts"},{"path":"panel/server/src/docker.ts","role":"dockerode 生命周期与 exec（panel/server/src/docker.ts:746-842）","read_order":6,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/docker.ts"},{"path":"panel/server/src/store.ts","role":"账号/实例数据模型（panel/server/src/store.ts:43-67）","read_order":7,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/store.ts"},{"path":"panel/server/src/sessions.ts","role":"30 天滑动会话（panel/server/src/sessions.ts:55-80）","read_order":8,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/sessions.ts"},{"path":"panel/server/src/host-guard.ts","role":"DNS rebinding 防护（panel/server/src/host-guard.ts:97-140）","read_order":9,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/host-guard.ts"},{"path":"panel/web/src/pages/Desktop.tsx","role":"桌面页输入/音频状态机（panel/web/src/pages/Desktop.tsx:543-662）","read_order":10,"url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/web/src/pages/Desktop.tsx"}],"run":[{"label":"最快启动","command":"curl -fsSL https://raw.githubusercontent.com/Gloridust/WechatOnCloud/main/docker-compose.yml -o docker-compose.yml && docker compose up -d","note":"改默认密码（默认 admin / wechat）；访问 :36080"},{"label":"本地构建","command":"./scripts/build-local.sh && docker compose up -d","note":"构建面板 + 实例镜像，tag 由 WOC_VERSION 决定"},{"label":"类型检查","command":"cd panel/server && npx tsc --noEmit && cd ../web && npx tsc --noEmit && npm run build","note":"仓库没有测试套件，这是最低门槛"},{"label":"发布门禁","command":"按 doc/dev/发布门禁.md 跑容器探针","note":"DPI 98304 / CEF 连跑两次 / 30s 无崩溃 / 微信模式 / KasmVNC 参数"}],"branches":[{"name":"main","purpose":"默认分支，分析基线","diff":"—","url":"https://github.com/Gloridust/WechatOnCloud"},{"name":"claude/project-issue-review-f7c99z","purpose":"唯一未合并：12 个修复/UI 提交","diff":"24 files, +5910/−3478（三点 diff）","url":"https://github.com/Gloridust/WechatOnCloud/tree/claude/project-issue-review-f7c99z"},{"name":"design/impeccable-refine","purpose":"UI 对比度/图标/菜单/a11y 打磨","diff":"已合并","url":"https://github.com/Gloridust/WechatOnCloud/tree/design/impeccable-refine"},{"name":"design/redesign-v2","purpose":"iOS 风格分组列表重设计","diff":"已合并（main 父提交）","url":"https://github.com/Gloridust/WechatOnCloud/tree/design/redesign-v2"},{"name":"feat/kasmvnc-152-single-viewer","purpose":"KasmVNC 1.5.2 + 单连接","diff":"已合并（PR #172）","url":"https://github.com/Gloridust/WechatOnCloud/tree/feat/kasmvnc-152-single-viewer"},{"name":"feat/v1.2.0-multi-app","purpose":"多应用第一版（老分支）","diff":"已合并，behind 157","url":"https://github.com/Gloridust/WechatOnCloud/tree/feat/v1.2.0-multi-app"},{"name":"fix/129-create-failure-visible","purpose":"创建失败可见 + 一键重试","diff":"已合并（PR #167）","url":"https://github.com/Gloridust/WechatOnCloud/tree/fix/129-create-failure-visible"},{"name":"fix/155-seamless-input-latency","purpose":"无感输入延迟修复","diff":"已合并","url":"https://github.com/Gloridust/WechatOnCloud/tree/fix/155-seamless-input-latency"},{"name":"fix/165-159-paste-pipeline","purpose":"大图粘贴/双图修复","diff":"已合并（PR #170）","url":"https://github.com/Gloridust/WechatOnCloud/tree/fix/165-159-paste-pipeline"},{"name":"fix/166-cef-crash-diagnostics","purpose":"CEF 崩溃诊断包","diff":"已合并（PR #169）","url":"https://github.com/Gloridust/WechatOnCloud/tree/fix/166-cef-crash-diagnostics"}],"contribute":[{"title":"先读架构守则","detail":"10 条不变式全是 P0 学费；违反任一条的 PR 默认打回。","url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/doc/dev/%E6%9E%B6%E6%9E%84%E5%AE%88%E5%88%99.md"},{"title":"最低验证门槛","detail":"server/web 各跑 npx tsc --noEmit；改实例镜像按发布门禁跑五项容器探针。","url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/doc/dev/%E5%8F%91%E5%B8%83%E9%97%A8%E7%A6%81.md"},{"title":"仓库无测试框架","detail":"没有 test 脚本；新增测试前先和维护者确认，别默认引入框架。","url":"https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/package.json"}],"cheats":[{"q":"它和多开有什么区别？","a":"一个实例=一个微信登录态；多开要建多个实例、多个号。多端共享的是同一块桌面，不是协议同步。"},{"q":"为什么面板危险？","a":"默认挂 /var/run/docker.sock，等同宿主 root；绝不裸暴露公网，能上 socket-proxy 就上。"},{"q":"KasmVNC 密码会进浏览器吗？","a":"不会。凭据存服务端实例记录，反代时注入 Basic；API 只返回 publicInstance。"},{"q":"两人能同时看一个实例吗？","a":"不能同时操作。单连接设计：新页面接管，旧页面显示「在这里继续使用」。"},{"q":"桌面卡在「连接中」怎么办？","a":"等 25s 自愈判定；或管理页点「卡死自愈」/重启实例。数据在卷里，重启不丢。"},{"q":"更新面板会顺带更新微信吗？","a":"不会。面板和实例是两个镜像，必须显式「升级实例」。"},{"q":"为什么 Dockerfile 钉死 Chromium/KasmVNC？","a":"Debian 源漂移导致过崩溃；升级必须显式改版本并过发布门禁。"},{"q":"License 是什么？","a":"仓库没有 LICENSE 文件，NOASSERTION；商用/分发前必须联系作者。"}],"sources":[{"title":"Gloridust/WechatOnCloud README","url":"https://github.com/Gloridust/WechatOnCloud","date":"2026-11-01"},{"title":"微信 Linux 版官网","url":"https://linux.weixin.qq.com/","date":"2026-11-07"},{"title":"RICwang/docker-wechat（Apache-2.0）","url":"https://github.com/RICwang/docker-wechat","date":"2026-11-07"},{"title":"LinuxServer Webtop 文档（GPL-3.0）","url":"https://docs.linuxserver.io/images/docker-webtop/","date":"2026-11-07"},{"title":"KasmVNC 1.5.2 Release Notes","url":"https://github.com/kasmtech/KasmVNC/releases/tag/v1.5.2","date":"2025-10-24"}]};</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/animejs/3.2.2/anime.min.js" onerror="this.onerror=null;this.src='https://cdn.staticfile.org/animejs/3.2.2/anime.min.js'"></script>
+<script>
+(function(){
+  "use strict";
+  const D = window.GUIDE_DATA || {};
+  const $ = (s, el) => (el || document).querySelector(s);
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = (v) => {
+    const s = String(v || "");
+    return /^https?:\/\//i.test(s) ? s : "";
+  };
+  const setText = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v; };
+
+  setText("heroTitle", D.title || "Unknown Project");
+  setText("heroSub", D.subtitle || D.one_liner || "");
+  setText("heroKicker", "ForkYou · " + (D.category || "Deep Guide"));
+  document.title = (D.title || "Project") + " · ForkYou Guide";
+
+  // meta chips
+  const meta = D.meta || {};
+  const links = D.links || {};
+  const chips = [];
+  if (meta.language) chips.push(["语言", meta.language]);
+  if (meta.license) chips.push(["License", meta.license]);
+  if (meta.stars != null) chips.push(["Stars", meta.stars]);
+  if (meta.commit) chips.push(["Commit", String(meta.commit).slice(0, 8)]);
+  if (meta.updated) chips.push(["更新", meta.updated]);
+  $("#metaRow").innerHTML = chips.map(([k,v]) => `<span class="chip">${esc(k)} <strong>${esc(v)}</strong></span>`).join("");
+
+  // actions
+  const actions = [];
+  if (safeUrl(links.github)) actions.push([links.github, "上游 GitHub", "primary"]);
+  if (safeUrl(links.homepage)) actions.push([links.homepage, "应用 / 官网", ""]);
+  if (safeUrl(links.docs)) actions.push([links.docs, "官方文档", ""]);
+  actions.push(["README.md", "项目 README", ""]);
+  $("#heroActions").innerHTML = actions.map(([href,label,cls]) =>
+    `<a class="btn ${cls}" href="${esc(href)}" ${safeUrl(href) ? 'target="_blank" rel="noreferrer"' : ""}>${esc(label)}</a>`
+  ).join("");
+
+  // stats
+  const stats = Array.isArray(D.stats) ? D.stats : [];
+  $("#statGrid").innerHTML = stats.length ? stats.map(s =>
+    `<div class="stat"><div class="v">${esc(s.value)}</div><div class="l">${esc(s.label)}</div></div>`
+  ).join("") : `<div class="empty">暂无统计数据</div>`;
+
+  // mental model
+  const model = Array.isArray(D.mental_model) ? D.mental_model : [];
+  $("#modelGrid").innerHTML = model.length ? model.map((m,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(m.title)}</h3><p>${esc(m.body)}</p></article>`
+  ).join("") : `<div class="empty">暂无内容</div>`;
+
+  // architecture
+  const arch = D.architecture || {};
+  setText("archTitle", arch.title || "架构图");
+  const layers = Array.isArray(arch.layers) ? arch.layers : [];
+  const positions = {};
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = [];
+  const W = 1000;
+  const rowH = 150;
+  const nodeW = 170, nodeH = 64;
+  const H = Math.max(420, layers.length * rowH + 100);
+  layers.forEach((layer, li) => {
+    const nodes = Array.isArray(layer.nodes) ? layer.nodes : [];
+    const n = Math.max(1, nodes.length);
+    const gap = n > 1 ? Math.min(230, 820 / (n - 1)) : 0;
+    const totalW = gap * (n - 1) + nodeW;
+    const startX = (W - totalW) / 2;
+    nodes.forEach((node, ni) => {
+      positions[node.id] = { x: startX + ni * gap, y: 60 + li * rowH, w: nodeW, h: nodeH, node, layer: layer.name };
+    });
+  });
+  const edges = Array.isArray(arch.edges) ? arch.edges : [];
+  svg.push(`<svg class="arch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(arch.title || "architecture diagram")}">`);
+  svg.push(`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b648f"/></marker></defs>`);
+  // layer labels
+  layers.forEach((layer, li) => {
+    svg.push(`<text x="24" y="${60 + li * rowH + 36}" fill="#4f6b8c" font-size="11" font-family="ui-monospace,monospace">${esc(layer.name || "")}</text>`);
+  });
+  // edges first
+  edges.forEach((e, i) => {
+    const a = positions[e.from], b = positions[e.to];
+    if (!a || !b) return;
+    let x1, y1, x2, y2, d;
+    if (a.layer === b.layer) {
+      const right = a.x < b.x;
+      x1 = right ? a.x + a.w : a.x; y1 = a.y + a.h/2;
+      x2 = right ? b.x : b.x + b.w; y2 = b.y + b.h/2;
+      d = `M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}`;
+    } else {
+      const down = a.y < b.y;
+      x1 = a.x + a.w/2; y1 = down ? a.y + a.h : a.y;
+      x2 = b.x + b.w/2; y2 = down ? b.y : b.y + b.h;
+      const midY = (y1 + y2) / 2;
+      d = `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+    }
+    svg.push(`<path class="edge" d="${d}" data-edge="${i}"/>`);
+    if (e.label) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      svg.push(`<text class="edge-label" x="${mx}" y="${my - 6}" text-anchor="middle">${esc(e.label)}</text>`);
+    }
+  });
+  // nodes
+  Object.entries(positions).forEach(([id, p]) => {
+    svg.push(`<g class="node" data-id="${esc(id)}" tabindex="0" role="button" aria-label="${esc(p.node.label || id)}">`);
+    svg.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="12"/>`);
+    svg.push(`<text x="${p.x + p.w/2}" y="${p.y + 27}" text-anchor="middle">${esc(p.node.label || id)}</text>`);
+    svg.push(`<text class="sub" x="${p.x + p.w/2}" y="${p.y + 45}" text-anchor="middle">${esc(p.layer || "")}</text>`);
+    svg.push(`</g>`);
+  });
+  svg.push(`</svg>`);
+  $("#archSvg").innerHTML = layers.length ? svg.join("") : `<div class="empty" style="padding:24px">暂无架构数据</div>`;
+
+  let activeNode = null;
+  function selectNode(id) {
+    const p = positions[id];
+    if (!p) return;
+    activeNode = id;
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("active", el.dataset.id === id));
+    $("#archDetail").innerHTML = `<div class="who">${esc(p.layer || "")}</div><h3>${esc(p.node.label || id)}</h3><p>${esc(p.node.desc || "暂无说明")}</p>`;
+  }
+  document.querySelectorAll(".node").forEach(el => {
+    el.addEventListener("click", () => selectNode(el.dataset.id));
+    el.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(el.dataset.id); } });
+  });
+  const firstNode = Object.keys(positions)[0];
+  if (firstNode) selectNode(firstNode); else $("#archDetail").innerHTML = `<div class="empty">暂无模块</div>`;
+
+  function highlightNodes(ids) {
+    const set = new Set(Array.isArray(ids) ? ids : []);
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("hl", set.has(el.dataset.id)));
+  }
+
+  // mechanism
+  const mech = D.mechanism || {};
+  setText("mechTitle", mech.title || "核心机制");
+  const steps = Array.isArray(mech.steps) ? mech.steps : [];
+  let stepIndex = 0;
+  let timer = null;
+  $("#mechList").innerHTML = steps.map((s,i) =>
+    `<button class="mech-step" type="button" role="tab" data-i="${i}" aria-selected="${i===0}"><span class="idx">${String(i+1).padStart(2,"0")}</span><span>${esc(s.title || "步骤")}</span></button>`
+  ).join("") || `<div class="empty">暂无机制数据</div>`;
+  function renderStep(i) {
+    if (!steps.length) return;
+    stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+    const s = steps[stepIndex];
+    document.querySelectorAll(".mech-step").forEach(el => {
+      const on = Number(el.dataset.i) === stepIndex;
+      el.classList.toggle("active", on);
+      el.setAttribute("aria-selected", String(on));
+    });
+    $("#mechBody").innerHTML = `<h3>${esc(s.title || "")}</h3><p>${esc(s.detail || "")}</p>${s.code ? `<pre>${esc(s.code)}</pre>` : ""}`;
+    highlightNodes(s.highlight);
+    setText("mechHint", `${stepIndex + 1} / ${steps.length}`);
+  }
+  document.querySelectorAll(".mech-step").forEach(el => el.addEventListener("click", () => { stopPlay(); renderStep(Number(el.dataset.i)); }));
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; } const b = $("#mechPlay"); if (b) b.textContent = "▶ 播放"; }
+  $("#mechPrev").addEventListener("click", () => { stopPlay(); renderStep(stepIndex - 1); });
+  $("#mechNext").addEventListener("click", () => { stopPlay(); renderStep(stepIndex + 1); });
+  $("#mechPlay").addEventListener("click", () => {
+    if (timer) { stopPlay(); return; }
+    if (!steps.length) return;
+    if (stepIndex >= steps.length - 1) renderStep(0);
+    $("#mechPlay").textContent = "⏸ 暂停";
+    timer = setInterval(() => {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      renderStep(stepIndex + 1);
+    }, 2600);
+  });
+  renderStep(0);
+
+  // code map
+  const codeMap = Array.isArray(D.code_map) ? D.code_map : [];
+  $("#codeGrid").innerHTML = codeMap.length ? codeMap.map((c,i) =>
+    `<article class="code-card"><div class="ord">${String(c.read_order || i+1).padStart(2,"0")}</div><div><div class="path">${safeUrl(c.url) ? `<a href="${esc(c.url)}" target="_blank" rel="noreferrer">${esc(c.path)}</a>` : esc(c.path)}</div><div class="role">${esc(c.role)}</div></div></article>`
+  ).join("") : `<div class="empty">暂无代码地图</div>`;
+
+  // run
+  const runs = Array.isArray(D.run) ? D.run : [];
+  $("#runList").innerHTML = runs.length ? runs.map((r,i) =>
+    `<div class="run-row"><div class="label">${esc(r.label)}</div><div><code id="cmd-${i}">${esc(r.command)}</code><div class="role" style="color:var(--dim);font-size:11px;margin-top:3px">${esc(r.note || "")}</div></div><button class="copy" type="button" data-cmd="cmd-${i}">复制</button></div>`
+  ).join("") : `<div class="empty">暂无运行说明</div>`;
+  document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", async () => {
+    const el = document.getElementById(btn.dataset.cmd);
+    if (!el) return;
+    try { await navigator.clipboard.writeText(el.textContent); btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1400); }
+    catch { btn.textContent = "复制失败"; }
+  }));
+
+  // branches
+  const branches = Array.isArray(D.branches) ? D.branches : [];
+  $("#branchGrid").innerHTML = branches.length ? branches.map(b =>
+    `<article class="branch"><h3>${esc(b.name)}</h3><p>${esc(b.purpose || "")}</p><div class="diff">${esc(b.diff || "")}</div>${safeUrl(b.url) ? `<p style="margin-top:8px"><a href="${esc(b.url)}" target="_blank" rel="noreferrer">看 diff →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无分支数据</div>`;
+
+  // contribute
+  const contribute = Array.isArray(D.contribute) ? D.contribute : [];
+  $("#contributeGrid").innerHTML = contribute.length ? contribute.map((c,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(c.title)}</h3><p>${esc(c.detail)}</p>${safeUrl(c.url) ? `<p style="margin-top:10px"><a href="${esc(c.url)}" target="_blank" rel="noreferrer">入口 →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无贡献说明</div>`;
+
+  // cheats
+  const cheats = Array.isArray(D.cheats) ? D.cheats : [];
+  $("#cheatGrid").innerHTML = cheats.length ? cheats.map((c,i) =>
+    `<button class="cheat" type="button" aria-pressed="false" data-i="${i}"><span class="cheat-inner"><span class="cheat-face cheat-front"><span class="tag">Q${String(i+1).padStart(2,"0")}</span><span class="q">${esc(c.q)}</span></span><span class="cheat-face cheat-back"><span class="tag">A</span><span class="a">${esc(c.a)}</span></span></span></button>`
+  ).join("") : `<div class="empty">暂无卡片</div>`;
+  document.querySelectorAll(".cheat").forEach(el => el.addEventListener("click", () => {
+    const on = el.classList.toggle("flipped");
+    el.setAttribute("aria-pressed", String(on));
+  }));
+
+  // sources
+  const sources = Array.isArray(D.sources) ? D.sources : [];
+  $("#sourceList").innerHTML = sources.length ? sources.map(s =>
+    `<li>${safeUrl(s.url) ? `<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.title || s.url)}</a>` : esc(s.title || "")}${s.date ? ` <span style="color:var(--dim)">(${esc(s.date)})</span>` : ""}</li>`
+  ).join("") : `<li>暂无来源</li>`;
+
+  // nav active + progress
+  const navLinks = Array.from(document.querySelectorAll(".nav a"));
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  function onScroll() {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    $("#progress").style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    let current = sections[0];
+    for (const s of sections) if (s.getBoundingClientRect().top <= 140) current = s;
+    navLinks.forEach(a => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+  // anime.js enhancement (optional)
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (window.anime && !reduce) {
+    try {
+      anime.timeline({ easing: "easeOutExpo", duration: 800 })
+        .add({ targets: ".hero-title", translateY: [24, 0], opacity: [0, 1] })
+        .add({ targets: ".hero-sub, .meta-row, .actions", translateY: [14, 0], opacity: [0, 1] }, "-=500")
+        .add({ targets: ".hero-side", translateY: [18, 0], opacity: [0, 1] }, "-=600")
+        .add({ targets: ".node", scale: [0.92, 1], opacity: [0, 1], delay: anime.stagger(45) }, "-=500");
+    } catch (e) { /* CSS fallback */ }
+  }
+})();
+</script>
+</body>
+</html>

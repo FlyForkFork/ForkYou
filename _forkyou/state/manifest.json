@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T19:32:55.652Z",
+  "updated_at": "2026-11-06T19:33:32.620Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -162,7 +162,7 @@
       "upstream": "Gloridust/WechatOnCloud",
       "fork": "FlyForkFork/WechatOnCloud",
       "upstream_url": "https://github.com/Gloridust/WechatOnCloud",
-      "homepage": "",
+      "homepage": "https://github.com/Gloridust/WechatOnCloud#readme",
       "description": "云微WOC，云微信，自由连接",
       "one_liner": "云微WOC，云微信，自由连接",
       "category": "03-infra",
@@ -174,8 +174,8 @@
       "stars": 3967,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-06T18:55:32.875Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-06T19:33:32.618Z",
       "branches": [
         {
           "name": "claude/project-issue-review-f7c99z",
@@ -238,7 +238,24 @@
           "diffstat": ""
         }
       ],
-      "prepared_at": "2026-11-06T18:55:32.875Z"
+      "prepared_at": "2026-11-06T18:55:32.875Z",
+      "analyzed_commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
+      "analyzed_at": "2026-11-07T03:10:00+08:00",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-docker-lifecycle.md",
+        "04-deep-dive-kasmvnc-proxy.md",
+        "04-deep-dive-auth-security.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": "guide.html"
     }
   }
 }

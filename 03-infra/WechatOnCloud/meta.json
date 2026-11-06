@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "id": "github:Gloridust/WechatOnCloud",
+  "name": "WechatOnCloud",
+  "provider": "github",
+  "upstream": "Gloridust/WechatOnCloud",
+  "fork": "FlyForkFork/WechatOnCloud",
+  "category": "03-infra",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
+  "analyzed_at": "2026-11-07T03:10:00+08:00",
+  "upstream_url": "https://github.com/Gloridust/WechatOnCloud",
+  "homepage": "https://github.com/Gloridust/WechatOnCloud#readme",
+  "license": "NOASSERTION",
+  "stars": 3967,
+  "language": "TypeScript",
+  "topics": [
+    "docker",
+    "wechat",
+    "kasmvnc",
+    "xvfb",
+    "nas",
+    "self-hosted",
+    "remote-desktop",
+    "typescript",
+    "fastify",
+    "react"
+  ],
+  "branches": [
+    "main",
+    "claude/project-issue-review-f7c99z",
+    "design/impeccable-refine",
+    "design/redesign-v2",
+    "feat/kasmvnc-152-single-viewer",
+    "feat/v1.2.0-multi-app",
+    "fix/129-create-failure-visible",
+    "fix/155-seamless-input-latency",
+    "fix/165-159-paste-pipeline",
+    "fix/166-cef-crash-diagnostics"
+  ],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-docker-lifecycle.md",
+    "04-deep-dive-kasmvnc-proxy.md",
+    "04-deep-dive-auth-security.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": "guide.html",
+  "sources": [
+    {
+      "title": "Gloridust/WechatOnCloud README",
+      "url": "https://github.com/Gloridust/WechatOnCloud",
+      "date": "2026-11-01"
+    },
+    {
+      "title": "微信 Linux 版官网",
+      "url": "https://linux.weixin.qq.com/",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "RICwang/docker-wechat（Apache-2.0）",
+      "url": "https://github.com/RICwang/docker-wechat",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "LinuxServer Webtop 文档（GPL-3.0）",
+      "url": "https://docs.linuxserver.io/images/docker-webtop/",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "KasmVNC 1.5.2 Release Notes",
+      "url": "https://github.com/kasmtech/KasmVNC/releases/tag/v1.5.2",
+      "date": "2025-10-24"
+    }
+  ]
+}
