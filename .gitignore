@@ -5,3 +5,4 @@ _work/
 _tmp/
 *.log
 .DS_Store
+.env
