@@ -22,7 +22,7 @@
 
 ```bash
 # 1. 新机器上克隆内容仓库
-git clone git@github.com:FlyForkFork/ForkYou.git
+git clone git@github.com:<org>/ForkYou.git
 
 # 2. 复制本文件夹（如果新仓库里还没有）
 # 3. 根目录放 .env，只写 token 本身（也支持 FORKYOU_GITHUB_TOKEN=...）

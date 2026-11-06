@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T17:21:07.062Z",
+  "updated_at": "2026-11-06T18:13:29.391Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -39,7 +39,22 @@
       ],
       "default_branch": "main",
       "status": "prepared",
-      "updated_at": "2026-11-06T17:21:07.062Z"
+      "updated_at": "2026-11-06T17:21:07.062Z",
+      "branches": [
+        {
+          "name": "main",
+          "sha": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
+          "default": true,
+          "diffstat": ""
+        },
+        {
+          "name": "update-feed-state",
+          "sha": "c120e81b3102805fe708871d206c7069fd814987",
+          "default": false,
+          "diffstat": "3975 files changed, 497 insertions(+), 670579 deletions(-)"
+        }
+      ],
+      "prepared_at": "2026-11-06T18:13:29.391Z"
     }
   }
 }
