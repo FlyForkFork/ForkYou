@@ -85,25 +85,6 @@ export function forkInfo(repo) {
   };
 }
 
-export async function enablePages(owner, repo, branch = 'main') {
-  try {
-    return await gh(`/repos/${owner}/${repo}/pages`, {
-      method: 'POST',
-      body: { source: { branch, path: '/' } }
-    });
-  } catch (e) {
-    if (e.status === 409 || e.status === 422) {
-      return await gh(`/repos/${owner}/${repo}/pages`);
-    }
-    throw e;
-  }
-}
-
-export async function getPages(owner, repo) {
-  try { return await gh(`/repos/${owner}/${repo}/pages`); }
-  catch (e) { if (e.status === 404) return null; throw e; }
-}
-
 export async function getRateLimit() {
   return gh('/rate_limit');
 }

@@ -132,15 +132,6 @@ node ForkYou/_forkyou/scripts/forkyou.mjs publish --all
 node ForkYou/_forkyou/scripts/forkyou.mjs publish --project my-fork --dry-run
 ```
 
-首次启用 GitHub Pages：
-
-```bash
-node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable
-node ForkYou/_forkyou/scripts/forkyou.mjs pages --status
-```
-
-`pages --enable` 需要 fine-grained PAT 同时有 **Administration: Read and write** 和 **Pages: Read and write**；否则到仓库 `Settings -> Pages` 手动选 `main` / root。
-
 发布前自动：
 
 - 校验项目目录。

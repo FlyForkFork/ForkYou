@@ -43,9 +43,6 @@ node ForkYou/_forkyou/scripts/forkyou.mjs rebuild --all
 
 # 7. 发布到 GitHub
 node ForkYou/_forkyou/scripts/forkyou.mjs publish --project my-fork
-
-# 8. 首次启用 GitHub Pages
-node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable
 ```
 
 Agent 的完整工作流在 [`_forkyou/SKILL.md`](_forkyou/SKILL.md)，分析规则在 [`_forkyou/RULES.md`](_forkyou/RULES.md)。

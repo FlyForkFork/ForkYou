@@ -7,7 +7,7 @@ import {
   walkFiles, formatBytes, dirSize, getToken
 } from './lib/util.mjs';
 import {
-  getAuthenticatedUser, getRepo, listOrgForks, forkInfo, enablePages, getPages, getRateLimit
+  getAuthenticatedUser, getRepo, listOrgForks, forkInfo, getRateLimit
 } from './lib/github.mjs';
 import {
   cloneOrFetch, listRemoteBranches, remoteBranchSha, ensureLocalBranches,
@@ -37,7 +37,6 @@ function usage() {
   node ForkYou/_forkyou/scripts/forkyou.mjs validate --project <repo> [--preview]
   node ForkYou/_forkyou/scripts/forkyou.mjs render-guide <guide.data.json> <guide.html>
   node ForkYou/_forkyou/scripts/forkyou.mjs publish --scaffold | --project <repo> | --all [--dry-run]
-  node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable|--status
   node ForkYou/_forkyou/scripts/forkyou.mjs cache gc [--dry-run]`);
 }
 
@@ -447,44 +446,6 @@ async function publish(opts) {
   if (!dry && res.changed) out('pushed to origin');
 }
 
-async function pagesCmd(opts) {
-  const config = loadConfig();
-  const owner = config.provider.org;
-  const repo = config.provider.content_repo;
-  if (bool(opts.status)) {
-    const p = await getPages(owner, repo);
-    out(p ? JSON.stringify(p, null, 2) : 'Pages not enabled');
-    return;
-  }
-  if (bool(opts.enable)) {
-    // If Pages was enabled manually, adopt it even when the token cannot POST.
-    try {
-      const existing = await getPages(owner, repo);
-      if (existing) {
-        config.pages.enabled = true;
-        config.pages.base_url = existing.html_url || `https://${owner}.github.io/${repo}`;
-        writeJson(path.join(REPO_ROOT, '_forkyou', 'config.json'), config);
-        out(`Pages: ${config.pages.base_url}`);
-        return;
-      }
-    } catch {}
-    try {
-      const p = await enablePages(owner, repo, config.publish.branch || 'main');
-      config.pages.enabled = true;
-      config.pages.base_url = p.html_url || `https://${owner}.github.io/${repo}`;
-      writeJson(path.join(REPO_ROOT, '_forkyou', 'config.json'), config);
-      out(`Pages: ${config.pages.base_url}`);
-    } catch (e) {
-      if (e.status === 403) {
-        throw new Error(`${e.message}\n需要 fine-grained PAT 同时有 Administration: Read and write 和 Pages: Read and write；或在仓库 Settings -> Pages 手动选 main / root。`);
-      }
-      throw e;
-    }
-    return;
-  }
-  throw new Error('pages needs --enable or --status');
-}
-
 function cacheGc(opts) {
   let removed = 0;
   for (const target of [path.join(CACHE, 'snapshots'), path.join(CACHE, 'tmp')]) {
@@ -508,7 +469,6 @@ async function main() {
     case 'validate': return validate(opts);
     case 'render-guide': return renderGuideCmd(opts);
     case 'publish': return publish(opts);
-    case 'pages': return pagesCmd(opts);
     case 'cache': return cacheGc(opts);
     case undefined:
     case 'help':

@@ -10,11 +10,6 @@ function safeHttp(url) {
   return typeof url === 'string' && /^https?:\/\//i.test(url) ? url : '';
 }
 
-function pageUrl(config, rel) {
-  const base = config?.pages?.enabled ? String(config.pages.base_url || '').replace(/\/+$/, '') : '';
-  return base ? `${base}/${rel.replace(/^\/+/, '')}` : rel;
-}
-
 export function renderGuide(templatePath, data, meta = {}) {
   let html = readText(templatePath);
   if (!html) throw new Error(`Missing guide template: ${templatePath}`);
@@ -83,8 +78,8 @@ export function renderRootReadme(existing, manifest, config) {
         const one = mdEscape(p.one_liner || p.description || '—');
         const upstream = p.upstream ? `[${p.upstream}](https://github.com/${p.upstream})` : '—';
         const home = safeHttp(p.homepage) ? `[打开](${p.homepage})` : '—';
-        const wiki = pageUrl(config, `${p.path}/README.md`);
-        const guide = pageUrl(config, `${p.path}/guide.html`);
+        const wiki = `${p.path}/README.md`;
+        const guide = `${p.path}/guide.html`;
         lines.push(`| [${p.name}](${wiki}) | ${one} | ${upstream} | ${home} | ${p.depth || 'L2'} | ${String(p.analyzed_at || '').slice(0, 10)} | [Wiki](${wiki}) · [Guide](${guide}) |`);
       }
       lines.push('');
