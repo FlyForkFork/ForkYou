@@ -5,11 +5,11 @@
 ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的源码克隆放在工作区根目录，与 `ForkYou` 同级：
 
 ```text
-D:\FlyForkFork\
-  ForkYou\          # 本仓库：分析文档、guide、规则、脚本
-  oink\             # 源码克隆（所有分支）
-  WechatOnCloud\    # 下一个源码克隆
-  _cache\           # 预览、任务单、临时文件（不进 Git）
+<workspace>/
+  ForkYou/          # 本仓库：分析文档、guide、规则、脚本
+  oink/             # 源码克隆（所有分支）
+  WechatOnCloud/    # 下一个源码克隆
+  _cache/           # 预览、任务单、临时文件（不进 Git）
 ```
 
 ## 怎么用
