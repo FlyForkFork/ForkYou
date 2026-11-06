@@ -467,6 +467,17 @@ async function pagesCmd(opts) {
     return;
   }
   if (bool(opts.enable)) {
+    // If Pages was enabled manually, adopt it even when the token cannot POST.
+    try {
+      const existing = await getPages(owner, repo);
+      if (existing) {
+        config.pages.enabled = true;
+        config.pages.base_url = existing.html_url || `https://${owner}.github.io/${repo}`;
+        writeJson(path.join(REPO_ROOT, '_forkyou', 'config.json'), config);
+        out(`Pages: ${config.pages.base_url}`);
+        return;
+      }
+    } catch {}
     try {
       const p = await enablePages(owner, repo, config.publish.branch || 'main');
       config.pages.enabled = true;
