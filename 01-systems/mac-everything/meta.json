@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "github:YuSec2021/mac-everything",
   "name": "mac-everything",
+  "one_liner": "Everything 的 macOS 答案：菜单栏里毫秒级搜全盘文件名。",
   "provider": "github",
   "upstream": "YuSec2021/mac-everything",
   "fork": "FlyForkFork/mac-everything",

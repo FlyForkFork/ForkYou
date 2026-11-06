@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "github:Gloridust/WechatOnCloud",
   "name": "WechatOnCloud",
+  "one_liner": "在 NAS / 服务器上跑「服务端微信」，多端浏览器共享同一会话。",
   "provider": "github",
   "upstream": "Gloridust/WechatOnCloud",
   "fork": "FlyForkFork/WechatOnCloud",

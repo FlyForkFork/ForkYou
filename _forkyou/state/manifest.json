@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T19:33:32.620Z",
+  "updated_at": "2026-11-06T19:38:58.474Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -80,7 +80,7 @@
       "upstream_url": "https://github.com/YuSec2021/mac-everything",
       "homepage": "https://github.com/YuSec2021/mac-everything/releases",
       "description": "based on Mac Everything",
-      "one_liner": "based on Mac Everything",
+      "one_liner": "Everything 的 macOS 答案：菜单栏里毫秒级搜全盘文件名。",
       "category": "01-systems",
       "path": "01-systems/mac-everything",
       "depth": "L2",
@@ -164,7 +164,7 @@
       "upstream_url": "https://github.com/Gloridust/WechatOnCloud",
       "homepage": "https://github.com/Gloridust/WechatOnCloud#readme",
       "description": "云微WOC，云微信，自由连接",
-      "one_liner": "云微WOC，云微信，自由连接",
+      "one_liner": "在 NAS / 服务器上跑「服务端微信」，多端浏览器共享同一会话。",
       "category": "03-infra",
       "path": "03-infra/WechatOnCloud",
       "depth": "L2",
