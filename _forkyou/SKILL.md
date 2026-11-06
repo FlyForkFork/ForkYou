@@ -61,7 +61,7 @@ node ForkYou/_forkyou/scripts/forkyou.mjs sync --dry-run
    - `--full`：完整历史。
    - 已存在则 `git fetch --all --prune`，不重复下载。
 4. 为每个分支创建只读工作树到 `_cache/snapshots/...`。
-5. 生成任务单 `_cache/work/<id>/work.json` 和 `_cache/work/<id>/snapshot.json`。
+5. 生成任务单 `_cache/work/<id>/work.json`；分支快照与 `snapshot.json` 在 `_cache/snapshots/github/<owner>/<repo>/`。
 6. 更新 manifest：`status=prepared`。
 
 ## 3. 分析一个项目
@@ -72,16 +72,16 @@ node ForkYou/_forkyou/scripts/forkyou.mjs analyze oink
 
 加 `--dry-run` 时输出到 `_cache/preview/oink`，不更新 manifest、不发布。用于先看效果。
 
-`analyze` 会创建骨架文件到目标目录。然后 Agent 按顺序填：
+`analyze` 会准备快照、任务单和目标目录；文档骨架由 Agent 按 `templates/` 创建。然后 Agent 按顺序填：
 
-1. 读 `work.json`，确认 `target_dir`、`snapshot`、`depth`、`length`。
+1. 读 `work.json`，确认 `output_dir`、`snapshot_dir`、`depth`、`length`。
 2. 读 `snapshot.json`，知道默认分支和分支差异。
 3. 读源码：
    - `README*`、license、构建文件。
    - 入口文件、核心 crate/package。
    - 测试、CI、release workflow。
 4. 外部研究（≤5 来源）。
-5. 写 8 篇文档。
+5. 写 10 篇文档（8 个主题 + 2 篇 deep-dive）。
 6. 写 `guide.data.json`。
 7. 运行 `render-guide` 生成 `guide.html`。
 8. 运行 `validate`。
@@ -161,7 +161,7 @@ node ForkYou/_forkyou/scripts/forkyou.mjs publish --project oink --dry-run
   "clone_dir": "D:\\FlyForkFork\\oink",
   "snapshot": "D:\\FlyForkFork\\_cache\\snapshots\\github\\oinkvm\\oink",
   "default_branch": "main",
-  "target_dir": "D:\\FlyForkFork\\ForkYou\\01-systems\\oink",
+  "output_dir": "D:\\FlyForkFork\\ForkYou\\01-systems\\oink",
   "docs": ["01-positioning.md", "..."],
   "created_at": "..."
 }
@@ -176,9 +176,9 @@ node ForkYou/_forkyou/scripts/forkyou.mjs publish --project oink --dry-run
   "default_branch": "main",
   "branches": [
     { "name": "main", "sha": "...", "dir": "...", "files": 3944, "default": true },
-    { "name": "update-feed-state", "sha": "...", "dir": "...", "files": 3944,
-      "ahead": 1, "behind": 0, "diffstat": "1 file changed, ...",
-      "changed_files": ["..."] }
+    { "name": "update-feed-state", "sha": "...", "dir": "...", "files": 31,
+      "ahead": 1, "behind": 0, "diffstat": "3975 files changed, ...",
+      "changed_files_total": 3975, "changed_files": ["前 200 条"] }
   ]
 }
 ```

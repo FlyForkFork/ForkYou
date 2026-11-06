@@ -17,7 +17,7 @@ import {
   loadManifest, saveManifest, projectId, classify, upsertProject, findByName,
   projectPath, validateProjectDir, statusCounts
 } from './lib/manifest.mjs';
-import { renderGuide, renderProjectReadme, renderRootReadme } from './lib/render.mjs';
+import { renderGuide, renderRootReadme } from './lib/render.mjs';
 
 const CACHE = path.join(WORKSPACE, '_cache');
 const WORK = path.join(CACHE, 'work');
@@ -420,15 +420,6 @@ function syncMetaFromProject(project) {
   project.updated_at = nowIso();
 }
 
-function renderRoot() {
-  const config = loadConfig();
-  const manifest = loadManifest();
-  const readmePath = path.join(REPO_ROOT, 'README.md');
-  const existing = readText(readmePath);
-  writeText(readmePath, renderRootReadme(existing, manifest, config));
-  return manifest;
-}
-
 async function publish(opts) {
   const config = loadConfig();
   const manifest = loadManifest();
@@ -453,13 +444,13 @@ async function publish(opts) {
       syncMetaFromProject(p);
       for (const f of collectProjectFiles(p)) paths.add(f);
     }
-    saveManifest(manifest);
+    if (!dry) saveManifest(manifest);
     message = `docs: add ${projects.map(p => p.name).join(', ')} analysis`;
   }
-  if (!bool(opts.scaffold)) renderRoot();
-  // Render the root README after meta sync as well.
-  const finalManifest = loadManifest();
-  writeText(path.join(REPO_ROOT, 'README.md'), renderRootReadme(readText(path.join(REPO_ROOT, 'README.md')), finalManifest, config));
+  // Render the root README from the in-memory manifest; write it only on a real publish.
+  const finalManifest = bool(opts.scaffold) ? loadManifest() : manifest;
+  const nextReadme = renderRootReadme(readText(path.join(REPO_ROOT, 'README.md')), finalManifest, config);
+  if (!dry) writeText(path.join(REPO_ROOT, 'README.md'), nextReadme);
   out(`files: ${paths.size}`);
   const res = commitPaths(REPO_ROOT, [...paths], message, { dryRun: dry });
   out(JSON.stringify(res));

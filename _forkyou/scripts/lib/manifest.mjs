@@ -77,7 +77,7 @@ export function findByName(manifest, name) {
 }
 
 export function projectPath(project) {
-  return path.join(project.category, project.name);
+  return `${project.category}/${project.name}`;
 }
 
 export function validateProjectDir(dir, opts = {}) {
