@@ -113,10 +113,10 @@
   .branch p{margin:0 0 8px; color:var(--muted); font-size:13px}
   .branch .diff{font-family:var(--mono); font-size:11px; color:var(--warn)}
   .cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
-  .cheat{perspective:1000px; height:150px; background:none; border:0; padding:0; cursor:pointer; text-align:left}
-  .cheat-inner{position:relative; width:100%; height:100%; transition:transform .55s cubic-bezier(.2,.8,.2,1); transform-style:preserve-3d}
+  .cheat{perspective:1000px; height:150px; background:none; border:0; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit; display:block; width:100%; -webkit-appearance:none; appearance:none}
+  .cheat-inner{position:relative; width:100%; height:100%; transition:transform .55s cubic-bezier(.2,.8,.2,1); -webkit-transform-style:preserve-3d; transform-style:preserve-3d}
   .cheat.flipped .cheat-inner{transform:rotateY(180deg)}
-  .cheat-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:center}
+  .cheat-face{position:absolute; inset:0; -webkit-backface-visibility:hidden; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:center}
   .cheat-front{background:linear-gradient(140deg,#14243a,#0d1726)}
   .cheat-back{background:linear-gradient(140deg,#2a1630,#160f24); transform:rotateY(180deg); overflow:auto}
   .cheat-face .q{font-size:15px; font-weight:800; line-height:1.4}
