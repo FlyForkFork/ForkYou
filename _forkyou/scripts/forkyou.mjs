@@ -467,11 +467,18 @@ async function pagesCmd(opts) {
     return;
   }
   if (bool(opts.enable)) {
-    const p = await enablePages(owner, repo, config.publish.branch || 'main');
-    config.pages.enabled = true;
-    config.pages.base_url = p.html_url || `https://${owner}.github.io/${repo}`;
-    writeJson(path.join(REPO_ROOT, '_forkyou', 'config.json'), config);
-    out(`Pages: ${config.pages.base_url}`);
+    try {
+      const p = await enablePages(owner, repo, config.publish.branch || 'main');
+      config.pages.enabled = true;
+      config.pages.base_url = p.html_url || `https://${owner}.github.io/${repo}`;
+      writeJson(path.join(REPO_ROOT, '_forkyou', 'config.json'), config);
+      out(`Pages: ${config.pages.base_url}`);
+    } catch (e) {
+      if (e.status === 403) {
+        throw new Error(`${e.message}\n需要 fine-grained PAT 同时有 Administration: Read and write 和 Pages: Read and write；或在仓库 Settings -> Pages 手动选 main / root。`);
+      }
+      throw e;
+    }
     return;
   }
   throw new Error('pages needs --enable or --status');
