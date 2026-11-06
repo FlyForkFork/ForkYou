@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "id": "github:YuSec2021/mac-everything",
+  "name": "mac-everything",
+  "provider": "github",
+  "upstream": "YuSec2021/mac-everything",
+  "fork": "FlyForkFork/mac-everything",
+  "category": "01-systems",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
+  "analyzed_at": "2026-11-07T03:10:00+08:00",
+  "upstream_url": "https://github.com/YuSec2021/mac-everything",
+  "homepage": "https://github.com/YuSec2021/mac-everything/releases",
+  "license": "MIT",
+  "stars": 1,
+  "language": "C++",
+  "topics": [
+    "cpp20",
+    "file-search",
+    "fsevents",
+    "macos",
+    "menu-bar",
+    "search-engine",
+    "swiftui",
+    "trigram-index"
+  ],
+  "branches": [
+    "main",
+    "ci/release-dmg",
+    "claude/release-workflow",
+    "codex/sync-about-changelog",
+    "fix/index-rewrite-amplification",
+    "fix/root-rescan-duplicates",
+    "refactor/swiftui-p1"
+  ],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-index-persistence.md",
+    "04-deep-dive-query-engine.md",
+    "04-deep-dive-fsevents-memory.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": "guide.html",
+  "sources": [
+    {
+      "title": "YuSec2021/mac-everything README",
+      "url": "https://github.com/YuSec2021/mac-everything",
+      "date": "2026-11-06"
+    },
+    {
+      "title": "voidtools Everything 官方站（下载与许可证）",
+      "url": "https://www.voidtools.com/",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "Apple 支持：在 Mac 上通过“聚焦”查找所需内容",
+      "url": "https://support.apple.com/guide/mac-help/search-with-spotlight-mchlp1008/mac",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "sharkdp/fd README（MIT/Apache-2.0 双许可）",
+      "url": "https://github.com/sharkdp/fd",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "Raycast Pricing（Free / Pro 商业订阅）",
+      "url": "https://www.raycast.com/pricing",
+      "date": "2026-11-07"
+    }
+  ]
+}

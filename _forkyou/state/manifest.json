@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T18:36:05.407Z",
+  "updated_at": "2026-11-06T19:32:55.652Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -70,6 +70,175 @@
         "09-ops.md"
       ],
       "guide": "guide.html"
+    },
+    "github:YuSec2021/mac-everything": {
+      "id": "github:YuSec2021/mac-everything",
+      "name": "mac-everything",
+      "provider": "github",
+      "upstream": "YuSec2021/mac-everything",
+      "fork": "FlyForkFork/mac-everything",
+      "upstream_url": "https://github.com/YuSec2021/mac-everything",
+      "homepage": "https://github.com/YuSec2021/mac-everything/releases",
+      "description": "based on Mac Everything",
+      "one_liner": "based on Mac Everything",
+      "category": "01-systems",
+      "path": "01-systems/mac-everything",
+      "depth": "L2",
+      "length": "default",
+      "license": "MIT",
+      "language": "C++",
+      "stars": 1,
+      "topics": [],
+      "default_branch": "main",
+      "status": "analyzed",
+      "updated_at": "2026-11-06T19:32:55.650Z",
+      "branches": [
+        {
+          "name": "ci/release-dmg",
+          "sha": "b4165d56f8ef3a64eced549716412fa688dfc255",
+          "default": false,
+          "diffstat": "46 files changed, 815 insertions(+), 2164 deletions(-)"
+        },
+        {
+          "name": "claude/release-workflow",
+          "sha": "fd3789ab536b726d4bd9438f3c9a442943f6851a",
+          "default": false,
+          "diffstat": "77 files changed, 1772 insertions(+), 3221 deletions(-)"
+        },
+        {
+          "name": "codex/sync-about-changelog",
+          "sha": "7ee6c3b70dd9c2a9b538219f8f3b73154af6bbec",
+          "default": false,
+          "diffstat": ""
+        },
+        {
+          "name": "fix/index-rewrite-amplification",
+          "sha": "93c5bbb45aeb19a944a383d39d99e26fc014e589",
+          "default": false,
+          "diffstat": "52 files changed, 821 insertions(+), 2395 deletions(-)"
+        },
+        {
+          "name": "fix/root-rescan-duplicates",
+          "sha": "7f9c5bf74639b5367314f214b532d653847fd3f6",
+          "default": false,
+          "diffstat": "49 files changed, 815 insertions(+), 2355 deletions(-)"
+        },
+        {
+          "name": "main",
+          "sha": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
+          "default": true,
+          "diffstat": ""
+        },
+        {
+          "name": "refactor/swiftui-p1",
+          "sha": "c2f05249aee3563761811904a21859b0e73548b1",
+          "default": false,
+          "diffstat": "17 files changed, 102 insertions(+), 403 deletions(-)"
+        }
+      ],
+      "prepared_at": "2026-11-06T18:59:01.851Z",
+      "analyzed_commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
+      "analyzed_at": "2026-11-07T03:10:00+08:00",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-index-persistence.md",
+        "04-deep-dive-query-engine.md",
+        "04-deep-dive-fsevents-memory.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": "guide.html"
+    },
+    "github:Gloridust/WechatOnCloud": {
+      "id": "github:Gloridust/WechatOnCloud",
+      "name": "WechatOnCloud",
+      "provider": "github",
+      "upstream": "Gloridust/WechatOnCloud",
+      "fork": "FlyForkFork/WechatOnCloud",
+      "upstream_url": "https://github.com/Gloridust/WechatOnCloud",
+      "homepage": "",
+      "description": "云微WOC，云微信，自由连接",
+      "one_liner": "云微WOC，云微信，自由连接",
+      "category": "03-infra",
+      "path": "03-infra/WechatOnCloud",
+      "depth": "L2",
+      "length": "default",
+      "license": "NOASSERTION",
+      "language": "TypeScript",
+      "stars": 3967,
+      "topics": [],
+      "default_branch": "main",
+      "status": "prepared",
+      "updated_at": "2026-11-06T18:55:32.875Z",
+      "branches": [
+        {
+          "name": "claude/project-issue-review-f7c99z",
+          "sha": "28c9e51a81f494899b538d45bcb3381e95d57afc",
+          "default": false,
+          "diffstat": "37 files changed, 6109 insertions(+), 6496 deletions(-)"
+        },
+        {
+          "name": "design/impeccable-refine",
+          "sha": "3f4b606cb50fba9a94019d1747ea7406d7f3264a",
+          "default": false,
+          "diffstat": "11 files changed, 984 insertions(+), 2216 deletions(-)"
+        },
+        {
+          "name": "design/redesign-v2",
+          "sha": "1513bbaaeb2e402950c1394ab882d9ed6b9c9f57",
+          "default": false,
+          "diffstat": ""
+        },
+        {
+          "name": "feat/kasmvnc-152-single-viewer",
+          "sha": "3642608814ff7fd5f14a4e9759d3d0cc9973a5ea",
+          "default": false,
+          "diffstat": "14 files changed, 1395 insertions(+), 2753 deletions(-)"
+        },
+        {
+          "name": "feat/v1.2.0-multi-app",
+          "sha": "167a80a0c384eb7684007aa187196ba4225b43b9",
+          "default": false,
+          "diffstat": "63 files changed, 1643 insertions(+), 12348 deletions(-)"
+        },
+        {
+          "name": "fix/129-create-failure-visible",
+          "sha": "60b8ef5ae7ef28044ec8061e1382a977101e920c",
+          "default": false,
+          "diffstat": "26 files changed, 1558 insertions(+), 4000 deletions(-)"
+        },
+        {
+          "name": "fix/155-seamless-input-latency",
+          "sha": "6859189ac72ecd7dc206d2dc6b1814034eae4e68",
+          "default": false,
+          "diffstat": "27 files changed, 1592 insertions(+), 4335 deletions(-)"
+        },
+        {
+          "name": "fix/165-159-paste-pipeline",
+          "sha": "82f86d9a137814ef4f89df7414adc6b39b38230b",
+          "default": false,
+          "diffstat": "26 files changed, 1568 insertions(+), 3998 deletions(-)"
+        },
+        {
+          "name": "fix/166-cef-crash-diagnostics",
+          "sha": "34abb08e6631274454e3f00e227746004b8e9dec",
+          "default": false,
+          "diffstat": "26 files changed, 1595 insertions(+), 3774 deletions(-)"
+        },
+        {
+          "name": "main",
+          "sha": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
+          "default": true,
+          "diffstat": ""
+        }
+      ],
+      "prepared_at": "2026-11-06T18:55:32.875Z"
     }
   }
 }

@@ -6,7 +6,7 @@
     "name": "github",
     "org": "FlyForkFork",
     "content_repo": "ForkYou",
-    "protocol": "ssh",
+    "protocol": "https",
     "token_env": "FORKYOU_GITHUB_TOKEN"
   },
   "analysis": {
@@ -46,7 +46,9 @@
         "label": "其他"
       }
     ],
-    "category_overrides": {}
+    "category_overrides": {
+      "mac-everything": "01-systems"
+    }
   },
   "publish": {
     "branch": "main",
