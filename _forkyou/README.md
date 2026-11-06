@@ -29,6 +29,9 @@ git clone git@github.com:FlyForkFork/ForkYou.git
 # 4. 配好 SSH key
 # 5. 检查
 node ForkYou/_forkyou/scripts/forkyou.mjs doctor
+
+# 6. 首次启用 Pages（PAT 需要 Administration + Pages 写权限）
+node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable
 ```
 
 `AGENTS.md.example` 复制到工作区根，改名为 `AGENTS.md`。它只有几行，用最简单的话指向本文件夹。

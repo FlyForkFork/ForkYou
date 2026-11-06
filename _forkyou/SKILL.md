@@ -15,14 +15,14 @@
 目录约定：
 
 ```text
-D:\FlyForkFork\
-  ForkYou\                  # 内容仓库（本仓库）
-  <repo>\                   # 每个 fork 的源码克隆，所有分支
-  _cache\
-    work\<id>\work.json     # 任务单
-    snapshots\<id>\<branch> # 分支工作树（只读分析用）
-    preview\<repo>\         # dry-run 输出
-    tmp\
+<workspace>/
+  ForkYou/                  # 内容仓库（本仓库）
+  <repo>/                   # 每个 fork 的源码克隆，所有分支
+  _cache/
+    work/<id>/work.json     # 任务单
+    snapshots/github/<owner>/<repo>/<branch> # 分支工作树（只读分析用）
+    preview/<repo>/         # dry-run 输出
+    tmp/
 ```
 
 ## 1. 预检
@@ -130,6 +130,15 @@ node ForkYou/_forkyou/scripts/forkyou.mjs publish --all
 node ForkYou/_forkyou/scripts/forkyou.mjs publish --project oink --dry-run
 ```
 
+首次启用 GitHub Pages：
+
+```bash
+node ForkYou/_forkyou/scripts/forkyou.mjs pages --enable
+node ForkYou/_forkyou/scripts/forkyou.mjs pages --status
+```
+
+`pages --enable` 需要 fine-grained PAT 同时有 **Administration: Read and write** 和 **Pages: Read and write**；否则到仓库 `Settings -> Pages` 手动选 `main` / root。
+
 发布前自动：
 
 - 校验项目目录。
@@ -188,7 +197,7 @@ Agent 用 `git -C <clone> diff origin/main..origin/<branch>` 看细节。
 ## 10. 迁移到其他机器
 
 1. 复制 `ForkYou/_forkyou/` 到新机器。
-2. 复制或重建 `ForkYou_ForkYou` 仓库（git clone）。
+2. 复制或重建 `ForkYou` 仓库（git clone）。
 3. 在新机器根目录放 `.env`（只有 token）。
 4. 配好 SSH key。
 5. 运行 `doctor`。
