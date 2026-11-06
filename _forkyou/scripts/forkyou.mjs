@@ -415,7 +415,7 @@ async function publish(opts) {
   const manifest = loadManifest();
   ensureIdentity(REPO_ROOT, config.publish.author_name, config.publish.author_email);
   const dry = bool(opts['dry-run']);
-  const paths = new Set(['_forkyou', 'README.md', '.gitignore']);
+  const paths = new Set(['_forkyou', 'README.md', '.gitignore', '.nojekyll']);
   let message = 'chore: update ForkYou scaffold';
   if (bool(opts.scaffold)) {
     out('publishing scaffold');
