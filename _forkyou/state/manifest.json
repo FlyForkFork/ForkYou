@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-06T19:38:58.474Z",
+  "updated_at": "2026-11-07T18:49:52.049Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -256,6 +256,75 @@
         "09-ops.md"
       ],
       "guide": "guide.html"
+    },
+    "github:ultime-space/core": {
+      "id": "github:ultime-space/core",
+      "name": "ultime-space-core",
+      "provider": "github",
+      "upstream": "ultime-space/core",
+      "fork": "FlyForkFork/ultime-space-core",
+      "upstream_url": "https://github.com/ultime-space/core",
+      "homepage": "https://github.com/ultime-space/core",
+      "description": "",
+      "one_liner": "把一组 seed 参数编译成 274 个 token 的设计系统内核。",
+      "category": "06-web",
+      "path": "06-web/ultime-space-core",
+      "depth": "L2",
+      "length": "default",
+      "license": "MIT",
+      "language": "TypeScript",
+      "stars": 0,
+      "topics": [],
+      "default_branch": "main",
+      "status": "analyzed",
+      "updated_at": "2026-11-07T18:49:52.043Z",
+      "analyzed_commit": "a0dd5ddfe2eab3298e76b90d6ef9aae216f8b26a",
+      "analyzed_at": "2026-11-07T18:03:05.579Z",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-color-derivation.md",
+        "04-deep-dive-build-guards.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": "guide.html"
+    },
+    "github:ultime-space/skills": {
+      "id": "github:ultime-space/skills",
+      "name": "ultime-space-skills",
+      "provider": "github",
+      "upstream": "ultime-space/skills",
+      "fork": "FlyForkFork/ultime-space-skills",
+      "upstream_url": "https://github.com/ultime-space/skills",
+      "homepage": "",
+      "description": "",
+      "one_liner": "",
+      "category": "06-web",
+      "path": "06-web/ultime-space-skills",
+      "depth": "L2",
+      "length": "default",
+      "license": "NOASSERTION",
+      "language": "JavaScript",
+      "stars": 0,
+      "topics": [],
+      "default_branch": "main",
+      "status": "prepared",
+      "updated_at": "2026-11-07T18:03:05.582Z",
+      "branches": [
+        {
+          "name": "main",
+          "sha": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
+          "default": true,
+          "diffstat": ""
+        }
+      ],
+      "prepared_at": "2026-11-07T18:03:57.083Z"
     }
   }
 }

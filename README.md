@@ -15,7 +15,7 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **3** 个项目。最后更新：2026-11-06 19:38:58。
+已分析 **4** 个项目。最后更新：2026-11-07 18:49:52。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
@@ -29,6 +29,12 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 | 项目 | 一句话 | 上游 | 应用地址 | 深度 | 更新 | 分析 |
 |---|---|---|---|---|---|---|
 | [WechatOnCloud](03-infra/WechatOnCloud/README.md) | 在 NAS / 服务器上跑「服务端微信」，多端浏览器共享同一会话。 | [Gloridust/WechatOnCloud](https://github.com/Gloridust/WechatOnCloud) | [打开](https://github.com/Gloridust/WechatOnCloud#readme) | L2 | 2026-11-07 | [Wiki](03-infra/WechatOnCloud/README.md) · [Guide](03-infra/WechatOnCloud/guide.html) |
+
+### 06-web · Web / 前端
+
+| 项目 | 一句话 | 上游 | 应用地址 | 深度 | 更新 | 分析 |
+|---|---|---|---|---|---|---|
+| [ultime-space-core](06-web/ultime-space-core/README.md) | 把一组 seed 参数编译成 274 个 token 的设计系统内核。 | [ultime-space/core](https://github.com/ultime-space/core) | [打开](https://github.com/ultime-space/core) | L2 | 2026-11-07 | [Wiki](06-web/ultime-space-core/README.md) · [Guide](06-web/ultime-space-core/guide.html) |
 
 <!-- FORKYOU:INDEX:END -->
 

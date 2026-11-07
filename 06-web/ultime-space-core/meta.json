@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "id": "github:ultime-space/core",
+  "name": "ultime-space-core",
+  "one_liner": "把一组 seed 参数编译成 274 个 token 的设计系统内核。",
+  "provider": "github",
+  "upstream": "ultime-space/core",
+  "fork": "FlyForkFork/ultime-space-core",
+  "category": "06-web",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "a0dd5ddfe2eab3298e76b90d6ef9aae216f8b26a",
+  "analyzed_at": "2026-11-07T18:03:05.579Z",
+  "upstream_url": "https://github.com/ultime-space/core",
+  "homepage": "https://github.com/ultime-space/core",
+  "license": "MIT",
+  "stars": 0,
+  "language": "TypeScript",
+  "topics": [
+    "design-system",
+    "design-tokens",
+    "dtcg",
+    "oklch",
+    "token-pipeline",
+    "typescript"
+  ],
+  "branches": ["main"],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-color-derivation.md",
+    "04-deep-dive-build-guards.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": "guide.html",
+  "sources": [
+    {
+      "title": "ultime-space/core 官方仓库与 GitHub API",
+      "url": "https://github.com/ultime-space/core",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "Style Dictionary 官方仓库",
+      "url": "https://github.com/style-dictionary/style-dictionary",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "Tokens Studio for Figma 官方仓库",
+      "url": "https://github.com/tokens-studio/figma-plugin",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "Open Props 官方仓库",
+      "url": "https://github.com/argyleink/open-props",
+      "date": "2026-11-07"
+    },
+    {
+      "title": "W3C DTCG Format Module 2025.10",
+      "url": "https://www.designtokens.org/tr/2025.10/format/",
+      "date": "2025-10-28"
+    }
+  ]
+}
