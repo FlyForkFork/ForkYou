@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-07T18:49:52.049Z",
+  "updated_at": "2026-11-07T18:50:26.591Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -302,9 +302,9 @@
       "upstream": "ultime-space/skills",
       "fork": "FlyForkFork/ultime-space-skills",
       "upstream_url": "https://github.com/ultime-space/skills",
-      "homepage": "",
+      "homepage": "https://github.com/ultime-space/skills",
       "description": "",
-      "one_liner": "",
+      "one_liner": "把代码规范、文档治理、设计知识做成三个可安装、可独立发版的 AI skill 包。",
       "category": "06-web",
       "path": "06-web/ultime-space-skills",
       "depth": "L2",
@@ -314,8 +314,8 @@
       "stars": 0,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-07T18:03:05.582Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-07T18:50:26.587Z",
       "branches": [
         {
           "name": "main",
@@ -324,7 +324,23 @@
           "diffstat": ""
         }
       ],
-      "prepared_at": "2026-11-07T18:03:57.083Z"
+      "prepared_at": "2026-11-07T18:03:57.083Z",
+      "analyzed_commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
+      "analyzed_at": "2026-11-07T18:03:57.081Z",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-codecraft-cli.md",
+        "04-deep-dive-skill-packaging.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": "guide.html"
     }
   }
 }

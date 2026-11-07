@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "id": "github:ultime-space/skills",
+  "name": "ultime-space-skills",
+  "one_liner": "把代码规范、文档治理、设计知识做成三个可安装、可独立发版的 AI skill 包。",
+  "description": "面向 AI 编程的 skill 集合：Codecraft（JS/TS 代码规范与架构，带零依赖 CLI）、Docscraft（文档组织与 AI 上下文治理）、Designcraft（设计系统知识）。三个 skill 自包含、独立 semver、互不 import，经 skills CLI / skills-npm 安装，tag 触发 GitHub Actions Trusted Publishing。",
+  "provider": "github",
+  "upstream": "ultime-space/skills",
+  "fork": "FlyForkFork/ultime-space-skills",
+  "category": "06-web",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
+  "analyzed_at": "2026-11-07T18:03:57.081Z",
+  "upstream_url": "https://github.com/ultime-space/skills",
+  "homepage": "https://github.com/ultime-space/skills",
+  "license": "NOASSERTION",
+  "stars": 0,
+  "language": "JavaScript",
+  "topics": [
+    "agent-skills",
+    "code-standards",
+    "documentation",
+    "design-system",
+    "static-analysis",
+    "cli",
+    "npm",
+    "trusted-publishing"
+  ],
+  "branches": [
+    "main"
+  ],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-codecraft-cli.md",
+    "04-deep-dive-skill-packaging.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": "guide.html",
+  "sources": [
+    {
+      "title": "ultime-space/skills 仓库",
+      "url": "https://github.com/ultime-space/skills",
+      "date": "2026-11-08"
+    },
+    {
+      "title": "npm @ultime/codecraft",
+      "url": "https://www.npmjs.com/package/@ultime/codecraft",
+      "date": "2026-11-08"
+    },
+    {
+      "title": "vercel-labs/skills：open agent skills CLI",
+      "url": "https://github.com/vercel-labs/skills",
+      "date": "2026-11-08"
+    },
+    {
+      "title": "anthropics/skills：Agent Skills 参考实现与规范",
+      "url": "https://github.com/anthropics/skills",
+      "date": "2026-11-08"
+    },
+    {
+      "title": "obra/superpowers：agentic skills 框架",
+      "url": "https://github.com/obra/superpowers",
+      "date": "2026-11-08"
+    }
+  ]
+}
