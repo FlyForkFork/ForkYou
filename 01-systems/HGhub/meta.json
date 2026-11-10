@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "id": "github:Minireel/HGhub",
+  "name": "HGhub",
+  "provider": "github",
+  "upstream": "Minireel/HGhub",
+  "fork": "FlyForkFork/HGhub",
+  "category": "01-systems",
+  "depth": "L2",
+  "length": "default",
+  "analyzed_commit": "5f88442961ad9cdac50af4421cf76b3ac06d64e2",
+  "analyzed_at": "2026-11-10T21:40:00+08:00",
+  "upstream_url": "https://github.com/Minireel/HGhub",
+  "homepage": "https://github.com/Minireel/HGhub/releases",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "stars": 7518,
+  "language": "TypeScript",
+  "topics": [
+    "android",
+    "drama",
+    "free",
+    "movie-web-app",
+    "reels",
+    "windows"
+  ],
+  "branches": [
+    "main",
+    "codex/fix-ios-build",
+    "codex/source-only-maintenance"
+  ],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-media-proxy.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": null,
+  "sources": [
+    {
+      "title": "Minireel/HGhub README",
+      "url": "https://github.com/Minireel/HGhub/blob/5f88442961ad9cdac50af4421cf76b3ac06d64e2/README.md",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Minireel/HGhub Cargo.toml",
+      "url": "https://github.com/Minireel/HGhub/blob/5f88442961ad9cdac50af4421cf76b3ac06d64e2/src-tauri/Cargo.toml",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Minireel/HGhub tauri.conf.json",
+      "url": "https://github.com/Minireel/HGhub/blob/5f88442961ad9cdac50af4421cf76b3ac06d64e2/src-tauri/tauri.conf.json",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Minireel/HGhub docs/security.md",
+      "url": "https://github.com/Minireel/HGhub/blob/5f88442961ad9cdac50af4421cf76b3ac06d64e2/docs/security.md",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Minireel/HGhub docs/playback-diagnostics.md",
+      "url": "https://github.com/Minireel/HGhub/blob/5f88442961ad9cdac50af4421cf76b3ac06d64e2/docs/playback-diagnostics.md",
+      "date": "2026-11-10"
+    }
+  ],
+  "analysis": {
+    "profile": "default",
+    "reason": "Tauri 2 跨平台桌面/移动应用：React/TS 前端 + Rust 原生网络层与自定义协议 + hls.js 播放器。机制面广（网络策略、媒体代理、播放器状态机、诊断日志）但无自研协议、索引或调度器等 deep 级系统设计，因此定 default。",
+    "skipped": [
+      {
+        "doc": "guide.data.json / guide.html",
+        "reason": "交互式导读对本项目增益有限，直接读 01→03→04 更快"
+      },
+      {
+        "doc": "04 深挖第二篇",
+        "reason": "网络请求层与播放器状态机已在 02/04 内合并叙述，单独成篇会与 04-deep-dive-media-proxy 大量重复"
+      }
+    ]
+  }
+}

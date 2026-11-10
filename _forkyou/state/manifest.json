@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:56.436Z",
+  "updated_at": "2026-11-10T14:28:07.276Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -521,14 +521,14 @@
       "upstream": "Minireel/HGhub",
       "fork": "FlyForkFork/HGhub",
       "upstream_url": "https://github.com/Minireel/HGhub",
-      "homepage": "",
+      "homepage": "https://github.com/Minireel/HGhub/releases",
       "description": "YellowFruit third-party client",
       "one_liner": "YellowFruit third-party client",
       "category": "01-systems",
       "path": "01-systems/HGhub",
       "depth": "L2",
       "length": "default",
-      "license": "NOASSERTION",
+      "license": "PolyForm-Noncommercial-1.0.0",
       "language": "TypeScript",
       "stars": 7518,
       "topics": [
@@ -540,8 +540,8 @@
         "windows"
       ],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-10T10:56:48.738Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:28:07.274Z",
       "branches": [
         {
           "name": "codex/fix-ios-build",
@@ -562,7 +562,22 @@
           "diffstat": ""
         }
       ],
-      "prepared_at": "2026-11-10T11:02:24.701Z"
+      "prepared_at": "2026-11-10T11:02:24.701Z",
+      "analyzed_commit": "5f88442961ad9cdac50af4421cf76b3ac06d64e2",
+      "analyzed_at": "2026-11-10T21:40:00+08:00",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-media-proxy.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": null
     }
   }
 }
