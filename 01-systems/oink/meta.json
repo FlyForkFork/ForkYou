@@ -7,14 +7,16 @@
   "fork": "FlyForkFork/oink",
   "category": "01-systems",
   "depth": "L2",
-  "length": "default",
-  "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
-  "analyzed_at": "2026-11-07T01:30:00+08:00",
+  "length": "deep",
+  "analyzed_commit": "d8b29328678bfb50b5a9385a284f74572290c03b",
+  "analyzed_at": "2026-11-10T22:00:00+08:00",
   "upstream_url": "https://github.com/oinkvm/oink",
   "homepage": "https://github.com/oinkvm/oink/releases",
   "license": "GPL-3.0-only",
-  "stars": 456,
+  "stars": 1156,
   "language": "Rust",
+  "version": "0.3.5",
+  "one_liner": "把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽与音频的 P2P 软件 KVM，纯状态机路由 + 单线程 QUIC 网络 + 线程所有权表。",
   "topics": [
     "audio-sharing",
     "barrier-alternative",
@@ -34,11 +36,13 @@
   ],
   "branches": ["main", "update-feed-state"],
   "docs": [
+    "README.md",
     "01-positioning.md",
     "02-architecture.md",
     "03-code-tour.md",
     "04-deep-dive-routing.md",
     "04-deep-dive-network.md",
+    "04-deep-dive-trust.md",
     "05-performance.md",
     "06-branches.md",
     "07-contribute.md",
@@ -46,16 +50,71 @@
     "09-ops.md"
   ],
   "guide": "guide.html",
+  "analysis": {
+    "profile": "deep",
+    "reason": "P2P 软件 KVM：自研输入路由纯状态机（oink-routing 3.6 万行 Rust，router.rs 4773 行）、QUIC 单线程网络与 SPAKE2 配对（oink-network 3 万行）、音频/剪贴板/拖拽/自动解锁多子系统，且 0.3.4–0.3.5 新增了自动解锁与剪贴板去重两条可迁移的信任边界设计。核心机制有强可迁移性，值得拆 3 篇深挖。",
+    "skipped": []
+  },
   "sources": [
     {
-      "title": "oinkvm/oink README",
-      "url": "https://github.com/oinkvm/oink",
-      "date": "2026-11-06"
+      "title": "oinkvm/oink README（平台支持、GPL-3.0-only + additional terms、不接受无上下文 PR）",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/README.md",
+      "date": "2026-11-10"
     },
     {
-      "title": "oinkvm/oink Cargo.toml",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/Cargo.toml",
-      "date": "2026-11-06"
+      "title": "Cargo.toml — workspace members、version 0.3.5、edition 2024、rust-version 1.99.0",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/Cargo.toml",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-routing/src/router.rs — 纯输入路由状态机（4773 行）",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-routing/src/router.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-network/src/link/mod.rs — 链路三态、心跳、预算常量",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/link/mod.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-network/src/group_pake.rs — SPAKE2 + 6 位码 + transcript 绑定",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/group_pake.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-agent/src/threads/mod.rs — 线程所有权表与线程间三件套",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/threads/mod.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-agent/src/auto_unlock/sync.rs — 同步解锁的重放栅栏与两段式确认",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/auto_unlock/sync.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-clipboard/src/content/grants.rs — 设备绑定的持久文件授权",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-clipboard/src/content/grants.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-audio/src/dsp.rs — 48 kHz / Opus 10 ms / 有界队列与 PLC",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-audio/src/dsp.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "crates/oink-winsvc/native/unlock-policy.hpp — Windows 解锁操作状态机与两个 TTL",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-winsvc/native/unlock-policy.hpp",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "GitHub API — stars 1156 / forks 98 / open_issues 13（2026-11-10 实测）",
+      "url": "https://api.github.com/repos/oinkvm/oink",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Oink 0.3.5 release notes — 同步解锁、剪贴板去重、Quicker 兼容模式",
+      "url": "https://github.com/oinkvm/oink/releases/tag/v0.3.5",
+      "date": "2026-11-10"
     }
   ]
 }

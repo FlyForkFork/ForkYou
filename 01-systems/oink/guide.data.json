@@ -4,14 +4,14 @@
   "subtitle": "把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM",
   "one_liner": "Oink Is Not only a KVM：去中心化、默认加密、跨 macOS/Windows 的实时设备共享网络。",
   "category": "01-systems",
-  "tags": ["Rust", "Tauri", "QUIC", "P2P", "KVM"],
+  "tags": ["Rust", "Tauri", "QUIC", "P2P", "KVM", "SPAKE2"],
   "meta": {
     "upstream": "oinkvm/oink",
     "license": "GPL-3.0-only",
-    "stars": 456,
-    "language": "Rust + TypeScript",
-    "commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
-    "updated": "2026-11-06"
+    "stars": 1156,
+    "language": "Rust + TypeScript + Swift",
+    "commit": "d8b29328678bfb50b5a9385a284f74572290c03b",
+    "updated": "2026-11-10"
   },
   "links": {
     "github": "https://github.com/oinkvm/oink",
@@ -19,25 +19,25 @@
     "docs": "https://github.com/oinkvm/oink#readme"
   },
   "stats": [
-    { "label": "代码规模", "value": "3944 文件" },
-    { "label": "语言", "value": "Rust + TS" },
-    { "label": "Stars", "value": "456" },
+    { "label": "代码规模", "value": "4020 文件" },
+    { "label": "Rust", "value": "975 文件 / 44.7 万行" },
+    { "label": "Stars", "value": "1156" },
     { "label": "License", "value": "GPL-3.0-only" },
     { "label": "分支", "value": "2" },
-    { "label": "版本", "value": "0.3.3" }
+    { "label": "版本", "value": "0.3.5" }
   ],
   "mental_model": [
     {
       "title": "它是谁",
-      "body": "一个去中心化的软件 KVM：每台 Mac/Windows 都能当输入源，不需要指定 Server。键盘、鼠标、触控板、剪贴板、拖拽、音频都走同一条加密 P2P 网络。"
+      "body": "一个去中心化的软件 KVM：每台 Mac/Windows 都能当输入源，不需要指定 Server。键盘、鼠标、触控板、剪贴板、拖拽、音频都走同一条加密 P2P 网络，0.3.4 起还能用保存的密码自动解锁另一台机器。"
     },
     {
       "title": "怎么工作",
-      "body": "本机 capture 事件进入纯状态机 Router；Router 决定本地消费、跨屏转发还是拒绝；跨屏事件经 QUIC 的 Reliable/Datagram 流到对端；对端 injection 线程合成原生事件。"
+      "body": "本机 capture 事件进入纯状态机 Router；Router 决定本地消费、跨屏转发还是拒绝；跨屏事件经 QUIC 的 Reliable/Datagram 流到对端；对端 injection 线程合成原生事件。线程之间只有队列、整块快照、小定长命令。"
     },
     {
       "title": "为什么特别",
-      "body": "核心路由是纯函数式状态机，可脱离真机测试；网络层不造可靠传输，直接让 QUIC 承担；每个实时子系统一个 owner 线程，线程间只有队列/快照/固定命令。"
+      "body": "核心路由是 4773 行纯状态机，可脱离真机用虚拟时钟测试；网络层不造可靠传输，直接让 QUIC 承担；每个实时子系统一个 owner 线程；跨设备特权操作（自动解锁）必须反向质询，不信任同伴的通知。"
     }
   ],
   "architecture": {
@@ -46,39 +46,40 @@
       {
         "name": "用户界面",
         "nodes": [
-          { "id": "ui", "label": "Tauri UI", "desc": "React 19 + Tauri 2 窗口：设备卡片、布局编排、设置、配对。所有系统操作通过 AgentApi IPC 下发。" },
-          { "id": "tray", "label": "菜单栏 / 托盘", "desc": "macOS 菜单栏与 Windows 托盘：显示/隐藏、暂停/恢复、锁定/解锁、退出。" }
+          { "id": "ui", "label": "Tauri UI", "desc": "React 19 + Tauri 2：设备卡片、布局编排、设置、配对。所有系统操作通过 AgentApi IPC 下发，后端在独立进程。" },
+          { "id": "tray", "label": "菜单栏 / 托盘 / Finder", "desc": "macOS 菜单栏、Windows 托盘、macOS Finder 扩展（Paste as File）。" }
         ]
       },
       {
         "name": "应用核心",
         "nodes": [
-          { "id": "agent", "label": "Agent Backend", "desc": "拥有 Tokio runtime、Node、进程锁与本地 IPC listener；按 Profile 组装组件，是 UI 与实时子系统的中间层。" },
-          { "id": "router", "label": "Router", "desc": "纯输入路由状态机：不做 I/O、不读系统时钟；输入事件/对端消息/连接/时钟，输出命令队列。" },
-          { "id": "config", "label": "Settings / State", "desc": "settings.json、addresses.json、配对记录；普通线程读写，实时线程只拿快照。" }
+          { "id": "agent", "label": "Agent Backend", "desc": "拥有 Tokio runtime、Node、进程锁与本地 IPC listener；按 Profile::User / Prelogin 组装组件。" },
+          { "id": "router", "label": "Router", "desc": "纯输入路由状态机：不读系统时钟、不做 I/O；输入事件/对端消息/连接/时钟进，Output 命令队列出。" },
+          { "id": "config", "label": "Settings / State", "desc": "settings.json、pairing-blocks.cbor、presence.cbor；普通线程读写，实时线程只拿整块快照。" }
         ]
       },
       {
         "name": "实时通道",
         "nodes": [
-          { "id": "input", "label": "Input Capture", "desc": "平台原生捕获：键盘、鼠标、触控板、手势；在 capture 回调快路径调用 Router::on_capture。" },
-          { "id": "inject", "label": "Injection", "desc": "平台原生注入：把对端事件合成键鼠/触控板事件；与 capture 分离，避免反馈环。" },
-          { "id": "network", "label": "QUIC Network", "desc": "quinn 0.11 + rustls + SPAKE2；所有 link/stream 状态在一个私有 current-thread executor；负责发现、配对、直连/中继、心跳。" }
+          { "id": "input", "label": "Input Capture", "desc": "平台原生捕获：键盘、鼠标、触控板、手势。capture 回调快路径只做吞/放，其余进队列。" },
+          { "id": "inject", "label": "Injection", "desc": "平台原生注入；记录已注入按键，防止自己的钩子再抓一遍形成回环。" },
+          { "id": "network", "label": "QUIC Network", "desc": "quinn + rustls + SPAKE2；所有 link/stream 状态在一个私有 current-thread runtime，每轮 500µs 三段预算。" }
         ]
       },
       {
         "name": "媒体与内容",
         "nodes": [
-          { "id": "audio", "label": "Audio DSP", "desc": "48kHz 立体声；Opus/PCM16/PCM24；jitter buffer + PLC + 自适应重采样；独立 realtime 线程。" },
-          { "id": "clipboard", "label": "Clipboard / DnD", "desc": "内容 Provider + 授权 grants：复制时只发布 representation 描述，粘贴/拖拽时按需读取，避免大内容阻塞。" }
+          { "id": "audio", "label": "Audio DSP", "desc": "48kHz 立体声；Opus/PCM16/PCM24；目标 3 帧、最大 12 帧、PLC 6 帧；独立 realtime 线程。" },
+          { "id": "clipboard", "label": "Clipboard / DnD", "desc": "Provider + 设备绑定 grants；懒加载 representation，0.3.5 增加 marker 优先的剪贴板去重。" },
+          { "id": "unlock", "label": "Auto Unlock", "desc": "本地凭据永不进协议；解锁提示必须反向质询源设备，Windows 侧用 (Boot, epoch) 重放栅栏与两个 TTL。" }
         ]
       },
       {
         "name": "平台边界",
         "nodes": [
-          { "id": "macos", "label": "macOS Adapter", "desc": "objc2/AppKit：捕获、注入、菜单栏、权限、屏幕布局。" },
-          { "id": "windows", "label": "Windows Adapter", "desc": "windows crate：低级钩子、UIAccess、DPI/EDID、托盘、登录启动。" },
-          { "id": "winsvc", "label": "Windows Service", "desc": "SYSTEM 服务 + 固定 OBL1 启动配方：登录前/登录界面也能提供输入；不接收任意 executable path/args。" }
+          { "id": "macos", "label": "macOS Adapter", "desc": "objc2/AppKit：捕获、注入、菜单栏、Keychain、TCC 权限、屏幕布局。" },
+          { "id": "windows", "label": "Windows Adapter", "desc": "windows crate：低级钩子、UIAccess、DPI/EDID、托盘、Quicker 兼容模式。" },
+          { "id": "winsvc", "label": "Windows Service", "desc": "SYSTEM 服务 + 固定 OBL1 启动配方；登录前/锁屏界面也能提供输入；DPAPI 存解锁凭据。" }
         ]
       }
     ],
@@ -93,6 +94,7 @@
       { "from": "agent", "to": "config", "label": "settings" },
       { "from": "audio", "to": "network", "label": "音频流" },
       { "from": "clipboard", "to": "agent", "label": "content" },
+      { "from": "unlock", "to": "agent", "label": "解锁事务" },
       { "from": "macos", "to": "input", "label": "native" },
       { "from": "windows", "to": "input", "label": "native" },
       { "from": "winsvc", "to": "agent", "label": "OBL1" }
@@ -103,113 +105,131 @@
     "steps": [
       {
         "title": "捕获：原生事件进入快路径",
-        "detail": "平台层拿到键盘/鼠标/触控板事件，构造 InputEvent。capture 回调必须极快：只做转换和 Router::on_capture，不等待、不做文件 I/O、不格式化日志。",
+        "detail": "平台层拿到键盘/鼠标/触控板事件，构造 InputEvent。capture 回调必须极快：只做转换和 Router::on_local_event，不等待、不做文件 I/O、不格式化日志。",
         "highlight": ["input", "router"],
-        "code": "let disposition = router.on_capture(InputEvent { ... }, now);\n// 快路径：返回 Local/Forward/Refused"
+        "code": "let disposition = router.on_local_event(&event, now);\n// 快路径：返回 Local / Forward / Refused"
       },
       {
         "title": "路由：纯状态机决定去向",
-        "detail": "Router 结合当前屏幕布局、焦点所有权、按键/按钮保持状态，决定本地消费、转发到某台设备，还是 Refused。它不读时钟，时间由调用方传入，所以可用虚拟时钟复现。",
+        "detail": "Router 结合屏幕布局、焦点所有权、按键/按钮保持状态，决定本地消费、转发到某台设备，还是 Refused。它不读时钟，时间由调用方以 Micros 传入，所以可用虚拟时钟复现。",
         "highlight": ["router", "agent"],
-        "code": "match router.on_capture(ev, now) {\n  Disposition::Local => inject_local(ev),\n  Disposition::Forward(peer) => enqueue(peer, ev),\n  Disposition::Refused => { /* 保持本机状态 */ }\n}"
+        "code": "match router.on_local_event(&ev, now) {\n  Disposition::Local => inject_local(ev),\n  Disposition::Forward(peer) => enqueue(peer, ev),\n  Disposition::Refused => { /* 保持本机状态 */ }\n}"
+      },
+      {
+        "title": "移交：先 DnD 再指针进入",
+        "detail": "跨屏不是转发一个鼠标事件：hand_off_with_entry 递增 epoch、挂起焦点锁、取 focus_scope，并且先发 DndEnter 再发 MovePointerEnter——顺序反了会闪一下。",
+        "highlight": ["router", "agent", "network"],
+        "code": "let dnd = self.take_dnd_enter(to, epoch);\nemit(dnd);\nemit(ControlMsg::MovePointerEnter { .. });"
       },
       {
         "title": "传输：Reliable 还是 Datagram",
-        "detail": "键盘、按钮、焦点移交走 Reliable（有序、不丢）；游戏相对运动走 Datagram（低延迟、可丢）。网络层不自己实现 seq/ack/重传，交给 QUIC。",
+        "detail": "键盘、按钮、焦点移交走 Reliable（同一设备的所有 Reliable 保序）；游戏相对运动走 Datagram（低延迟、可丢）。网络层不实现 seq/ack/重传，交给 QUIC。",
         "highlight": ["network", "router"],
-        "code": "match event.delivery {\n  Delivery::Reliable => uni_stream(N1).send(event),\n  Delivery::Datagram => datagram(I0).send(event),\n}"
+        "code": "match delivery {\n  Delivery::Reliable => uni_stream(N1).send(msg),\n  Delivery::Datagram => datagram(I0).send(msg),\n}"
       },
       {
         "title": "注入：对端合成原生事件",
-        "detail": "对端 injection 线程收到事件后，用平台 API 合成键鼠/触控板事件。注入与捕获在不同线程/不同权限边界，避免自己捕获自己的注入形成反馈环。",
+        "detail": "对端 injection 线程用平台 API 合成事件，并记录“这个键是我注入的”，避免自己的钩子再抓一遍。Windows 的 Quicker 兼容模式会在 1s 窗口内让 flagged-injected 鼠标事件直通下一个钩子。",
         "highlight": ["inject", "macos", "windows"],
-        "code": "inject_key(event.key, event.state);\ninject_pointer(event.dx, event.dy);\ninject_gesture(event.contacts);"
+        "code": "inject_key(key, state);\ninject_pointer(dx, dy);\nremember_injected(key);"
       },
       {
-        "title": "移交：焦点/所有权切换",
-        "detail": "跨屏不是“转发一个鼠标事件”就完了：还要处理按钮保持、键盘修饰键、触控板半截手势、焦点锁定。Router 用 Handoff/Lock/Unlock/GapDepart/GapReturn 等决策保证边界一致。",
-        "highlight": ["router", "agent", "network"],
-        "code": "DecisionKind::Handoff { to, .. } => {\n  flush_held_keys();\n  transfer_focus(to);\n}"
+        "title": "收敛：心跳与调度读回",
+        "detail": "心跳 500ms、超时 2s 维持 peer_alive；网络线程每轮统计 late_rounds/over_budget，并每 5s 读回实时调度策略，不一致就计 demoted——性能退化有数字可查。",
+        "highlight": ["network", "agent"],
+        "code": "if !peer_alive(peer) { router.peer_alive(peer, now); }\n// runtime: over_budget += 1; demoted += 1"
       }
     ]
   },
   "code_map": [
     {
       "path": "crates/oink-routing/src/router.rs",
-      "role": "纯输入路由状态机：先读这个，理解 Oink 的核心决策",
+      "role": "纯输入路由状态机（4773 行）：先读这个，理解 Oink 的核心决策",
       "read_order": 1,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-routing/src/router.rs"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-routing/src/router.rs"
     },
     {
       "path": "crates/oink-routing/src/layout.rs",
-      "role": "屏幕布局与视平面：跨屏边界、portal、gap/wall slide",
+      "role": "屏幕布局与视平面：跨屏边界、portal、gap topology",
       "read_order": 2,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-routing/src/layout.rs"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-routing/src/layout.rs"
+    },
+    {
+      "path": "crates/oink-agent/src/threads/mod.rs",
+      "role": "线程所有权表：6 个线程、线程间只有三件东西",
+      "read_order": 3,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/threads/mod.rs"
     },
     {
       "path": "crates/oink-network/src/link/mod.rs",
       "role": "网络层边界与预算：QUIC 状态、心跳、relay、cutover",
-      "read_order": 3,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-network/src/link/mod.rs"
+      "read_order": 4,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/link/mod.rs"
+    },
+    {
+      "path": "crates/oink-network/src/link/runtime.rs",
+      "role": "500µs 一轮的实际代码：三段预算 + 调度降级比对",
+      "read_order": 5,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/link/runtime.rs"
     },
     {
       "path": "crates/oink-protocol/src/frame.rs",
       "role": "流类型与帧头：N0/N1/C0/I0/I1/B0/M0/M1 的语义",
-      "read_order": 4,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-protocol/src/frame.rs"
+      "read_order": 6,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-protocol/src/frame.rs"
     },
     {
       "path": "crates/oink-network/src/group_pake.rs",
       "role": "SPAKE2 配对：6 位码、transcript、确认密钥",
-      "read_order": 5,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-network/src/group_pake.rs"
-    },
-    {
-      "path": "crates/oink-agent/src/threads/mod.rs",
-      "role": "线程所有权表：理解为什么实时路径没有锁",
-      "read_order": 6,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-agent/src/threads/mod.rs"
+      "read_order": 7,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/group_pake.rs"
     },
     {
       "path": "crates/oink-agent/src/node.rs",
       "role": "Profile::User vs Prelogin：Windows 登录前只装哪些组件",
-      "read_order": 7,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-agent/src/node.rs"
+      "read_order": 8,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/node.rs"
     },
     {
-      "path": "crates/oink-clipboard/src/content.rs",
-      "role": "内容 Provider + grants：懒加载、授权、生命周期",
-      "read_order": 8,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-clipboard/src/content.rs"
+      "path": "crates/oink-clipboard/src/content/grants.rs",
+      "role": "设备绑定的持久文件授权：LinkToken、metadata-only journal",
+      "read_order": 9,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-clipboard/src/content/grants.rs"
     },
     {
       "path": "crates/oink-audio/src/dsp.rs",
       "role": "音频 DSP：Opus/PCM、jitter buffer、PLC、重采样",
-      "read_order": 9,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-audio/src/dsp.rs"
+      "read_order": 10,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-audio/src/dsp.rs"
+    },
+    {
+      "path": "crates/oink-agent/src/auto_unlock/sync.rs",
+      "role": "0.3.5 同步解锁：提示→反向质询、重放栅栏、两段式确认",
+      "read_order": 11,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/auto_unlock/sync.rs"
     },
     {
       "path": "crates/oink-winsvc/src/backend_launch.rs",
       "role": "Windows 服务固定启动配方：OBL1、最小权限、无任意路径",
-      "read_order": 10,
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-winsvc/src/backend_launch.rs"
+      "read_order": 12,
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-winsvc/src/backend_launch.rs"
     }
   ],
   "run": [
     {
       "label": "安装前端依赖",
       "command": "npm ci",
-      "note": "Node 24+；仓库根目录执行"
+      "note": "Node 24.14.1 / npm 11.11.0；仓库根目录执行"
     },
     {
       "label": "浏览器预览 UI",
       "command": "npm run -w apps/oink dev",
-      "note": "http://127.0.0.1:1440；用 fake backend，不需要 Tauri"
+      "note": "http://127.0.0.1:1440；Vite + fake backend，不需要 Tauri"
     },
     {
       "label": "前端检查",
       "command": "npm run -w apps/oink typecheck && npm run -w apps/oink test",
-      "note": "TypeScript + Vitest"
+      "note": "TypeScript + Vitest；慢测加 test:slow"
     },
     {
       "label": "Rust 核心测试",
@@ -217,66 +237,66 @@
       "note": "先跑纯逻辑 crate，不需要 macOS/Windows 图形环境"
     },
     {
-      "label": "构建桌面应用",
-      "command": "cargo build -p oink-ui",
-      "note": "Tauri 2；macOS 需 Xcode CLT，Windows 需 MSVC"
-    },
-    {
       "label": "CI 同款",
       "command": "python build-support/ci.py",
-      "note": "跑 rustfmt、clippy、测试；适合提交前"
+      "note": "clippy -D warnings + test + release check + release lib test"
+    },
+    {
+      "label": "macOS Swift 检查",
+      "command": "python packaging/macos/check.py --test",
+      "note": "编译 Finder 扩展 / paste helper / file provider 并跑纯测试"
     }
   ],
   "branches": [
     {
       "name": "main",
       "purpose": "默认开发分支：Rust workspace + React/Tauri 前端 + 打包/CI。",
-      "diff": "HEAD 546f65b · fix(update): verify canonical feed visibility before committing deployment",
+      "diff": "HEAD d8b2932 · Oink 0.3.5 build 113: refine settings and pairing copy",
       "url": "https://github.com/oinkvm/oink/commits/main"
     },
     {
       "name": "update-feed-state",
-      "purpose": "orphan 发布状态分支，只存更新 feed：pending-renewal.json、registry.json、records/*.json、site/。不是代码分支，不要合并。",
-      "diff": "31 文件 · 与 main 无共同历史；diff 显示 3975 files / 670579 deletions 是 orphan 假象",
+      "purpose": "orphan 发布状态分支，只存更新 feed（35 个 JSON/XML/HTML）：pending-renewal.json、registry.json、records/*.json、site/。不是代码分支，不要合并。",
+      "diff": "35 文件 · 与 main 无共同历史；`git diff main update-feed-state` 显示 4055 files / 693031 deletions 是 orphan 假象",
       "url": "https://github.com/oinkvm/oink/compare/main...update-feed-state"
     }
   ],
   "contribute": [
     {
+      "title": "先开 Issue，再提 PR",
+      "detail": "README 明确不接受无上下文的 PR；单人维护，先讨论再写代码。",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/README.md#L33"
+    },
+    {
       "title": "真机实测 + 详细 Issue",
-      "detail": "README 明确说这是最大贡献。带 macOS/Windows 版本、诊断、复现步骤、AI 辅助调查结论。",
+      "detail": "带 macOS/Windows 版本、诊断包、复现步骤。项目只有 macOS/Windows 两平台，Linux 用户帮不上忙。",
       "url": "https://github.com/oinkvm/oink/issues"
     },
     {
-      "title": "先读贡献政策",
-      "detail": "不接受没有上下文的 PR；先 Issue，再小 PR。作者没有时间 review 大改动。",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/README.md#L31-L33"
-    },
-    {
       "title": "Router 边界测试",
-      "detail": "纯状态机，测试成本低：按住键跨屏、触控板多指、游戏模式、掉线重连。",
-      "url": "https://github.com/oinkvm/oink/tree/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-routing/src/router"
+      "detail": "纯状态机，测试成本低：按住键跨屏、触控板多指、游戏模式、掉线重连、鼠标快捷键。",
+      "url": "https://github.com/oinkvm/oink/tree/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-routing/src/router"
     },
     {
-      "title": "协议 golden 测试",
-      "detail": "crates/oink-protocol/tests/v1_*.rs + fixtures：协议是长期契约，回归价值高。",
-      "url": "https://github.com/oinkvm/oink/tree/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-protocol/tests"
+      "title": "协议 golden / 兼容测试",
+      "detail": "crates/oink-protocol/tests/v1_*.rs + crates/oink-agent/tests/c0_compat.rs：协议是长期契约，0.3.5 要兼容 0.3.0。",
+      "url": "https://github.com/oinkvm/oink/tree/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-protocol/tests"
     },
     {
       "title": "打包 / CI",
-      "detail": "packaging/ 与 build-support/：签名、更新、回滚、平台安装器都缺真实环境验证。",
-      "url": "https://github.com/oinkvm/oink/tree/546f65b2135e7a1491d2d743f0a1e072a74df36f/packaging"
+      "detail": "packaging/ 与 build-support/：签名、更新 feed、回滚、平台安装器都缺真实环境验证。",
+      "url": "https://github.com/oinkvm/oink/tree/d8b29328678bfb50b5a9385a284f74572290c03b/packaging"
     },
     {
       "title": "文档 / i18n",
-      "detail": "src/i18n 已有 en/ja/ko；补中文文案、权限说明、排障文档是低风险入口。",
-      "url": "https://github.com/oinkvm/oink/tree/546f65b2135e7a1491d2d743f0a1e072a74df36f/apps/oink/src/i18n"
+      "detail": "apps/oink/src/i18n 已有 en/ja/ko；补中文文案、权限说明、排障文档是低风险入口。",
+      "url": "https://github.com/oinkvm/oink/tree/d8b29328678bfb50b5a9385a284f74572290c03b/apps/oink/src/i18n"
     }
   ],
   "cheats": [
     {
       "q": "Oink 和 Synergy/Deskflow 最大区别？",
-      "a": "Oink 是 P2P，每台设备都能当输入源，不需要指定 Server；Synergy/Deskflow 是 client-server。Oink 还用自研 QUIC 协议，不兼容它们。"
+      "a": "Oink 是 P2P，每台设备都能当输入源，不需要指定 Server；Deskflow 是 client-server。Oink 还用自研 QUIC 协议，与 Deskflow 不兼容（README:37-38）。"
     },
     {
       "q": "为什么 Router 要做成纯状态机？",
@@ -296,11 +316,19 @@
     },
     {
       "q": "配对怎么防中间人？",
-      "a": "SPAKE2 + 6 位码；transcript 绑定角色/greeting/身份/attempt；HKDF 派生确认密钥，HMAC 校验。"
+      "a": "SPAKE2 + 6 位码；transcript 绑定 UI 角色/greeting 帧/完整身份/attempt；HKDF 派生确认密钥，HMAC 校验。"
     },
     {
       "q": "剪贴板为什么懒加载？",
       "a": "复制时只发布 representation 描述，粘贴/拖拽时才按需读取；grant 控制授权和生命周期，避免大内容阻塞输入线程。"
+    },
+    {
+      "q": "0.3.5 的同步解锁和 0.3.4 的自动解锁差在哪？",
+      "a": "0.3.4 是“指针进入触发的解锁”，靠 2s 内真实输入判定；0.3.5 是“A 机解锁、B 机跟着解锁”，靠反向质询 + (Boot, epoch) 重放栅栏。两者用独立 epoch 区间，互不冒充。"
+    },
+    {
+      "q": "剪贴板去重为什么不用内容哈希？",
+      "a": "v1 offer 不带 digest，读内容可能触发 Universal Clipboard 的跨设备拉取。首选私有 marker（只表示 clip 身份），内容比较只在发送侧做 fallback。"
     },
     {
       "q": "音频队列怎么设计？",
@@ -310,43 +338,53 @@
   "sources": [
     {
       "title": "oinkvm/oink README",
-      "url": "https://github.com/oinkvm/oink",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/README.md",
+      "date": "2026-11-10"
     },
     {
-      "title": "Cargo.toml — workspace 与 crate 列表",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/Cargo.toml",
-      "date": "2026-11-06"
+      "title": "Cargo.toml — workspace 与 crate 列表（version 0.3.5）",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/Cargo.toml",
+      "date": "2026-11-10"
     },
     {
       "title": "router.rs — 纯输入路由状态机",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-routing/src/router.rs",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-routing/src/router.rs",
+      "date": "2026-11-10"
     },
     {
       "title": "link/mod.rs — 网络层边界与预算",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-network/src/link/mod.rs",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/link/mod.rs",
+      "date": "2026-11-10"
     },
     {
       "title": "group_pake.rs — SPAKE2 配对",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-network/src/group_pake.rs",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-network/src/group_pake.rs",
+      "date": "2026-11-10"
     },
     {
       "title": "threads/mod.rs — 线程所有权表",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-agent/src/threads/mod.rs",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/threads/mod.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "auto_unlock/sync.rs — 同步解锁的重放栅栏",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-agent/src/auto_unlock/sync.rs",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "unlock-policy.hpp — Windows 解锁状态机与 TTL",
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-winsvc/native/unlock-policy.hpp",
+      "date": "2026-11-10"
     },
     {
       "title": "dsp.rs — 音频 DSP 与有界队列",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/crates/oink-audio/src/dsp.rs",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/crates/oink-audio/src/dsp.rs",
+      "date": "2026-11-10"
     },
     {
       "title": "CI workflow — 版本与检查命令",
-      "url": "https://github.com/oinkvm/oink/blob/546f65b2135e7a1491d2d743f0a1e072a74df36f/.github/workflows/ci.yml",
-      "date": "2026-11-06"
+      "url": "https://github.com/oinkvm/oink/blob/d8b29328678bfb50b5a9385a284f74572290c03b/.github/workflows/ci.yml",
+      "date": "2026-11-10"
     }
   ]
 }

@@ -1,127 +1,120 @@
-# 05 性能：Oink 把哪些东西当成了“实时系统”
+# 05 性能：延迟预算怎么落到代码里
 
-> 先给结论：Oink 没有公开 benchmark 数字，本文不编造 FPS/延迟。这里分析的是**代码里已经写死的性能约束**，以及你可以怎么在自己的机器上测。
+## 这篇回答什么问题
+
+软件 KVM 的性能指标不是"每秒处理多少事件"，而是"最坏情况下的延迟是多少"。这篇拆 Oink 把预算写进代码的几个位置，以及它的瓶颈在哪里。
 
 ## 性能敏感路径
 
-| 路径 | 为什么敏感 | 关键代码 |
+按对延迟的敏感度排序：
+
+1. **输入捕获 → 路由 → 发送**（input 线程，实时）。指针移动在 125Hz 或更高频率下产生事件，每个事件都要在亚毫秒级完成决策。
+2. **网络轮询 → 解包 → 注入**（network 线程 + injection 线程，实时）。一个 500µs 轮次里要服务所有链路。
+3. **音频采集 → 编码 → 发送 / 接收 → 解码 → 混音**（audio 线程，实时）。10ms 一帧，队列满就丢。
+4. **剪贴板读取**（ordinary pool）。可能读几十 MB 的图片，绝不能碰输入线程。
+5. **UI 与配置**（main 线程 / ordinary pool）。慢一点无所谓。
+
+## 复杂度
+
+- **路由**：`Router::on_local_event` 对单个输入事件的处理是 O(1)——状态机分支，没有遍历。例外是布局查找和轨迹点，都是小数组（屏幕数上限 `SCREENS 256`，实际 2–4）。
+- **布局转换**：`LayoutQuery::step` 是纯计算，每帧最多一次。
+- **边缘阻尼**：`crates/oink-routing/src/damping.rs:145-146` 用 10ms 的 bin（`BIN_US=10_000`）和 `DT=0.01` 做积分，所以阻尼计算是常数时间，不随移动距离增长。
+- **网络**：每轮 O(active streams + pending effects)。连接池最多 8 个并发拨号（`MAX_DIALS`）。
+- **音频**：每帧 O(480 samples × 2 channels)，重采样最多 `FRAME_SIZE*32` 个样本的缓冲。
+- **剪贴板**：摘要计算 O(bytes)，但只在前台读取，且有 16MiB/128MiB 上限。
+
+仓库里**没有 `benches/` 目录，也没有 criterion 依赖**（`grep -rn criterion --include=Cargo.toml` 为空）。所以下面给的是"代码里的常量 + 可执行的测量命令"，不是 benchmark 数字。
+
+## 关键常量
+
+| 参数 | 值 | 位置 |
 |---|---|---|
-| 输入捕获 → router → 网络 | 键鼠延迟直接可感知；跨屏切换要“跟手” | `crates/oink-agent/src/threads/mod.rs:5`、`crates/oink-routing/src/router.rs:1-5` |
-| 网络 → 注入 | 按键/鼠标事件不能排队；焦点移交必须有序 | `router.rs:94-102`、`crates/oink-agent/src/threads/mod.rs:6` |
-| 音频采集 → DSP → 网络 → 播放 | 抖动/爆音/延迟非常敏感 | `crates/oink-audio/src/dsp.rs:8-17` |
-| 剪贴板/拖拽 | 大文件/图片不能阻塞输入线程 | `crates/oink-clipboard/src/content.rs:101`、`237` |
-| 显示布局/投影 | 多屏/DPI 变化要快速重算 | `crates/oink-display/src/layout/` |
-| Windows 服务/ IPC | 登录前/提权路径不能卡 UI | `crates/oink-winsvc/src/backend_launch.rs:1` |
+| 网络轮总预算 | 500µs | `crates/oink-network/src/link/mod.rs:87` |
+| 第一段（自己的活） | 100µs | 同上 `:88` |
+| 第二段（交互流） | 250µs | 同上 `:89` |
+| 第三段（普通流） | 150µs | 同上 `:90` |
+| 网络线程 realtime 预算 | 500µs（Elevated 1ms） | `crates/oink-foundation/src/realtime.rs:46` |
+| input/inject 线程预算 | 250µs（Elevated 1ms） | 同上 |
+| 调度读回间隔 | 5s | `crates/oink-foundation/src/realtime.rs:11` |
+| 心跳间隔 / 超时 | 500ms / 2s | `crates/oink-network/src/link/mod.rs:53-55` |
+| 音频采样率 / 帧 | 48kHz / 480 samples（10ms） | `crates/oink-audio/src/dsp.rs:8-12` |
+| 音频目标队列 / 最大队列 | 3 帧 / 12 帧 | `crates/oink-audio/src/dsp.rs:15-16` |
+| PLC 上限 | 6 帧 | `crates/oink-audio/src/dsp.rs:17` |
+| 重采样扩展上限 | -0.2%（2000 ppm） | `crates/oink-audio/src/dsp.rs:22` |
+| 重采样压缩上限 | 5000 ppm | `crates/oink-audio/src/dsp.rs:23` |
+| 静音门限 | 峰值 0.001（-60dBFS，20ms） | `crates/oink-audio/src/dsp.rs:26` |
+| 最大抖动 | 250ms | `crates/oink-audio/src/dsp.rs:28` |
+| 指针移动默认频率 | 125Hz（可调 Unlimited） | `crates/oink-agent/src/main.rs:96-99` |
 
-## 代码里写死的预算
+## 优化手法
 
-### 网络线程
+### 1. 线程所有权，而不是锁
 
-`crates/oink-network/src/link/mod.rs:85-90`：
+`crates/oink-agent/src/threads/mod.rs:1-17` 的规则是：实时线程之间只通过"每流每端一个队列、整块替换的只读快照、小定长命令"通信。**没有共享锁、没有文件 I/O、没有日志格式化**。
 
-| 预算 | 值 | 保护什么 |
-|---|---:|---|
-| `ROUND_BUDGET` | 500µs | 一轮循环总上限 |
-| `OWN_BUDGET` | 100µs | 心跳/cutover/relay/选择 |
-| `INTERACTIVE_BUDGET` | 250µs | 交互流 + datagram |
-| `NORMAL_BUDGET` | 150µs | 普通流/命令/新连接 |
+这条规则对性能的贡献比任何微优化都大：锁竞争的方差是不可预测的，而队列的方差是可测量的。
 
-设计含义：网络线程不能让某一类流量无限占用。比如大量文件传输（普通流）不能饿死输入（交互流）。
+### 2. 分段时间预算 + 未用完结转
 
-### 连接/心跳
+`[OWN 100µs, INTERACTIVE 250µs, NORMAL 150µs]` 不是三个独立配额，而是三个**截止点**：第一段提前做完，时间自动给第二段。这比固定配额更适应负载——空闲时全部给交互流，繁忙时至少保证自己的心跳和探测。
 
-| 常量 | 值 | 影响 |
-|---|---:|---|
-| `HEARTBEAT_INTERVAL` | 500ms | 断线检测频率 |
-| `HEARTBEAT_TIMEOUT` | 2s | 用户感知的断线时间 |
-| `IDLE_TIMEOUT` | 10s | QUIC 兜底 |
-| `KEEP_ALIVE` | 5s | NAT 保活 |
-| `DIAL_BUDGET` | 3s | 单个候选握手 |
-| `RELAY_TIMEOUT` | 3s | relay 退化 |
-| `CUTOVER_TIMEOUT` | 500ms | relay→direct 切换 |
+### 3. 实时调度"设置后读回"
 
-### 音频
+`realtime.rs:1-8` 的文档：
 
-`crates/oink-audio/src/dsp.rs:8-17`：
+> Detection only: after setting, the effective policy is read back and recorded; later read-backs that differ count as demoted. Nothing restores or tunes automatically.
 
-- 48kHz 立体声。
-- Opus 10ms / 128kbps；PCM16 2.5ms / 1.536Mbps；PCM24 无损。
-- 单包上限 960 字节（PCM16 stereo 5ms 仍低于 1200 字节路径 MTU，`dsp.rs:13-14`）。
-- 目标缓冲 3 帧，最大队列 12 帧，最大 PLC 6 帧。
-- `dsp.rs:1589`：deliberate reserve 变化用连续重采样，最多 -0.2%，避免突变爆音。
+这是一个**可观测性优化**而不是性能优化：它不提升性能，但让"性能为什么变差"变成可查的数字（`demoted` 计数）。很多项目在 QoS 被系统降级后毫无察觉。
 
-## 复杂度分析
+### 4. 音频：目标 3 帧 + 连续重采样
 
-| 操作 | 复杂度 | 说明 |
-|---|---|---|
-| Router 单事件 | O(1) ~ O(屏幕数) | 屏幕数通常 < 10；无分配/无锁/无 I/O |
-| 布局 `step` | O(屏幕数) | 需要找相邻屏幕/portal；纯计算 |
-| 网络一轮 | O(活跃流数) | 受 500µs 预算约束；未完成工作结转 |
-| 剪贴板打开 representation | O(1) 索引 + O(内容大小) 读取 | 懒加载，未请求不读 |
-| 音频重采样 | O(帧数 × kernel taps) | `dsp.rs` 的 FIR kernel；实时线程内 |
-| 协议编码/解码 | O(消息大小) | CBOR/自定义帧；无额外压缩层 |
+`dsp.rs:15` 的 `TARGET_FRAMES=3` 意味着目标延迟约 30ms（3 × 10ms）。`dsp.rs:1591` 的注释说明了渐变策略：
 
-## 优化手法清单
+- 需要增加 reserve 时，用**连续重采样**慢慢加，最多 -0.2% 的扩展速率；
+- 需要减少时，按 profile 有压缩上限；
+- 构建 20ms 的 reserve 至少用 10 秒，纯速率排空至少 4–10 秒。
 
-1. **实时线程不做分配/日志/文件 I/O**：`threads/mod.rs:12-15` 明确禁止。
-2. **快照代替锁**：整块替换的只读快照，读侧无锁。
-3. **固定尺寸命令**：`LinkLayer` 普通线程只发小命令，不阻塞。
-4. **Datagram 分流**：游戏相对运动不排队（`router.rs:94-102`）。
-5. **有界队列**：音频 `MAX_QUEUE_FRAMES=12`、`MAX_PLC_FRAMES=6`，超过就丢/PLC，不无限增长。
-6. **懒加载剪贴板**：`Provider` 只发布描述，按需读取（`content.rs:101`）。
-7. **release 配置**：`Cargo.toml:68-70` 使用 `lto="thin"`、`codegen-units=1`，为发布版优化代码布局/内联。
-8. **Windows 固定启动路径**：避免每次启动做昂贵的可执行文件解析/校验（`backend_launch.rs:1`、`20`）。
+也就是说它**不会**为了追赶队列而瞬间改变播放速率——瞬间变速会被听成"音调跳变"。这正是 0.3.4 release notes 里"静音段后音高跳变"修复的方向。
+
+### 5. datagram 零等待
+
+`realtime_datagram.rs` 的 lane claim 用 CAS，失败就返回"没活干"。没有自旋、没有条件变量、没有超时等待。实时路径上"等"是最贵的操作。
+
+### 6. 快照整块替换
+
+`oink_foundation::snapshot::Snapshot` 的语义是"读的人拿到一个 Arc，写的人构造新的一份再原子替换"。读侧永远不阻塞，代价是写侧要复制。对于"每秒变几次、每秒读几千次"的配置数据，这个取舍明显划算。
 
 ## 怎么自己测
 
-### 1）Router 微基准
-
-目前没有 `criterion` bench；最直接的是给 `oink-routing` 加一个 `#[test]` 循环，用 `std::time::Instant` 测 100 万次 `router.handle_input(...)`。注意用 release：
-
 ```bash
-cargo test -p oink-routing --release -- --nocapture
+# 1. 构建 release（LTO thin + codegen-units=1，Cargo.toml profile.release）
+cargo build --release --locked
+
+# 2. 跑全部测试（含 release 模式的 lib 测试，build-support/ci.py 也这么跑）
+cargo test --locked
+cargo test --locked --release --lib
+
+# 3. 慢测试（含 native 更新测试、packaging 测试）
+python build-support/ci.py --slow
+
+# 4. 看实时调度是否被降级：日志里搜 demoted / over_budget
+#    对应 realtime.rs 的 read_back 比对与 runtime.rs 的 over_budget 计数
 ```
 
-### 2）网络回环
+仓库没有内置的延迟 benchmark，所以**端到端延迟只能实测**：两台机器配对后，用高速摄像机拍"本地移动 → 远端屏幕移动"，或者用 `MotionFrequency unlimited` 把事件率拉满观察是否掉帧。这是 `待查实` 的部分——本次分析没有做真机测量。
 
-仓库有 `tests/support/src/bin/v1-peer.rs` 和 `oink-network` 的 test-support 模块，可以起两个本地 peer 做协议/链路测试。先跑：
+## 瓶颈与反例
 
-```bash
-cargo test -p oink-network --release
-```
+**瓶颈 1：单网络线程。** 500µs/轮 × 所有链路。设备多、流多时，每轮服务不完就会累积。代码用 `late_rounds` / `late_max` / `over_budget` 暴露这个问题，但不会自动扩容。
 
-### 3）音频 pull 基准
+**瓶颈 2：音频队列 12 帧。** 240ms 的硬上限。超过就丢帧（PLC 补 6 帧）。在 Wi-Fi 抖动大的环境里，这会表现为"声音断续"，而不是"延迟增大"——这是刻意的：音频宁可断，不可延迟累积。
 
-`crates/oink-audio/native/pull_benchmark.c` 是现成的 native pull 基准；`crates/oink-audio/examples/pull_bounds.rs`、`pull_native_silent.rs` 可以看边界行为。
+**瓶颈 3：剪贴板大对象。** 256MiB 的 representation 上限意味着一次粘贴可能读很久。它在 ordinary pool 上，不影响输入，但会让"粘贴"这个动作本身变慢。
 
-### 4）布局一致性
+**反例：不要在这类项目里做"事件批处理"。** 批处理能提高吞吐，但会把 N 个事件的延迟合并成"最慢那个"的延迟。输入场景里吞吐从来不是瓶颈。
 
-`crates/oink-display/examples/layout_conformance.rs` 用于布局一致性；适合验证多屏/DPI 边界。
+**反例：不要用自适应拥塞控制。** `qos.rs` 用固定窗口是有意的——局域网带宽充足，自适应算法在低延迟场景下反而引入排队波动。
 
-### 5）端到端
+## 一句话记住
 
-两台真机 + 局域网，测：
-
-- 键鼠跨屏延迟（高速摄像机/慢动作或专用输入延迟测试工具）。
-- 大文件拖拽时的输入延迟（是否被普通流饿死）。
-- 音频 underrun/overrun 计数（`oink-audio/src/diagnostics.rs`）。
-- 断网/恢复时的心跳/relay/cutover 行为。
-
-## 可能的瓶颈与风险
-
-- **单网络线程**：所有 link/stream 在一个线程；极高吞吐（大文件 + 多设备）可能成为瓶颈。代码用 500µs 预算缓解，但没有横向扩展。
-- **音频重采样**：FIR 在实时线程内，低端 CPU 可能吃力；`MAX_QUEUE_FRAMES` 限制内存但会增加 PLC。
-- **剪贴板大内容**：虽然懒加载，但真正读取大文件仍可能占用 I/O；要看 `grants` 的 bounded fetch 实现。
-- **Windows 服务 IPC**：多一层进程/管道，延迟比同进程高；但换来登录前能力。
-- **没有公开 benchmark**：所有“性能好”的说法都应以你自己的实测为准。
-
-## 关键证据
-
-- 线程约束：`crates/oink-agent/src/threads/mod.rs:12-15`
-- 网络预算：`crates/oink-network/src/link/mod.rs:53-90`
-- Router 快路径：`crates/oink-routing/src/router.rs:1-5`、`130`
-- 音频边界：`crates/oink-audio/src/dsp.rs:8-17`、`1589`
-- 剪贴板懒加载：`crates/oink-clipboard/src/content.rs:101`、`237`
-- release 配置：`Cargo.toml:68-70`
-- 音频基准：`crates/oink-audio/native/pull_benchmark.c`、`crates/oink-audio/examples/pull_bounds.rs`
-- 布局示例：`crates/oink-display/examples/layout_conformance.rs`
+Oink 的性能观是"**把方差关进笼子**"：线程所有权消除锁竞争、分段预算消除饿死、固定拥塞窗口消除排队波动、音频渐变消除音调跳变——它优化的不是平均值，是最坏值。

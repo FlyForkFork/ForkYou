@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T11:04:38.623Z",
+  "updated_at": "2026-11-10T14:27:07.378Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -11,14 +11,14 @@
       "upstream_url": "https://github.com/oinkvm/oink",
       "homepage": "https://github.com/oinkvm/oink/releases",
       "description": "Your computers, working as one. Share keyboard, mouse, trackpad, clipboard, drag and drop and audio across Macs and PCs.",
-      "one_liner": "把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。",
+      "one_liner": "把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽与音频的 P2P 软件 KVM，纯状态机路由 + 单线程 QUIC 网络 + 线程所有权表。",
       "category": "01-systems",
       "path": "01-systems/oink",
       "depth": "L2",
       "length": "default",
       "license": "GPL-3.0-only",
       "language": "Rust",
-      "stars": 456,
+      "stars": 1156,
       "topics": [
         "audio-sharing",
         "barrier-alternative",
@@ -38,8 +38,8 @@
         "windows"
       ],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-06T18:36:05.405Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:07.374Z",
       "branches": [
         {
           "name": "main",
@@ -55,14 +55,16 @@
         }
       ],
       "prepared_at": "2026-11-10T10:59:05.522Z",
-      "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
-      "analyzed_at": "2026-11-07T01:30:00+08:00",
+      "analyzed_commit": "d8b29328678bfb50b5a9385a284f74572290c03b",
+      "analyzed_at": "2026-11-10T22:00:00+08:00",
       "docs": [
+        "README.md",
         "01-positioning.md",
         "02-architecture.md",
         "03-code-tour.md",
         "04-deep-dive-routing.md",
         "04-deep-dive-network.md",
+        "04-deep-dive-trust.md",
         "05-performance.md",
         "06-branches.md",
         "07-contribute.md",

@@ -15,9 +15,14 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-还没有分析结果。
+已分析 **1** 个项目。最后更新：2026-11-10 14:27:07。
 
-运行 `node ForkYou/_forkyou/scripts/forkyou.mjs sync` 开始。
+### 01-systems · 系统 / 桌面 / 跨设备
+
+| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
+|---|---|---|---|---|---|---|---|
+| [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽与音频的 P2P 软件 KVM，纯状态机路由 + 单线程 QUIC 网络 + 线程所有权表。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | [![GitHub stars](https://img.shields.io/github/stars/oinkvm/oink?style=flat-square&label=%E2%AD%90)](https://github.com/oinkvm/oink/stargazers) | L2 | 2026-11-10 | [Wiki](01-systems/oink/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/oink/guide.html) |
+
 <!-- FORKYOU:INDEX:END -->
 
 ## 怎么用

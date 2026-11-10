@@ -1,151 +1,105 @@
-# 07 参与贡献：从“能跑”到“提得动”
+# 07 参与：怎么在 Oink 上改第一行代码
 
-> 先看贡献政策：`README.md:31-33` 明确说 **不接受没有上下文的 PR**，因为“没有时间 review 代码”。所有 bug/feature 先走 Issues，并带上设备环境、诊断数据、复现步骤、AI 辅助调查的结论。这一条会改变你的参与策略。
+## 这篇回答什么问题
 
-## 贡献路径排序（现实版）
+Oink 是一个 Rust + TypeScript + Swift 多语言仓库，构建链比一般 Rust 项目复杂。这篇给出"从 clone 到提 PR"的最小路径，以及几个容易踩的坑。
 
-| 路径 | 难度 | 适合谁 | 说明 |
-|---|---|---|---|
-| 平台实测 + 详细 Issue | 低 | 有 Mac/Windows 真机的人 | 项目最缺真实环境反馈；README 说这是“最大的贡献” |
-| 文档/i18n | 低-中 | 前端/写作 | `apps/oink/src/i18n/` 已有 en/ja/ko；中文文案可补 |
-| 测试/复现 | 中 | Rust/TS 测试 | `router/*_tests.rs`、`protocol/tests/v1_*.rs`、`audio/dsp.rs` 测试 |
-| 打包/CI | 中 | 运维/DevOps | `packaging/`、`build-support/`、GitHub Actions |
-| 平台适配 | 高 | 系统程序员 | macOS `objc2`、Windows `windows` crate、输入注入 |
-| 核心协议/路由 | 高 | 架构/实时系统 | 先读 `router.rs`、`link/mod.rs`，并与作者沟通 |
+## 系统与工具链
 
-## 开发环境
+| 依赖 | 版本要求 | 来源 |
+|---|---|---|
+| Rust | 1.99.0（edition 2024） | `rust-toolchain.toml`、`Cargo.toml` |
+| rustfmt / clippy | 随 toolchain | `rust-toolchain.toml` components |
+| Node.js | 24.14.1 | 根 `package.json` `engines` |
+| npm | 11.11.0 | 根 `package.json` `packageManager` |
+| Python | 3.14.6（CI） | `.github/workflows/ci.yml` |
+| macOS | 14.2+（部署目标 `MACOSX_DEPLOYMENT_TARGET=14.2`） | CI env |
+| Windows | x64 10 1809（17763）+ 或 11 | `README.md:21` |
 
-### 必需版本（CI 固定）
+平台支持：macOS arm64 官方支持；Intel x64 在 0.3.4 起支持但 README 说"未测试"（`README.md:20`）；Windows 只有 x64。**没有 Linux 版本**。
 
-- Rust `1.99.0`（`.github/workflows/ci.yml` 的 `dtolnay/rust-toolchain`）
-- Node `24.14.1`
-- npm `11.11.0`
-- Python `3.14.6`
-- macOS 15 arm64 或 Windows Server 2022 x64（CI matrix）
-- macOS 部署目标 `14.2`
-
-### 本机准备
+## 构建与运行
 
 ```bash
-# Rust
-rustup toolchain install 1.99.0
-rustup component add rustfmt clippy --toolchain 1.99.0
-
-# Node
-nvm install 24.14.1
-npm install -g npm@11.11.0
-
-# Python 3.14.6（按系统方式安装）
-
-# 前端依赖
+# 前端依赖（仓库根，npm workspaces）
 npm ci
-```
 
-### 构建
+# 开发模式：Tauri 壳 + Vite，前端在 http://127.0.0.1:1440
+npm run -w apps/oink dev
 
-```bash
-# 前端
+# 前端类型检查 / 测试 / 构建
 npm run -w apps/oink typecheck
 npm run -w apps/oink test
 npm run -w apps/oink build
 
-# Rust
-cargo build -p oink-ui
-cargo test -p oink-routing
-cargo test -p oink-network
-cargo test -p oink-protocol
-```
+# Rust 侧
+cargo build --locked
+cargo test --locked
+cargo test --locked --release --lib   # release 模式跑 lib 测试（CI 也跑）
 
-### CI 同款命令
-
-`.github/workflows/ci.yml:80-110`：
-
-```bash
-npm ci
-npm run -w apps/oink typecheck
-npm run -w apps/oink test
-npm run -w apps/oink build
-npm run licenses:check -- --release-sources
-cargo fmt --all --check
+# 完整检查（clippy -D warnings + test + release check + release lib test）
 python build-support/ci.py
-python -m unittest discover -s packaging/tests -v
+
+# 慢测试（ignored 测试 + 前端 test:slow + packaging + build-support 自身测试）
+python build-support/ci.py --slow
+
+# macOS Swift 入口编译检查 + provider 纯测试
+python packaging/macos/check.py --test
+
+# 依赖许可证/安全策略
 cargo deny check
 ```
 
-macOS 额外：
+`apps/oink` 的 Tauri 壳会**在独立进程启动 backend**，两者通过本地 IPC（AgentApi：Request / Reply / ApiEvent）通信。所以改后端时前端不需要重启，但改 IPC 协议两边都要动。
 
-```bash
-python packaging/macos/check.py --test
-```
+## 系统权限
 
-Windows 额外：
+这是软件 KVM，权限需求是硬性的：
 
-```bash
-python build-support/package.py --public-version --platform windows --build 28 --output-root <temp>
-```
+- **macOS**：辅助功能（Accessibility）用于 CGEventTap 捕获和 CGEventPost 注入；输入监控（Input Monitoring）；屏幕录制（Screen Recording）用于屏幕识别/壁纸；自动化（Apple Events）用于部分应用交互。打包时用 TCC 的 usage description 声明。
+- **Windows**：捕获用低级钩子（`WH_KEYBOARD_LL` / `WH_MOUSE_LL`），注入用 `SendInput`；服务组件（`oink-service`）以 SYSTEM 运行；预登录 backend 也以 SYSTEM 在登录桌面运行（`node.rs:34` 的 `Prelogin`）。
+- **签名**：macOS 需要 Developer ID + notarization；Windows 需要 Authenticode。CI 的 `packaging/` 目录和 `.signpath/` 配置负责这些。
 
-## 代码约定
+## CI 矩阵
 
-- `Cargo.toml:57-66`：
-  - `unsafe_op_in_unsafe_fn = "deny"`
-  - `missing_debug_implementations = "warn"`
-  - `dbg_macro`、`todo`、`unimplemented`、`undocumented_unsafe_blocks` 警告。
-- 模块文档优先：文件开头写“拥有什么/不做什么”，参考 `threads/mod.rs:1-15`、`network/src/link/mod.rs:1-19`。
-- 实时线程禁止：分配、等待、文件 I/O、日志格式化（`threads/mod.rs:12-15`、`router.rs:130`）。
-- 前端：用 `oink-ui` 组件 + `--ok-*` CSS 变量；文案走 `src/i18n/`（`apps/oink/README.md:25-27`）。
-- 测试：尽量与代码同 crate；协议测试用 `crates/oink-protocol/tests/v1_*.rs` 和 `tests/fixtures/v1/` golden 文件。
+`.github/workflows/ci.yml` 的矩阵：
 
-## Issue 怎么写（作者最想要的）
-
-按 `README.md:33` 的要求：
-
-1. **设备环境**：macOS 版本/芯片，Windows 版本/架构，Oink 版本。
-2. **诊断数据**：设置里的日志、`oink-agent` 诊断、崩溃报告（如有）。
-3. **复现步骤**：从启动到问题发生的最小步骤。
-4. **预期 vs 实际**：不要只说“不能用”。
-5. **AI 辅助调查结论**：你读过哪些代码、怀疑哪条路径、验证了什么。
-6. **附件**：截图/录屏/日志；大文件用链接。
-
-## 从 Issue 到 PR 的现实流程
-
-1. 先开 Issue，描述问题和你的调查。
-2. 等作者回复；不要直接提大 PR。
-3. 如果作者邀请，先提小 PR：测试/文档/小修复。
-4. PR 描述里链接 Issue，说明“改了什么/为什么/怎么验证”。
-5. 跑 CI 同款命令，附结果。
-6. 接受“作者可能没时间 review”的现实；小而聚焦的 PR 更容易被看。
-
-## 高价值贡献点（基于代码结构）
-
-| 点 | 位置 | 为什么有价值 |
+| OS | 架构 | 并发 jobs |
 |---|---|---|
-| 输入路由边界测试 | `crates/oink-routing/src/router/*_tests.rs` | 纯状态机，测试成本低，覆盖真实边界 |
-| 协议 golden/兼容测试 | `crates/oink-protocol/tests/v1_*.rs` | 协议是长期契约，回归价值高 |
-| 音频 DSP 边界 | `crates/oink-audio/src/dsp.rs` 底部测试 | 实时音频 bug 难复现，测试稀缺 |
-| Windows 服务/ prelogin | `crates/oink-winsvc/src/` | 登录前场景复杂，真机测试少 |
-| 打包/签名/回滚 | `packaging/`、`build-support/update/` | 发布链路是高风险区 |
-| 平台实测 | macOS/Windows 真机 | README 明确说这是最大贡献 |
+| macos-15 | aarch64-apple-darwin | 2 |
+| macos-15-intel | x86_64-apple-darwin | 2 |
+| windows-2022 | x86_64-pc-windows-msvc | 4 |
 
-## 许可证与合规
+超时 120 分钟。步骤顺序：架构断言 → 安装 npm 11.11.0 → macOS 选 OpenSSL 3（Ed25519 `pkeyutl -rawin`）→ 前端 typecheck/test/build + `cargo about` + 许可证检查 → macOS Swift 检查 → `cargo fmt --all --check` + `build-support/ci.py` → packaging 单元测试 → Windows 打包（`package.py --public-version --platform windows --build 28`）→ `cargo deny check`。
 
-- 代码：GPL-3.0-only + additional terms（`README.md:49-54`）。
-- 分发修改版：必须提供完整源码、保留作者归属/许可、标记修改；附加条款还禁止用 Oink 名称推广衍生品。
-- 只自己使用、不分发：没有这些义务。
-- 贡献前确认你有权提交代码；不要复制不兼容许可证的代码。
+发布走 `.github/workflows/release.yml`（`workflow_dispatch`，输入 build 号，如 0.3.5 用 113），产出 macOS arm64/x64 的 dmg+zip、Windows x64 msi、`release.json`、`SHA256SUMS`。
 
-## 风险与反证
+## Issue / PR 规则
 
-- 项目明确“没有时间 review”，所以“PR 排队很久”是预期，不是意外。
-- 0.3.3 版本，核心 API/协议仍可能变；不要基于“稳定 API”做长期插件。
-- Windows 服务/UIAccess/输入注入涉及提权与安全，改动风险高；没有真机不要盲改。
-- macOS 只支持 Apple silicon；Intel Mac 无法完整验证。
+上游 `README.md:33` 明确写：
 
-## 关键证据
+> 不接受无上下文的 PR；请先开 Issue 讨论。
 
-- 贡献政策：`README.md:31-33`
-- 平台：`README.md:20-21`
-- 许可证：`README.md:49-54`
-- CI 版本/命令：`.github/workflows/ci.yml`
-- 代码规范：`Cargo.toml:57-66`
-- 实时约束：`crates/oink-agent/src/threads/mod.rs:12-15`
-- 前端约定：`apps/oink/README.md:25-27`
+也就是说**不要直接提代码 PR**。正确路径是：开 Issue 描述问题/需求 → 维护者确认 → 再提 PR。这对一个单人维护的项目（contributors 只有 `hachiwii`）是合理的——没有精力 review 突然出现的大补丁。
+
+## 3–5 个新手入口
+
+1. **`crates/oink-routing/src/router.rs` 的 `DecisionKind`**（`:104`）：先读懂 8 种决策，再看 `drain_outputs`（`:1575`）。这是整个项目的"心脏"，改这里能理解全局。
+2. **`crates/oink-network/src/link/mod.rs:1-21`**：一个文件读懂网络层的全部设计意图，再看 `runtime.rs:270-310` 的预算循环。
+3. **`crates/oink-protocol/src/v1/registry_entries.rs`**：消息注册表。加一个消息从这里开始，顺着 `dto/` 和 `streams/` 往下走。
+4. **`crates/oink-audio/src/dsp.rs`**：音频队列/PLC/重采样都在一个文件里，常量集中在文件头。
+5. **`apps/oink/src-tauri/src/`**：前端与 backend 的边界，`window_paint.rs` 是理解 macOS 窗口呈现的好例子。
+
+## 坑
+
+1. **`crates/oink-credential-provider/` 不在 workspace members 里**（根 `Cargo.toml:3-21`）。它有自己的 `README.md`/`ipc.hpp`/`provider.cpp`，是 Windows 凭据提供程序的独立构建产物，`cargo build` 不会编译它。别以为它坏了。
+2. **edition 2024 + rust-version 1.99.0**：老工具链直接编译失败，且错误信息通常是"不认识 edition"。先 `rustup override set 1.99.0`。
+3. **`unsafe_op_in_unsafe_fn = deny`**：所有 `unsafe fn` 内部还要再包一层 `unsafe {}`。这是团队风格，不是笔误。
+4. **Windows 打包需要 Python 3.14 + WiX/签名工具**：`build-support/package.py` 不是纯 Rust 构建，CI 里专门有一步。
+5. **macOS 的 TCC 权限在开发构建里会反复弹**：每次重新签名二进制，系统都当成新应用。用稳定的签名身份能减少弹窗。
+6. **`npm run -w apps/oink test` 默认跳过慢测试**：`test:slow` 才是完整的（0.3.5 的 `vitest.slow.config.ts`）。
+7. **`oink-agent` 是双 bin 结构**：`oink-backend`（`crates/oink-agent/src/backend/main.rs`）和 CLI（`crates/oink-agent/src/main.rs`）共享同一个库，但启动参数不同。改 `main.rs` 时先确认改的是哪一个，否则会出现"CLI 改了、服务没变"的假象。
+
+## 一句话记住
+
+在 Oink 上贡献的正确顺序是：**先开 Issue 再写代码，先跑 `python build-support/ci.py` 再提 PR**——这个仓库的复杂度不在 Rust，而在"Rust + TS + Swift + 打包 + 签名"这条链上。

@@ -1,137 +1,115 @@
-# 09 运维：装、跑、排障、回滚
+# 09 运维：装机、端口、日志与故障排查
 
-> Oink 是桌面应用，不是服务端；但它的进程/服务/更新链路有很强的“运维”味道。本文给的是实际排障会用的路径和命令。
+## 这篇回答什么问题
+
+把 Oink 当基础设施用（或支持别人用）时，需要知道它装在哪、开了哪些端口、数据写在哪、坏了看哪里。这篇是一份运维速查。
 
 ## 安装
 
-- 下载：GitHub Releases（`README.md:14-16`）。
-- macOS：Apple silicon（arm64）only，macOS 14.2+（`README.md:20`）。
-- Windows：x64，Windows 10 22H2（build 19045）+ 或 Windows 11（`README.md:21`）。
-- Windows SmartScreen/UAC：README 说明可能提示未知发布者；只在确认来源时选择“更多信息 → 仍要运行”（`README.md:23`）。
+| 平台 | 包 | 大小（v0.3.5） | 要求 |
+|---|---|---|---|
+| macOS arm64 | `.dmg` / `.zip` | 44.8MB | macOS 14.2+ |
+| macOS x64 | `.dmg` / `.zip` | 44.8MB | macOS 14.2+，README 标"未测试" |
+| Windows x64 | `.msi` | 35.2MB | Windows 10 1809（17763）+ 或 11；LTSC 需 WebView2 |
 
-## 进程模型
+安装包从 GitHub Releases 获取，同时有 `SHA256SUMS` 和 `release.json` 可校验。macOS 版经过 notarization；Windows 版经过 Authenticode 签名。
 
-```mermaid
-flowchart TB
-  UI["Oink UI (Tauri)"] <-->|"local IPC / AgentApi"| BE["oink-agent backend"]
-  BE <-->|"QUIC"| PEER["peer device"]
-  UI --> TRAY["macOS menu bar / Windows tray"]
-  SVC["oink-winsvc (Windows SYSTEM)"] -->|"fixed OBL1 pipe"| BE
-  SVC -->|"prelogin profile"| PRE["prelogin backend"]
-```
+**升级**：0.3.5 起 Windows 支持"Oink 运行中直接双击 MSI"——安装器会记录当前用户会话，装完通过 `relaunch.json` 自动重启（`crates/oink-winsvc/src/platform/update/relaunch.rs`，修 issue #36）。macOS 用 Sparkle 更新，feed 是 `https://updates.oink.hachiwii.com`（`crates/oink-update/src/feed.rs:44`）。
 
-- **UI 进程**：窗口、菜单、托盘、设置。
-- **Backend 进程**：设备发现、配对、输入路由、剪贴板、音频。
-- **Windows 服务**：SYSTEM 权限，登录前/登录界面也能提供输入；通过固定启动配方拉起 user-session backend。
-- **macOS**：菜单栏应用 + Tauri 主窗口；无 Windows 那种服务。
+**回滚**：降级安装旧版 MSI/dmg 即可，但注意设置文件是向前兼容的——新版写入的字段旧版会忽略（`settings.json` 用带默认值的反序列化）。配对记录 `pairing-blocks.cbor` 跨版本兼容，0.3.5 可与 0.3.0 及以上互通（release notes）。
 
-## 数据/日志路径
+## 端口
 
-`crates/oink-foundation/src/paths.rs:24-45`：
+| 端口 | 用途 | 来源 |
+|---|---|---|
+| 47470/tcp+udp | QUIC 交互端口（`DEFAULT_PORT`） | `crates/oink-network/src/config.rs:8` |
+| 47471/udp | 发现端口（= port + 1），UDP beacon + DNS-SD | `config.rs:24-26,61` |
+| 47472 | bulk 端口（= port + 2），大流量传输 | `config.rs:44` |
+
+端口可在设置里改（`port` 字段）。**发现端口是 port+1 自动推导的**，改主端口会连带改发现端口。beacon 绑定失败不会致命——日志会写 `beacon unavailable; discovery continues using mDNS/DNS-SD and manual addresses`（`discovery/mod.rs`）。
+
+## 数据目录
 
 | 平台 | data | cache | logs |
 |---|---|---|---|
 | macOS | `~/Library/Application Support/Oink` | `~/Library/Caches/com.hachiwii.oink` | `~/Library/Logs/Oink` |
 | Windows | `%LOCALAPPDATA%\Oink` | `%LOCALAPPDATA%\Oink\Cache` | `%LOCALAPPDATA%\Oink\Logs` |
-| 隔离模式 | `OINK_HOME` 指定目录 | `<OINK_HOME>/Cache` | `<OINK_HOME>/Logs` |
 
-常见文件：
+来源：`crates/oink-foundation/src/paths.rs:27,35,39`。设置环境变量 `OINK_HOME` 可以把所有根重定向（`:68`）——测试和多实例隔离用。
 
-- `settings.json`（`crates/oink-agent/src/config.rs:33`）
-- `addresses.json`（`config_module/local_records.rs:16`）
-- `pairing-blocks.cbor`、`presence.cbor`（`config/records.rs:11-12`）
-- `clipboard-clock.json`（`clip/src/runtime.rs:41`）
-- `source-file-links/`（剪贴板源文件授权缓存）
+关键文件：
 
-> Windows prelogin backend 以 SYSTEM 运行，不能使用某个用户的 `LOCALAPPDATA`；`paths.rs:3-6` 说明它会固定 machine-level roots。
+- `settings.json` — 全部设置（`crates/oink-agent/src/config.rs:34`）
+- `pairing-blocks.cbor` — 配对黑名单/阻断记录（`config/records.rs:11`）
+- `presence.cbor` — 在线状态缓存（`config/records.rs:12`）
+- `auto-unlock-failure.json` — 自动解锁的失败闩锁（`auto_unlock/mod.rs`）
+- `ipc.json` — 本地 IPC 地址、锁 owner、一次性 secret（`ipc.rs`）
 
-## 启动/停止
+**预登录 backend 的特殊性**：Windows 的 `Prelogin` profile 以 SYSTEM 在登录桌面运行，绝不能用按账号的 `LOCALAPPDATA`，所以入口用 `set_process_roots` 固定机器级根（`paths.rs:1-7`）。运维排查时如果发现"服务读不到用户设置"，先确认它在哪个 profile 下跑。
 
-- 正常启动：双击应用 / 登录项启动。
-- macOS 菜单栏：显示/隐藏窗口、暂停/恢复、锁定/解锁、退出。
-- Windows 托盘：同上。
-- 停止 backend：退出应用；Windows 服务版由服务控制。
-- 登录启动：`oink-autostart` crate；Windows 安装器有 `Start Oink when I sign in` 选项（`build-support/README.md:56-62`）。
+## 日志
 
-## 配置
+- 文件名 `{role}.{date}.log`，角色：`oink`、`oink-ui`、`oink-backend`、`oink-service`、`oink-crash-collector`、`oink-update-worker`、`oink-prelogin`（`crates/oink-agent/src/logs/files.rs:12-20`）。
+- 所有角色的普通文本日志**共享一个十进制字节预算**（`files.rs:1`），默认 1024MB（`config/preferences.rs:39-42` 的 `LogMaxMb`）。
+- 写日志走独立 worker：队列 1024 条、每批 256 条 / 64KiB（`logs/worker.rs:14-16`），输入线程只投递不格式化。
+- 崩溃有独立收集器（`oink-crash-collector`），带 `objc_exceptions` 测试。
 
-- 应用内设置：`settings.json`；日志级别/大小、音频质量、布局、权限提示等。
-- 日志级别/上限：`agent_api.rs:998-1001` 的 `log_level` / `log_max_mb`。
-- 音频：Opus/PCM 配置、麦克风、音量；见 `crates/oink-audio/`。
-- 布局：`oink-display` + `oink-routing`；多屏/DPI 变化会自动重算。
+## 可观测性
 
-## 排障清单
+**诊断包**是主要的排障手段：
 
-### 1）设备发现不到
+```bash
+# 导出最近 30 分钟（默认）
+oink-agent diagnostics save
 
-- 确认同一局域网、未开启 AP 隔离/客户端隔离。
-- 检查防火墙是否放行 UDP（mDNS `_oink._udp` + QUIC）。
-- 看 `oink-network/src/discovery/` 的日志；手动地址用 `addresses.json`。
-- 跨子网/VLAN 需要手动地址或 relay；mDNS 不跨广播域。
+# 或指定分钟数
+oink-agent diagnostics save --last 60
 
-### 2）能发现但连不上
+# 或导出全部保留记录
+oink-agent diagnostics save --all
 
-- 看 `oink_link_diagnostics` target 的日志：`connection_step`、`path_install`、`config_ready`。
-- 检查 `DIAL_BUDGET=3s` 是否被防火墙拖超时。
-- 尝试手动地址；看是否走 relay。
-- 检查系统时间（TLS 证书验证依赖时间）。
+# 开关/状态
+oink-agent diagnostics status
+oink-agent diagnostics on
+oink-agent diagnostics off
+```
 
-### 3）配对失败
+硬上限：整个包 64MiB、单段原始 512KiB、自动记录范围 30 分钟（`diagnostics/mod.rs:113-117`）。隐私边界是"不记录原始按键和自由文本"（`diagnostics/privacy.rs:1`），标识符用 blake3 `derive_key` 匿名化。
 
-- 6 位码是否一致；配对有 attempt 限制（1..=3）。
-- 看 `group_pake` 错误：`invalid pairing transcript` 表示 transcript 不匹配（角色/帧/身份/attempt）。
-- 删除旧的配对记录（`pairing-blocks.cbor`/`presence.cbor`）后重试，注意会丢历史。
+**实时指标**（在诊断包里）：
 
-### 4）键鼠跨屏卡顿/丢键
+- `late_rounds` / `late_max` — 网络轮迟到次数/最大迟到
+- `over_budget` — 超 500µs 预算的轮数
+- `demoted` — 实时调度被系统降级的次数（每 5 秒读回比对）
 
-- 看输入线程是否被降级（`threads/mod.rs` 的 realtime tier）。
-- 检查是否有大文件拖拽/剪贴板传输占满普通流。
-- 看 router 是否频繁 `Refused`（按键保持/焦点锁）。
-- 游戏模式用 datagram；普通模式用 reliable；确认场景匹配。
+## 资源需求
 
-### 5）音频爆音/延迟
+- **内存**：空闲约几百 MB（Tauri/WebView2 占大头）；剪贴板大对象时可能短时上升（单 representation 上限 256MiB）。
+- **CPU**：空闲接近 0；指针高速移动时 input 线程接近单核；音频转发时 audio 线程持续 48kHz 处理。
+- **磁盘**：安装包 ~45MB，安装后 ~200MB（含 WebView2 运行时依赖）；日志上限默认 1GB；诊断包上限 64MB。
+- **网络**：局域网内输入流量很小（事件级），音频约 128kbps（Opus），文件传输可跑满带宽。
 
-- 看 `oink-audio` 诊断：`queued_frames`、`lost`、`resample_ns`、`underrun`。
-- `MAX_QUEUE_FRAMES=12`、`MAX_PLC_FRAMES=6`：持续丢包会触发 PLC，爆音是预期降级。
-- 检查采样率/声道是否匹配；PCM24 无损带宽高，优先 Opus。
-- macOS 音频插件（`apps/audio-plugin/`）是否安装/权限正确。
+## 故障模式与排查
 
-### 6）Windows 登录界面不能用
-
-- 检查 `oink-winsvc` 服务是否运行。
-- 安装时是否勾选 “Start Oink when I sign in”（会启用 machine-level prelogin backend，`build-support/README.md:56-62`）。
-- 看 `backend_launch.rs` 的 `OBL1` 协议日志；固定启动配方失败会回退/停止，不会任意执行路径。
-
-### 7）更新失败
-
-- 看 `crates/oink-update/`：feed、trust、transaction、barrier。
-- Windows/macOS feed 在 `update-feed-state` 分支；发布工作流是 `publish-*-feed.yml` + `deploy-feed.yml`。
-- 部署失败会自动回滚并验证回滚字节（`deploy-feed.yml`）。
-- 检查系统时间、证书、Ed25519 公钥是否匹配。
-
-## 备份/恢复
-
-| 内容 | 路径 | 备份建议 |
+| 症状 | 可能原因 | 排查 |
 |---|---|---|
-| 设置 | `settings.json` | 改大版本前备份 |
-| 地址簿 | `addresses.json` | 手动地址多时备份 |
-| 配对记录 | `pairing-blocks.cbor`、`presence.cbor` | 一般不需要；删除可重置配对 |
-| 日志 | `Logs/` | 排障时打包 |
-| 剪贴板缓存 | `Cache/`、`source-file-links/` | 不需要；可清理 |
+| 设备互相发现不了 | beacon 绑定失败 / 防火墙挡了 47471 / 不在同一子网 | 日志搜 `beacon unavailable`；改用"手动地址"配对 |
+| 配对码一直不确认 | 双方时钟/attempt 不一致，或码输错 | 重新发起配对（attempt 递增）；确认双方版本 ≥0.3.0 |
+| 指针跨屏延迟大 | Wi-Fi 抖动 / 走了 relay / 实时调度被降级 | 诊断包看 `demoted`、`late_max`；确认是否 relay 态 |
+| 音频断续 | 队列超 12 帧（240ms）触发丢帧 + PLC | 看 `MAX_QUEUE_FRAMES` 相关统计；换有线网络 |
+| 自动解锁不触发 | 锁屏状态未知 / 显示器未唤醒 / 本机正在输入 | `auto-unlock-failure.json` 看 failure kind；日志搜"自动解锁已停止" |
+| Windows 双击 MSI 后没重启 | relaunch.json 没匹配到会话 | 检查是否多用户登录；`relaunch.rs` 按当前登录用户匹配 |
+| 剪贴板重复粘贴 | 对方同步器剥离了 marker，且内容不可比 | 设置里开关 "Clipboard deduplication"；这是 fallback 的已知边界 |
+| 服务启动失败 | 端口被占 / 权限不足 / 旧进程残留 | `oink-agent status`；`ipc.json` 的 lock owner |
 
-## 安全注意事项
+## 安全注意
 
-- 只从 GitHub Releases 下载；不要用来路不明的安装包。
-- Windows 服务/UIAccess 是高权限组件；不要手动替换 `oink-winsvc` 二进制。
-- 剪贴板可能包含密码/密钥；Oink 默认加密传输，但本机日志/缓存仍可能落盘，注意清理。
-- GPL-3.0-only + additional terms：分发修改版要提供源码、保留归属、不得用 Oink 名称推广（`README.md:49-54`）。
+1. **配对码必须带外传递**（念给对方/看一眼），不要通过聊天工具发。
+2. **`ipc.json` 含一次性 secret**，不要把它复制到别的机器；本地 IPC 只监听用户 SID 管道/私有 socket。
+3. **自动解锁的密码只存本地**（Keychain / DPAPI+OnlySystem），不会同步；但一旦本机被攻破，攻击者可以调用本地 API 触发解锁——这是"本机信任"的边界。
+4. **更新源不可配置**（`crates/oink-update/src/trust.rs:1`），如果你在企业里需要内部镜像，只能自己重新编译。
+5. **诊断包含主机名/设备 ID 的哈希**，但仍然可能含敏感上下文（应用名、窗口标题类别），外发前先自己看一眼。
 
-## 关键证据
+## 一句话记住
 
-- 平台/安装：`README.md:14-23`
-- 路径：`crates/oink-foundation/src/paths.rs:24-45`
-- 配置文件名：`crates/oink-agent/src/config.rs:33`、`config/records.rs:11-12`、`config_module/local_records.rs:16`
-- 日志设置：`crates/oink-agent/src/agent_api.rs:998-1001`
-- Windows 服务/固定启动：`crates/oink-winsvc/src/backend_launch.rs:1`、`20`
-- 更新：`crates/oink-update/src/`、`.github/workflows/publish-windows-feed.yml`、`deploy-feed.yml`
-- 安装器登录启动：`build-support/README.md:56-62`
+Oink 的运维面很小：**三个端口（47470/47471/47472）、一个数据目录、一份诊断包**——大部分"坏了"都能在 `demoted`、`late_max`、`auto-unlock-failure.json` 这三个地方找到答案。

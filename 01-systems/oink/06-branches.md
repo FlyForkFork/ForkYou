@@ -1,109 +1,70 @@
-# 06 分支：`main` 写代码，`update-feed-state` 放发布状态
+# 06 分支：只有两条，但一条不是代码
 
-> 仓库：`oinkvm/oink`。本地 clone 使用 `--no-single-branch --depth 1`，所以 commit 历史是 grafted（浅克隆），但两个分支的树都在。
+## 这篇回答什么问题
 
-## 分支总表
+Oink 的分支结构非常简单，但它恰好展示了一个常见误区：**"ahead/behind 数字很大"不等于"改动很多"**。这篇说清两条分支各自是什么、怎么读、有什么风险。
 
-| 分支 | HEAD | 类型 | 作用 | 要不要读 |
-|---|---|---|---|---|
-| `main` | `546f65b` | 默认分支、代码分支 | 产品源码、CI、打包、文档 | **主读** |
-| `update-feed-state` | `c120e81` | orphan 状态分支 | 发布 feed 的不可变快照：Windows/macOS 更新清单、release 记录、站点 | 只在研究更新机制时读 |
+## 分支列表
 
-```bash
-git -C oink branch -a
-# * main
-#   remotes/origin/HEAD -> origin/main
-#   remotes/origin/main
-#   remotes/origin/update-feed-state
-```
+| 分支 | HEAD | 提交日期 | 性质 |
+|---|---|---|---|
+| `main` | `d8b29328678bfb50b5a9385a284f74572290c03b` | 2026-11-10 | 唯一代码主线，0.3.5 build 113 |
+| `origin/update-feed-state` | `78c74faaf21ca2325168a23ff2e260d9589efecd` | 2026-11-09 | 更新 feed 的发布快照，**孤儿分支**（与 main 无共同祖先） |
+| 本地 `update-feed-state` | `c120e81b3102805fe708871d206c7069fd814987` | 2026-11-06 | 同一 feed 分支的较早本地副本（比 origin 少 7 个提交） |
 
-## `main`
+`git rev-list --left-right --count origin/update-feed-state...origin/main` 输出 **8 / 16**：feed 分支有 8 个 main 没有的提交，main 有 16 个 feed 分支没有的提交。这个数字看起来像"分支分叉很久"，实际上两边内容完全不同——一边是 35 个更新清单文件，一边是整个源码树。
 
-- 默认分支，`origin/HEAD -> origin/main`。
-- HEAD commit：`546f65b2135e7a1491d2d743f0a1e072a74df36f`，提交信息 `fix(update): verify canonical feed visibility before committing deployment`。
-- 包含全部源码、`crates/`、`apps/`、`packaging/`、`.github/workflows/`。
-- CI 在 push 到 `main` / PR 时运行（`.github/workflows/ci.yml:1-8`）。
+## 用途
 
-## `update-feed-state`
+`update-feed-state` 不是开发分支，是**发布流水线的状态存储**。它只包含：
 
-这是一个**孤儿分支**（orphan branch）：它和 `main` 没有共同祖先，只存发布状态，不存源代码。不要把它当功能分支合并。
+- `registry.json`、`pending-renewal.json`
+- `records/*.json`（12 个，按内容哈希命名的签名记录）
+- `site/index.html`、`site/heartbeat.json`、`site/CNAME`
+- `site/mac/v1/mac-2026-01/{beta,stable}/appcast.xml` 与 `x64/` 下的同名文件（4 个）
+- `site/windows/releases/{31,32,33,34,35,36,43,79,84,93,100,108}/release.json`（12 个）
+- `site/windows/v1/win-2026-01/{beta,stable}/manifest.json`（2 个）
 
-### 它有什么
+合计 **35 个文件**。这是 GitHub Pages 上更新站点的源，由 `.github/workflows/deploy-feed.yml`、`publish-macos-feed.yml`、`publish-windows-feed.yml`、`renew-windows-update-manifests.yml`、`seed-update-feeds.yml` 这些工作流读写。
 
-`git ls-tree -r --name-only origin/update-feed-state` 的顶层：
+## 变更规模
 
-```text
-pending-renewal.json
-records/*.json              # 发布记录，按哈希命名
-registry.json               # feed 注册表
-site/CNAME                  # 自定义域名
-site/heartbeat.json         # 站点心跳
-site/index.html             # 下载页
-site/mac/v1/mac-2026-01/{beta,stable}/appcast.xml
-site/windows/releases/{31,32,33,34,35,36,43,79,84,93,100}/release.json
-site/windows/v1/win-2026-01/{beta,stable}/manifest.json
-```
+**不能看 diffstat。** `git diff --stat origin/main origin/update-feed-state` 会报 4055 个文件、831 insertions、693031 deletions——因为孤儿分支的树里没有源码，Git 认为"所有源码都被删了"。这不是真实的代码变更，是孤儿分支的假象。
 
-共 32 个文件。`records/*.json` 是每次发布的元数据（版本、tag、build、包 URL、sha256、签名等）；`site/` 是 GitHub Pages 实际发布的更新 feed。
+真实规模是：**35 个文件，全部是 JSON/XML/HTML 发布产物**。8 个提交的标题全是 `Publish verified platform feed snapshot` 或 `Reserve Windows feed sequences`，没有一行产品代码。
 
-### 谁写它
+## 关键提交
 
-- `.github/workflows/publish-windows-feed.yml`：`Publish Windows feed`，`workflow_call`，需要 `UPDATE_FEED_WRITER_TOKEN` 和 Windows Ed25519 私钥；流程是 gate → prepare（绑定 release tag 与源码树）→ sign（签名包/注册/预留序列/签 manifest）→ deploy。
-- `.github/workflows/deploy-feed.yml`：`Deploy verified platform feed`，把候选 feed 合并到受保护快照，上传 Pages artifact，部署后**读回**（readback）并 CAS 提交；失败自动回滚并验证回滚字节。
-- 还有 `publish-macos-feed.yml`、`renew-windows-update-manifests.yml`、`seed-update-feeds.yml`、`bootstrap-update-site.yml`。
+`origin/main..origin/update-feed-state` 的 8 个提交（从旧到新）：
 
-这说明 `update-feed-state` 不是人手改的，是 CI 的**发布事务日志/站点快照**。
+- `c120e81` Publish verified platform feed snapshot（2026-11-06）
+- `63e61c6` Reserve Windows feed sequences
+- `26f7d3c` Publish verified platform feed snapshot
+- `95e040f` Reserve Windows feed sequences
+- `101190c` Publish verified platform feed snapshot
+- `06e9ff1` Publish verified platform feed snapshot
+- `1f25333` Reserve Windows feed sequences
+- `78c74fa` Publish verified platform feed snapshot（2026-11-09）
 
-### diff 为什么看起来“删了 3975 个文件”
+"Reserve Windows feed sequences" 这个标题说明它做的是**序号预留**：Windows 更新清单要求单调递增的 build 号，先占位再发布，避免两个构建并发时撞号。
 
-在浅克隆上执行：
+## 对 main 的影响
 
-```bash
-git diff --stat main..origin/update-feed-state
-# 3975 files changed, 497 insertions(+), 670579 deletions(-)
-```
+**零。** 两条分支没有共同祖先，`main` 的代码里不包含任何 feed 状态；feed 分支也不含任何源码。它们通过发布工作流间接关联：CI 打出的安装包 → 工作流写入 feed 分支 → GitHub Pages 提供 `appcast.xml` / `manifest.json` → 客户端更新器读取。
 
-这不是“发布分支删了代码”，而是**孤儿分支与 main 没有共同祖先**：Git 把 main 的所有文件都视为“被删除”，只把 update-feed-state 的 32 个文件视为“新增”。所以这个 stat 不能当“代码变更量”看。
+## 怎么读
 
-### 关键 commit
+- **读代码**：只看 `main`。
+- **读发布流程**：看 `origin/update-feed-state` 的 35 个文件 + `.github/workflows/*feed*.yml`。
+- **核对某个版本发布了没有**：看 `site/windows/releases/<build>/release.json` 或 `site/mac/v1/mac-2026-01/stable/appcast.xml`。
 
-浅克隆只有 grafted 的一个 commit：`c120e81 Publish verified platform feed snapshot`。要看完整历史，需要完整 clone（`git clone` 不带 `--depth`）或 `git fetch --unshallow`。
+## 风险
 
-## 分支差异对分析的影响
+1. **孤儿分支容易误判**：任何人用 `git diff main...update-feed-state` 都会得到"删了 4000 个文件"的结论。做仓库统计时要排除它。
+2. **本地分支落后 origin 7 个提交**：本地 `update-feed-state` 是 11-06 的快照，`origin` 是 11-09。如果有人基于本地分支继续发布，会回滚掉三天的 feed。**读之前先 `git fetch`**。
+3. **feed 分支的历史会被重写**：`Reserve` 类提交暗示序号可能被回退/重用（"reserve" 是预留，如果构建失败可能要回收）。这类分支不适合当审计日志。
+4. **发布产物与源码版本可能短暂不一致**：feed 分支的 `78c74fa` 是 11-09，而 `main` 的 0.3.5 是 11-10 发布——发布流程本身有延迟窗口。
 
-1. **读代码只看 `main`**：`update-feed-state` 没有 Rust/TS 源码。
-2. **读更新机制看两个地方**：`main` 的 `crates/oink-update/` + `packaging/` + `.github/workflows/*feed*`；`update-feed-state` 的 `site/` 是最终产物。
-3. **贡献不要碰 `update-feed-state`**：它是 CI 写入的发布状态，手改会破坏签名/序列号/CAS。
+## 一句话记住
 
-## 建议命令
-
-```bash
-# 看两个分支的树差异（只列文件名）
-git -C oink diff --name-status main..origin/update-feed-state | head -50
-
-# 看 update-feed-state 的站点结构
-git -C oink ls-tree -r --name-only origin/update-feed-state
-
-# 看 main 的更新相关代码
-ls oink/crates/oink-update/src
-ls oink/.github/workflows | grep feed
-
-# 看发布工作流
-sed -n '1,120p' oink/.github/workflows/publish-windows-feed.yml
-sed -n '1,100p' oink/.github/workflows/deploy-feed.yml
-```
-
-## 风险与待查实
-
-- 浅克隆导致 commit 历史不完整；本文的 commit 结论只基于当前 HEAD 和可见的 grafted 记录。
-- `update-feed-state` 的签名/序列号细节需要读 `build-support/update/` 才能完全确认；本文只确认了工作流和文件布局。
-- 分支保护规则（是否禁止直接 push）未通过 API 查证；从工作流使用 `UPDATE_FEED_WRITER_TOKEN` 看，至少写入是受控的。
-
-## 关键证据
-
-- 分支列表/HEAD：`git branch -a`、`git log --oneline --all`
-- 孤儿分支文件：`git ls-tree -r --name-only origin/update-feed-state`
-- diff stat：`git diff --stat main..origin/update-feed-state`
-- Windows feed 工作流：`.github/workflows/publish-windows-feed.yml`
-- 部署/回滚：`.github/workflows/deploy-feed.yml`
-- 更新代码：`crates/oink-update/src/`
+Oink 只有一条代码主线：`update-feed-state` 是发布站点的孤儿快照，**它的 ahead/behind 和 diffstat 全是假象，只有 35 个 JSON/XML 文件是真的**。
