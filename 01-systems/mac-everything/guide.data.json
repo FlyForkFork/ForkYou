@@ -10,8 +10,8 @@
     "license": "MIT",
     "stars": 1,
     "language": "C++ / Swift",
-    "commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
-    "updated": "2026-11-06"
+    "commit": "0db6b601fb0baa6129356fd4416ded034666d4f5",
+    "updated": "2026-11-10"
   },
   "links": {
     "github": "https://github.com/YuSec2021/mac-everything",
@@ -22,12 +22,12 @@
     { "label": "有效记录", "value": "638 万" },
     { "label": "就绪足迹", "value": "573 MiB" },
     { "label": "热查询", "value": "0.93 ms" },
-    { "label": "测试文件", "value": "91" }
+    { "label": "快速测试", "value": "12,250 项" }
   ],
   "mental_model": [
     { "title": "它是谁", "body": "一个常驻菜单栏的 macOS 文件搜索工具，没有主窗口，按 Option+Space 弹出。" },
-    { "title": "怎么工作", "body": "DirectoryScanner 扫全盘 → SearchEngine 建列式索引与 trigram → v6/WAL 落盘 → FSEvents 增量追赶。" },
-    { "title": "为什么特别", "body": "索引所有权在自己手里：候选集、排序、持久化都能改，不受 Spotlight 黑盒限制。" }
+    { "title": "怎么工作", "body": "DirectoryScanner 并行扫全盘 → SearchEngine 建 SoA 列 + trigram + 路径池 → v6 快照/WAL 落盘 → FSEvents 增量追赶。" },
+    { "title": "为什么特别", "body": "索引所有权在自己手里：候选集、排序、持久化、内存布局都能改，不受 Spotlight 黑盒限制。" }
   ],
   "architecture": {
     "title": "四层：交互、桥接、核心、平台",
@@ -35,29 +35,29 @@
       {
         "name": "交互层",
         "nodes": [
-          { "id": "panel", "label": "菜单栏面板", "desc": "NSPopover/NSPanel + SwiftUI 结果列表，640×500，分页 100 条。" },
-          { "id": "vm", "label": "SearchViewModel", "desc": "80ms 防抖、取消旧查询、分页、焦点节流。" }
+          { "id": "panel", "label": "菜单栏面板", "desc": "NSPopover/NSPanel + SwiftUI 结果列表，分页 100 条。" },
+          { "id": "vm", "label": "SearchViewModel", "desc": "普通搜索 80ms、内容搜索 300ms 防抖，取消旧查询，分页取快照。" }
         ]
       },
       {
         "name": "桥接层",
         "nodes": [
-          { "id": "bridge", "label": "MacSearchBridge", "desc": "Objective-C++，持有 ServiceEngine，按页物化 MEQuerySnapshot。" },
-          { "id": "http", "label": "HttpServer :19860", "desc": "GET /api/search、/api/status；MCP/脚本共用。" }
+          { "id": "bridge", "label": "MacSearchBridge", "desc": "Objective-C++，持有 ServiceEngine；按页物化 MEQuerySnapshot，压缩代际变化时重试。" },
+          { "id": "http", "label": "HttpServer :19860", "desc": "只绑 127.0.0.1；GET /api/search、/api/status；MCP 与脚本共用。" }
         ]
       },
       {
         "name": "核心层",
         "nodes": [
-          { "id": "service", "label": "ServiceEngine", "desc": "生命周期、FSEvents、内容索引、HTTP 编排。" },
-          { "id": "engine", "label": "SearchEngine", "desc": "SoA 列 + 名称/扩展名 trigram + 路径池 + Top-K 查询。" },
-          { "id": "persist", "label": "IndexPersistence", "desc": "v6 扁平文件 + WAL + 自动压缩。" }
+          { "id": "service", "label": "ServiceEngine", "desc": "生命周期、FSEvents 翻译、内容索引、HTTP 编排；单实例锁。" },
+          { "id": "engine", "label": "SearchEngine", "desc": "SoA 列 + 名称/扩展名 trigram + 目录池路径索引 + 并行 Top-K。" },
+          { "id": "persist", "label": "IndexPersistence", "desc": "v6 十一节段快照 + 路径键 WAL + 15min–2h 自动合并。" }
         ]
       },
       {
         "name": "平台层",
         "nodes": [
-          { "id": "fsevents", "label": "FSEvents", "desc": "0.3s 合并、eventId 续传、journal 截断检测。" },
+          { "id": "fsevents", "label": "FSEvents", "desc": "0.3s 合并、eventId 续传、MustScanSubDirs 截断检测。" },
           { "id": "scan", "label": "getattrlistbulk", "desc": "4–32 线程批量读目录属性，跳过 .app 与跨挂载点。" },
           { "id": "simd", "label": "NEON / libmalloc", "desc": "128-bit 字节匹配；MallocLargeCache=0 控制物理足迹。" }
         ]
@@ -78,23 +78,23 @@
   "mechanism": {
     "title": "一次 Option+Space 搜索发生了什么",
     "steps": [
-      { "title": "唤起", "detail": "全局快捷键打开菜单栏 popover；没有主窗口，图标被刘海隐藏时改开浮动 NSPanel。", "highlight": ["panel"], "code": "MacEverything/App/AppDelegate.swift:142-239" },
-      { "title": "输入", "detail": "SearchViewModel 对普通输入防抖 80ms，对 infile: 防抖 300ms；新输入取消旧 session。", "highlight": ["vm"], "code": "MacEverything/App/SearchViewModel.swift:223-283" },
-      { "title": "查询", "detail": "桥接层 querySnapshot 在后台线程调用 C++，失败重试 2 次，返回 ID 快照。", "highlight": ["bridge"], "code": "MacEverything/Bridge/MacSearchBridge.mm:404-421" },
-      { "title": "选候选", "detail": "名称 trigram / 扩展名 / 目录树三路竞争，取最小候选集；都不合适就全表扫描。", "highlight": ["engine"], "code": "MacEverything/Core/SearchEngineAdvancedQuery.cpp:629-750" },
-      { "title": "扫描排序", "detail": "1–32 线程、每 1024 条检查取消、每线程 Top-K，按 priority/pathLen/idx 排序。", "highlight": ["engine", "simd"], "code": "MacEverything/Core/SearchEngineAdvancedQuery.cpp:791-898" },
+      { "title": "唤起", "detail": "Carbon 注册全局快捷键，默认 Option+Space；面板浮在当前 App 之上，没有主窗口。", "highlight": ["panel"], "code": "MacEverything/App/HotkeyManager.swift:9" },
+      { "title": "输入", "detail": "SearchViewModel 普通输入防抖 80ms、内容搜索 300ms；新输入取消旧 session。", "highlight": ["vm"], "code": "MacEverything/App/SearchViewModel.swift:263-275" },
+      { "title": "查询", "detail": "桥接层后台调用 C++，querySnapshot 前后比对 compactionGeneration，变化重试一次。", "highlight": ["bridge"], "code": "MacEverything/Bridge/MacSearchBridge.mm:401-421" },
+      { "title": "选候选", "detail": "名称 trigram / 正则 atom / 扩展名 / 路径段四路竞争，取最小候选集；都不合适就全表扫描。", "highlight": ["engine"], "code": "MacEverything/Core/SearchEngineAdvancedQuery.cpp:629-750" },
+      { "title": "扫描排序", "detail": "候选 <1 万单线程，否则 1–32 线程；每线程 Top-K，每 1024 条检查取消，按 priority/pathLen/idx 排序。", "highlight": ["engine", "simd"], "code": "MacEverything/Core/SearchEngineAdvancedQuery.cpp:759-898" },
       { "title": "分页展示", "detail": "resultsAtOffset 只物化当前页 100 条；generation 变了就重查，避免压缩后错位。", "highlight": ["bridge", "panel"], "code": "MacEverything/Bridge/MacSearchBridge.mm:17-32" }
     ]
   },
   "code_map": [
-    { "path": "main.cpp", "role": "96 行最小闭环：扫描 → 索引 → 查询", "read_order": 1, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/main.cpp" },
-    { "path": "MacEverything/Core/ServiceEngine.h", "role": "服务对象图与生命周期", "read_order": 2, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/ServiceEngine.h" },
-    { "path": "MacEverything/Core/ServiceEngine.cpp", "role": "全量/增量启动、后台同步、关闭", "read_order": 3, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/ServiceEngine.cpp" },
-    { "path": "MacEverything/Core/SearchEngineAdvancedQuery.cpp", "role": "候选选择、并行扫描、Top-K", "read_order": 4, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/SearchEngineAdvancedQuery.cpp" },
-    { "path": "MacEverything/Core/QueryParser.cpp", "role": "递归下降 AST", "read_order": 5, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/QueryParser.cpp" },
-    { "path": "MacEverything/Core/FlatIndexWriter.cpp", "role": "v6 11 段文件格式与原子写", "read_order": 6, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/FlatIndexWriter.cpp" },
-    { "path": "MacEverything/Core/IndexWAL.cpp", "role": "WAL 追加、CRC、50MB 上限", "read_order": 7, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Core/IndexWAL.cpp" },
-    { "path": "MacEverything/Bridge/MacSearchBridge.mm", "role": "Swift 与 C++ 的唯一接缝、分页快照", "read_order": 8, "url": "https://github.com/YuSec2021/mac-everything/blob/70bbad53dcd4fff07aeccef89c826f576c75e1e5/MacEverything/Bridge/MacSearchBridge.mm" }
+    { "path": "main.cpp", "role": "96 行最小闭环：扫描 → 索引 → 查询", "read_order": 1, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/main.cpp" },
+    { "path": "MacEverything/Core/ServiceEngine.h", "role": "服务对象图与生命周期", "read_order": 2, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/ServiceEngine.h" },
+    { "path": "MacEverything/Core/ServiceEngine.cpp", "role": "全量/增量启动、后台同步、关闭", "read_order": 3, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/ServiceEngine.cpp" },
+    { "path": "MacEverything/Core/SearchEngineAdvancedQuery.cpp", "role": "四路候选、并行扫描、Top-K", "read_order": 4, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/SearchEngineAdvancedQuery.cpp" },
+    { "path": "MacEverything/Core/QueryParser.cpp", "role": "递归下降 AST 与查询变换", "read_order": 5, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/QueryParser.cpp" },
+    { "path": "MacEverything/Core/FlatIndexWriter.cpp", "role": "v6 十一节段文件格式与原子写", "read_order": 6, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/FlatIndexWriter.cpp" },
+    { "path": "MacEverything/Core/IndexWAL.cpp", "role": "WAL 追加、CRC、50MB 上限", "read_order": 7, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Core/IndexWAL.cpp" },
+    { "path": "MacEverything/Bridge/MacSearchBridge.mm", "role": "Swift 与 C++ 的唯一接缝、分页快照", "read_order": 8, "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/MacEverything/Bridge/MacSearchBridge.mm" }
   ],
   "run": [
     { "label": "快速测试", "command": "make test", "note": "test_all --fast + lint-bridge" },
@@ -104,9 +104,9 @@
     { "label": "全量回归", "command": "make test-all", "note": "含慢速扫描/FSEvents 集成" }
   ],
   "branches": [
-    { "name": "main", "purpose": "默认分支，当前分析基线 70bbad53", "diff": "—", "url": "https://github.com/YuSec2021/mac-everything" },
-    { "name": "claude/release-workflow", "purpose": "唯一未合并：v* tag 构建/签名/公证/发布", "diff": "对 merge-base 7 files +517/−5", "url": "https://github.com/YuSec2021/mac-everything/tree/claude/release-workflow" },
-    { "name": "ci/release-dmg", "purpose": "DMG 打包 CI（已合并，落后 main 11）", "diff": "0 ahead / 11 behind", "url": "https://github.com/YuSec2021/mac-everything/tree/ci/release-dmg" }
+    { "name": "main", "purpose": "默认分支，当前分析基线 0db6b601（1.4.0 Build 4）", "diff": "—", "url": "https://github.com/YuSec2021/mac-everything" },
+    { "name": "claude/release-workflow", "purpose": "旧式发布方案：bundle Homebrew dylib + 签名/公证；未合并", "diff": "对 merge-base 7 files +517/−5（两点 diff 93 files +1858/−4387）", "url": "https://github.com/YuSec2021/mac-everything/tree/claude/release-workflow" },
+    { "name": "fix/rebuild-index-v6", "purpose": "让 Rebuild Index 真正丢弃 v6 并全扫；未合并", "diff": "13 files +184/−44（1 ahead / 0 behind）", "url": "https://github.com/YuSec2021/mac-everything/tree/fix/rebuild-index-v6" }
   ],
   "contribute": [
     { "title": "先跑通", "detail": "macOS 14+、Xcode 15+、brew install re2 abseil，然后 make test。", "url": "https://github.com/YuSec2021/mac-everything#readme" },
@@ -114,15 +114,15 @@
     { "title": "提 PR", "detail": "feat/ 或 fix/ 分支，补测试，make test-all 通过；版本改动同步 AboutView 与 docs/changelog。", "url": "https://github.com/YuSec2021/mac-everything/issues" }
   ],
   "cheats": [
-    { "q": "面试官：它怎么做到毫秒级搜 638 万条？", "a": "名称 trigram + 扩展名索引先把候选缩到很小，再并行验证；每线程 Top-K，合并后按 priority/pathLen/idx 排序。纯元数据查询走全表 SIMD，约 2 ms。" },
-    { "q": "面试官：v6 + WAL 的崩溃一致性怎么保证？", "a": "v6 写临时文件 fsync 后 rename；WAL 追加写、每条 CRC、每 64 条 fsync，启动逐条回放，坏条目截断并保留之前记录。" },
+    { "q": "面试官：它怎么做到毫秒级搜 638 万条？", "a": "名称 trigram + 正则 atom + 扩展名 + 路径段四路候选取最小，再并行验证；每线程 Top-K，合并后按 priority/pathLen/idx 排序。热查询 0.93/6.13ms 是作者本机固定快照。" },
+    { "q": "面试官：v6 + WAL 的崩溃一致性怎么保证？", "a": "v6 写临时文件 fsync 后 rename；WAL 追加写、每条 CRC、每 syncInterval_ 条 fsync，启动逐条回放，坏条目截断并保留之前记录。" },
     { "q": "面试官：573 MiB 是怎么压出来的？", "a": "目录池共享前缀、原始/小写名称共享字节、posting varint 差分、32 位窄列 + 稀疏旁表、4B 路径槽；固定快照从 1266.88→708.25→573.0 MiB。" },
     { "q": "面试官：FSEvents 事件风暴怎么办？", "a": "整批翻译成 Add/Remove/Update/REMOVE_TREE/rescanDirs，一次 batchMutate 加锁；目录变化 5s debounce、300s 节流；journal 截断则全量重扫。" },
-    { "q": "面试官：这个项目最大的坑是什么？", "a": "宽路径查询 30–50 ms，以及全量保存约 712 MiB 写放大；项目自己在审计里标为未解决。" }
+    { "q": "面试官：这个项目最大的坑是什么？", "a": "1.4.0 的压缩重叠把 650 万条压成 24,741 条；main 上两条 rebuild 路径都不真正重建 v6；宽路径查询仍 30–58ms。" }
   ],
   "sources": [
-    { "title": "YuSec2021/mac-everything README", "url": "https://github.com/YuSec2021/mac-everything", "date": "2026-11-06" },
-    { "title": "voidtools Everything 官方站", "url": "https://www.voidtools.com/", "date": "2026-11-07" },
-    { "title": "sharkdp/fd README", "url": "https://github.com/sharkdp/fd", "date": "2026-11-07" }
+    { "title": "YuSec2021/mac-everything README @ 0db6b601", "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/README.md", "date": "2026-11-09" },
+    { "title": "changelog 153：重叠压缩导致索引丢失", "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/docs/changelog/153-overlapping-compaction-index-loss.md", "date": "2026-11-06" },
+    { "title": "voidtools Everything 官方站", "url": "https://www.voidtools.com/", "date": "2026-11-10" }
   ]
 }

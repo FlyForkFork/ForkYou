@@ -8,9 +8,9 @@
   "fork": "FlyForkFork/mac-everything",
   "category": "01-systems",
   "depth": "L2",
-  "length": "default",
-  "analyzed_commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
-  "analyzed_at": "2026-11-07T03:10:00+08:00",
+  "length": "deep",
+  "analyzed_commit": "0db6b601fb0baa6129356fd4416ded034666d4f5",
+  "analyzed_at": "2026-11-10T22:22:00+08:00",
   "upstream_url": "https://github.com/YuSec2021/mac-everything",
   "homepage": "https://github.com/YuSec2021/mac-everything/releases",
   "license": "MIT",
@@ -28,12 +28,10 @@
   ],
   "branches": [
     "main",
-    "ci/release-dmg",
     "claude/release-workflow",
-    "codex/sync-about-changelog",
-    "fix/index-rewrite-amplification",
-    "fix/root-rescan-duplicates",
-    "refactor/swiftui-p1"
+    "claude/trusting-dirac-c373be",
+    "fix/persist-content-settings",
+    "fix/rebuild-index-v6"
   ],
   "docs": [
     "README.md",
@@ -50,31 +48,46 @@
     "09-ops.md"
   ],
   "guide": "guide.html",
+  "analysis": {
+    "profile": "deep",
+    "reason": "macOS 全盘文件索引，自研 trigram/倒排/紧凑路径表、FSEvents 增量、并行查询引擎，仓库内有多轮实测性能审计数据",
+    "skipped": []
+  },
   "sources": [
     {
-      "title": "YuSec2021/mac-everything README",
-      "url": "https://github.com/YuSec2021/mac-everything",
+      "title": "YuSec2021/mac-everything README @ 0db6b601",
+      "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/README.md",
+      "date": "2026-11-09"
+    },
+    {
+      "title": "changelog 153：重叠压缩导致索引丢失的事故记录",
+      "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/docs/changelog/153-overlapping-compaction-index-loss.md",
       "date": "2026-11-06"
     },
     {
-      "title": "voidtools Everything 官方站（下载与许可证）",
+      "title": "path-table 轮性能与内存审计报告",
+      "url": "https://github.com/YuSec2021/mac-everything/blob/0db6b601fb0baa6129356fd4416ded034666d4f5/docs/audits/2026-10-22/path-table-dir-runs/report.md",
+      "date": "2026-10-22"
+    },
+    {
+      "title": "voidtools Everything 官方站（Windows 对照方案）",
       "url": "https://www.voidtools.com/",
-      "date": "2026-11-07"
+      "date": "2026-11-10"
     },
     {
       "title": "Apple 支持：在 Mac 上通过“聚焦”查找所需内容",
       "url": "https://support.apple.com/guide/mac-help/search-with-spotlight-mchlp1008/mac",
-      "date": "2026-11-07"
+      "date": "2026-11-10"
     },
     {
       "title": "sharkdp/fd README（MIT/Apache-2.0 双许可）",
       "url": "https://github.com/sharkdp/fd",
-      "date": "2026-11-07"
+      "date": "2026-11-10"
     },
     {
       "title": "Raycast Pricing（Free / Pro 商业订阅）",
       "url": "https://www.raycast.com/pricing",
-      "date": "2026-11-07"
+      "date": "2026-11-10"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:07.378Z",
+  "updated_at": "2026-11-10T14:27:17.633Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -92,8 +92,8 @@
       "stars": 1,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-06T19:32:55.650Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:17.630Z",
       "branches": [
         {
           "name": "claude/release-workflow",
@@ -127,8 +127,8 @@
         }
       ],
       "prepared_at": "2026-11-10T10:59:35.710Z",
-      "analyzed_commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
-      "analyzed_at": "2026-11-07T03:10:00+08:00",
+      "analyzed_commit": "0db6b601fb0baa6129356fd4416ded034666d4f5",
+      "analyzed_at": "2026-11-10T22:22:00+08:00",
       "docs": [
         "README.md",
         "01-positioning.md",

@@ -15,12 +15,13 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **1** 个项目。最后更新：2026-11-10 14:27:07。
+已分析 **2** 个项目。最后更新：2026-11-10 14:27:17。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
 | 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
 |---|---|---|---|---|---|---|---|
+| [mac-everything](01-systems/mac-everything/README.md) | Everything 的 macOS 答案：菜单栏里毫秒级搜全盘文件名。 | [YuSec2021/mac-everything](https://github.com/YuSec2021/mac-everything) | [打开](https://github.com/YuSec2021/mac-everything/releases) | [![GitHub stars](https://img.shields.io/github/stars/YuSec2021/mac-everything?style=flat-square&label=%E2%AD%90)](https://github.com/YuSec2021/mac-everything/stargazers) | L2 | 2026-11-10 | [Wiki](01-systems/mac-everything/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/mac-everything/guide.html) |
 | [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽与音频的 P2P 软件 KVM，纯状态机路由 + 单线程 QUIC 网络 + 线程所有权表。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | [![GitHub stars](https://img.shields.io/github/stars/oinkvm/oink?style=flat-square&label=%E2%AD%90)](https://github.com/oinkvm/oink/stargazers) | L2 | 2026-11-10 | [Wiki](01-systems/oink/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/oink/guide.html) |
 
 <!-- FORKYOU:INDEX:END -->
