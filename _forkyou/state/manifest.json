@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:36.811Z",
+  "updated_at": "2026-11-10T14:27:46.126Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -313,8 +313,8 @@
       "stars": 0,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-07T18:50:26.587Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:46.123Z",
       "branches": [
         {
           "name": "main",
@@ -324,8 +324,8 @@
         }
       ],
       "prepared_at": "2026-11-10T11:00:54.748Z",
-      "analyzed_commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
-      "analyzed_at": "2026-11-07T18:03:57.081Z",
+      "analyzed_commit": "624e48b60f6b993a10713f3ec9cce7b374c34fc7",
+      "analyzed_at": "2026-11-10T21:55:00+08:00",
       "docs": [
         "README.md",
         "01-positioning.md",
@@ -334,10 +334,8 @@
         "04-deep-dive-codecraft-cli.md",
         "04-deep-dive-skill-packaging.md",
         "05-performance.md",
-        "06-branches.md",
         "07-contribute.md",
-        "08-takeaways.md",
-        "09-ops.md"
+        "08-takeaways.md"
       ],
       "guide": "guide.html"
     },

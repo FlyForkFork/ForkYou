@@ -10,24 +10,24 @@
     "license": "NOASSERTION（根目录无 LICENSE；三个 skill 各自 MIT）",
     "stars": 0,
     "language": "JavaScript",
-    "commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
-    "updated": "2026-11-07"
+    "commit": "624e48b60f6b993a10713f3ec9cce7b374c34fc7",
+    "updated": "2026-11-10"
   },
   "links": {
     "github": "https://github.com/ultime-space/skills",
     "homepage": "https://github.com/ultime-space/skills",
-    "docs": "https://github.com/ultime-space/skills/blob/main/skills/codecraft/SKILL.md"
+    "docs": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/SKILL.md"
   },
   "stats": [
     { "label": "Skill 数量", "value": "3" },
-    { "label": "文件总数", "value": "192" },
-    { "label": "Codecraft 测试", "value": "109 用例" },
+    { "label": "文件总数", "value": "203" },
+    { "label": "Codecraft 测试", "value": "116 用例" },
     { "label": "CLI eval", "value": "19 case" }
   ],
   "mental_model": [
-    { "title": "它是谁", "body": "一个面向 AI 编程的内容仓库：Codecraft 管 JS/TS 代码与架构，Docscraft 管文档与 AI 上下文，Designcraft 管设计系统知识。" },
+    { "title": "它是谁", "body": "一个面向 AI 编程的内容仓库：Codecraft 管 JS/TS 代码与架构，Docscraft 管文档与 AI 上下文，Designcraft 管设计知识与评审框架。" },
     { "title": "怎么工作", "body": "skills CLI 把自包含目录复制到 agent 技能目录；agent 读 SKILL.md 路由到 docs/scenarios；需要本地检查时再调用零依赖的 codecraft CLI。" },
-    { "title": "为什么特别", "body": "规则有稳定 ID（A1–A21），CLI 只自动化高置信子集，baseline/ignore 分离，发布走 tag + OIDC provenance。" }
+    { "title": "为什么特别", "body": "规则有稳定 ID（A1–A21），CLI 只自动化高置信子集；三个包独立 semver，发布前扫真实 pack 清单，tag + OIDC provenance 发版。" }
   ],
   "architecture": {
     "title": "四层：集合索引、三个 skill、执行器、分发链",
@@ -35,16 +35,16 @@
       {
         "name": "集合层",
         "nodes": [
-          { "id": "root", "label": "仓库根", "desc": "README 索引、安装入口、SECURITY、发布约定；不设统一版本。" },
-          { "id": "workflows", "label": "GitHub Actions", "desc": "ci.yml 三 job 并行；publish*.yml 按 tag 前缀触发。" }
+          { "id": "root", "label": "仓库根", "desc": "README 索引、安装入口、SECURITY、AGENTS.md 红线；不设统一版本。" },
+          { "id": "workflows", "label": "GitHub Actions", "desc": "ci.yml 三 job 并行；三份 publish*.yml 按各自 tag 前缀触发。" }
         ]
       },
       {
         "name": "内容层（三个 skill）",
         "nodes": [
-          { "id": "cc", "label": "Codecraft 2.0.0", "desc": "A1–A21 宪法、前端/后端族卡、审计契约、CLI、脚手架。" },
-          { "id": "dc", "label": "Docscraft 0.4.0", "desc": "文档分层、单一真源、规则治理、ADR、漂移检查。" },
-          { "id": "ds", "label": "Designcraft 0.9.1", "desc": "颜色、排版、空间、布局、光影、动效、评审与风格。" }
+          { "id": "cc", "label": "Codecraft 2.0.2", "desc": "A1–A21 宪法、前端/后端族卡、Audit/Plan/Apply、CLI、脚手架。" },
+          { "id": "dc", "label": "Docscraft 0.4.1", "desc": "文档分层、单一真源、规则治理、ADR、漂移检查。" },
+          { "id": "ds", "label": "Designcraft 0.11.0", "desc": "设计原则与技法、结构方案库 S1–S16、类型倾向层、Refine 四段诊断。" }
         ]
       },
       {
@@ -58,9 +58,9 @@
       {
         "name": "分发层",
         "nodes": [
-          { "id": "installer", "label": "skills CLI / skills-npm", "desc": "把 skill 目录复制/同步到 agent 目录，支持 75+ agents。" },
+          { "id": "installer", "label": "skills CLI / skills-npm", "desc": "把 skill 目录复制/同步到 agent 目录，支持多种 agents。" },
           { "id": "agent", "label": "agent 技能目录", "desc": ".agents/skills 等；agent 从这里加载 SKILL.md。" },
-          { "id": "npm", "label": "npm registry", "desc": "三个 @ultime/* 包，带 SLSA provenance。" }
+          { "id": "npm", "label": "npm registry", "desc": "三个 @ultime/* 包，GitHub Actions OIDC 发布并带 provenance。" }
         ]
       }
     ],
@@ -82,58 +82,60 @@
   "mechanism": {
     "title": "一次 Codecraft 审计 + 一次发布",
     "steps": [
-      { "title": "安装", "detail": "npx skills add 或 npm + skills-npm 把自包含目录同步到 agent 技能目录。", "highlight": ["installer", "agent"], "code": "README.md:17-35" },
-      { "title": "路由", "detail": "agent 读 SKILL.md，按任务选前端/后端审计文件与输出模板；正文不在 SKILL.md。", "highlight": ["cc", "agent"], "code": "skills/codecraft/SKILL.md:55-67" },
-      { "title": "扫描", "detail": "codecraft audit 遍历项目文件，跳过 18 类目录与测试/压缩文件，按 pack 跑规则。", "highlight": ["cli", "rules"], "code": "skills/codecraft/src/check.mjs:425-454" },
+      { "title": "安装", "detail": "npx skills add 或 npm + skills-npm 把自包含目录同步到 agent 技能目录。", "highlight": ["installer", "agent"], "code": "README.md:54-84" },
+      { "title": "路由", "detail": "agent 读 SKILL.md，按任务进入 Audit / Plan / Apply；规则正文只在 docs/，入口只做路由。", "highlight": ["cc", "agent"], "code": "skills/codecraft/SKILL.md:69-77" },
+      { "title": "扫描", "detail": "codecraft check 遍历文件，跳过 18 类目录与测试/压缩文件，按 pack 跑 A2/A6/A11/A17/A21 子集。", "highlight": ["cli", "rules"], "code": "skills/codecraft/src/check.mjs:183-202" },
       { "title": "收敛", "detail": "ignore 逐条豁免（A21 不可）、baseline 快照存量只减不增，退出码只看新增。", "highlight": ["rules", "reports"], "code": "skills/codecraft/src/baseline.mjs:13-16" },
-      { "title": "门禁", "detail": "audit --run-gates 执行项目命令；threshold 解析失败按违反处理，输出先脱敏。", "highlight": ["rules", "reports"], "code": "skills/codecraft/src/gates.mjs:169-249" },
+      { "title": "发布检查", "detail": "release-check 校验 VERSION/package/CHANGELOG，再用 npm pack 真实清单扫内部路径与内部包名。", "highlight": ["cc", "workflows"], "code": "skills/codecraft/scripts/check-package-content.mjs:77-95" },
       { "title": "发布", "detail": "打 codecraft-v* tag，GitHub Actions 校验版本、跑 test/eval，OIDC 发布并生成 provenance。", "highlight": ["workflows", "npm"], "code": ".github/workflows/publish.yml:30-51" }
     ]
   },
   "code_map": [
-    { "path": "skills/codecraft/SKILL.md", "role": "agent 入口与任务路由（98 行）", "read_order": 1, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/SKILL.md" },
-    { "path": "skills/codecraft/README.md", "role": "CLI 全参数、Rule Packs、升级到 2.0", "read_order": 2, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/README.md" },
-    { "path": "skills/codecraft/docs/shared/00-constitution.md", "role": "A1–A21 宪法与机检现状", "read_order": 3, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/docs/shared/00-constitution.md" },
-    { "path": "skills/codecraft/docs/shared/04-gates.md", "role": "Universal/Business 两层门禁与 Gate Contract", "read_order": 4, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/docs/shared/04-gates.md" },
-    { "path": "skills/codecraft/src/cli.mjs", "role": "主流程、参数、退出码、SARIF", "read_order": 5, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/src/cli.mjs" },
-    { "path": "skills/codecraft/src/check.mjs", "role": "文件遍历与静态规则实现", "read_order": 6, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/src/check.mjs" },
-    { "path": "skills/codecraft/src/gates.mjs", "role": "gate 校验、执行、阈值、脱敏", "read_order": 7, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/src/gates.mjs" },
-    { "path": "skills/codecraft/src/ignore.mjs", "role": "例外登记与 glob 匹配", "read_order": 8, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/src/ignore.mjs" },
-    { "path": "skills/codecraft/src/baseline.mjs", "role": "指纹、基线加载与差分", "read_order": 9, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/src/baseline.mjs" },
-    { "path": "skills/codecraft/evals/run.mjs", "role": "19 个 CLI case 的端到端断言", "read_order": 10, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/skills/codecraft/evals/run.mjs" },
-    { "path": ".github/workflows/publish.yml", "role": "tag 触发、OIDC、provenance 发布", "read_order": 11, "url": "https://github.com/ultime-space/skills/blob/a20cafa2075327e3d6456fcbe4a4fada1bf26073/.github/workflows/publish.yml" }
+    { "path": "skills/codecraft/SKILL.md", "role": "agent 入口与任务路由（102 行）", "read_order": 1, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/SKILL.md" },
+    { "path": "skills/codecraft/README.md", "role": "CLI 全参数、Rule Packs、升级到 2.0", "read_order": 2, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/README.md" },
+    { "path": "skills/codecraft/docs/shared/00-constitution.md", "role": "A1–A21 宪法与机检现状", "read_order": 3, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/docs/shared/00-constitution.md" },
+    { "path": "skills/codecraft/src/cli.mjs", "role": "主流程、参数、退出码、SARIF", "read_order": 4, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/src/cli.mjs" },
+    { "path": "skills/codecraft/src/check.mjs", "role": "文件遍历与静态规则实现", "read_order": 5, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/src/check.mjs" },
+    { "path": "skills/codecraft/src/gates.mjs", "role": "gate 校验、执行、阈值、脱敏", "read_order": 6, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/src/gates.mjs" },
+    { "path": "skills/codecraft/src/baseline.mjs", "role": "指纹、基线加载与差分", "read_order": 7, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/src/baseline.mjs" },
+    { "path": "skills/codecraft/scripts/check-package-content.mjs", "role": "按真实 npm pack 清单扫发布内容", "read_order": 8, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/scripts/check-package-content.mjs" },
+    { "path": "skills/designcraft/SKILL.md", "role": "设计 skill 入口：读法路由与 Audit/Plan/Apply", "read_order": 9, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/designcraft/SKILL.md" },
+    { "path": "skills/designcraft/scenarios/refine.md", "role": "Refine 四段：证据→诊断闸门→方案→交付校验", "read_order": 10, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/designcraft/scenarios/refine.md" },
+    { "path": "skills/designcraft/docs/patterns.md", "role": "结构方案库 S1–S16 与五项代价", "read_order": 11, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/designcraft/docs/patterns.md" },
+    { "path": ".github/workflows/publish.yml", "role": "tag 触发、OIDC、provenance 发布", "read_order": 12, "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/.github/workflows/publish.yml" }
   ],
   "run": [
-    { "label": "安装（推荐）", "command": "npx skills add ultime-space/skills --skill codecraft", "note": "需要 Node >= 22.20；-g 全局，-a 指定 agent" },
-    { "label": "npm + skills-npm", "command": "npm i -D @ultime/codecraft @ultime/docscraft @ultime/designcraft skills-npm && npx skills-npm setup", "note": "团队/多项目，跟随 npm install 同步" },
-    { "label": "跑测试", "command": "cd skills/codecraft && npm test", "note": "109 个 node:test 用例" },
+    { "label": "安装（推荐）", "command": "npx skills add ultime-space/skills --skill codecraft", "note": "交互选择 agent；-g 全局，-a 指定 agent" },
+    { "label": "npm + skills-npm", "command": "npm i -D @ultime/codecraft @ultime/docscraft @ultime/designcraft skills-npm && npx skills-npm setup", "note": "团队/多项目，跟随 npm install 同步；需要 Node >= 22.20" },
+    { "label": "跑测试", "command": "cd skills/codecraft && npm test", "note": "116 个 node:test 用例" },
     { "label": "跑 eval", "command": "cd skills/codecraft && npm run eval", "note": "19 个 CLI fixture case" },
     { "label": "本地扫描", "command": "npx @ultime/codecraft check --root <项目>", "note": "默认报告模式，exit 0；--ci 才阻断" },
     { "label": "带门禁审计", "command": "npx @ultime/codecraft audit --root <项目> --run-gates", "note": "2.0 起 gates 必须显式开启" },
-    { "label": "看发布内容", "command": "cd skills/codecraft && npm pack --dry-run", "note": "确认 files 白名单" }
+    { "label": "看发布内容", "command": "cd skills/codecraft && npm run release-check && npm pack --dry-run", "note": "版本三对齐 + 真实打包清单扫描" }
   ],
   "branches": [
-    { "name": "main", "purpose": "唯一分支；当前分析基线 a20cafa（2026-11-07）", "diff": "—（无其他分支可对比）", "url": "https://github.com/ultime-space/skills" }
+    { "name": "main", "purpose": "唯一分支；分析基线 624e48b（2026-11-10）", "diff": "—（无其他分支可对比）", "url": "https://github.com/ultime-space/skills/tree/624e48b60f6b993a10713f3ec9cce7b374c34fc7" }
   ],
   "contribute": [
-    { "title": "先跑通", "detail": "Node >= 20；进 skills/codecraft 跑 npm test 与 npm run eval，零运行时依赖。", "url": "https://github.com/ultime-space/skills/blob/main/skills/codecraft/CONTRIBUTING.md" },
-    { "title": "挑小口子", "detail": "修相对链接、补 scenario、加 eval fixture 是最安全的入口；别一上来改 A21 或发布配置。", "url": "https://github.com/ultime-space/skills/tree/main/skills/codecraft/evals" },
+    { "title": "先跑通", "detail": "Node >= 20；进 skills/codecraft 跑 npm test 与 npm run eval，零运行时依赖。", "url": "https://github.com/ultime-space/skills/blob/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/CONTRIBUTING.md" },
+    { "title": "挑小口子", "detail": "修相对链接、补 scenario、加 eval fixture 是最安全的入口；别一上来改 A21 或发布配置。", "url": "https://github.com/ultime-space/skills/tree/624e48b60f6b993a10713f3ec9cce7b374c34fc7/skills/codecraft/evals" },
     { "title": "提 PR", "detail": "从 main 切 feat/fix 分支，rebase 回 main；规则改动同时更新 docs、golden tasks 与测试。", "url": "https://github.com/ultime-space/skills/issues" }
   ],
   "cheats": [
     { "q": "面试官：这三个 skill 是什么关系？", "a": "三个自包含内容包，各自 SKILL.md、docs、VERSION、package.json；互不 import，独立 semver，独立 tag 与 npm 包。安装统一走 skills CLI / skills-npm。" },
     { "q": "面试官：Codecraft 的静态检查覆盖哪些规则？", "a": "app pack 查 A6/A17/A21；library 与 design-system 查 A2/A6/A11/A21。A1–A5、A7–A16、A18–A20 明确交人工/项目门禁，报告带 coverage 说明没扫什么。" },
+    { "q": "面试官：三个 skill 的模式为什么统一成 Audit / Plan / Apply？", "a": "111229b 把 Compose/Refine/Critique/Style 这类场景名降为场景，不再当模式名；模式只有三种——诊断（Audit）、给方案（Plan）、落地（Apply）。入口路由稳定，场景可继续增加而不改模式表。" },
     { "q": "面试官：baseline 怎么防止老项目一上来全红？", "a": "快照存量 findings 到 baseline，只抑制已登记项；指纹是 rule|file|message，不含行号；--update-baseline 默认只减不增，新问题进不了基线，critical 密钥永不进基线。" },
-    { "q": "面试官：ignore 和 baseline 有什么区别？", "a": "ignore 是逐条例外，必须有 reason，可设 expires，A21 直接拒绝；baseline 是批量存量快照，用来先上 CI 只拦新增。两者一个管例外、一个管历史。" },
+    { "q": "面试官：发布前怎么保证包内没有内部材料？", "a": "release-check 调 check-package-content：用 npm pack --dry-run --json 拿真实打包清单，扫 tests/node_modules/.git 等六类文件，再扫绝对路径、内部仓库路径、@ultime 内部包名；例外必须写进 ALLOW 并注理由。" },
     { "q": "面试官：gate 的 threshold 为什么 fail-closed？", "a": "外部工具输出不可控；解析不出 issue 数时 actual=null、violated=true，宁可失败不可假绿。gate 失败 = 退出码非 0 或 threshold 为真。" },
-    { "q": "面试官：发布怎么做到不存 npm token？", "a": "tag 触发 GitHub Actions，permissions 只要 id-token: write；npm Trusted Publishing 用 OIDC 验证 workflow 身份，npm publish --provenance 生成 SLSA 证明。" },
-    { "q": "面试官：这个项目最大的局限？", "a": "纯文本级静态扫描，无 AST/类型分析，会漏报误报；项目很早期（0 star、1 contributor），Docscraft/Designcraft 的 evals 还是人工 golden tasks；根目录无 LICENSE。" }
+    { "q": "面试官：发布怎么做到不存 npm token？", "a": "tag 触发 GitHub Actions，permissions 只要 id-token: write；npm Trusted Publishing 用 OIDC 验证 workflow 身份，npm publish --provenance 生成来源证明。" },
+    { "q": "面试官：这个项目最大的局限？", "a": "纯文本级静态扫描，无 AST/类型分析，会漏报误报；Windows 下路径反斜杠会导致 13–14 个测试失败且 CI 只跑 Ubuntu；项目很早期（0 star、1 contributor）；根目录无 LICENSE。" }
   ],
   "sources": [
-    { "title": "ultime-space/skills 仓库", "url": "https://github.com/ultime-space/skills", "date": "2026-11-08" },
-    { "title": "npm @ultime/codecraft", "url": "https://www.npmjs.com/package/@ultime/codecraft", "date": "2026-11-08" },
-    { "title": "vercel-labs/skills", "url": "https://github.com/vercel-labs/skills", "date": "2026-11-08" },
-    { "title": "anthropics/skills", "url": "https://github.com/anthropics/skills", "date": "2026-11-08" },
-    { "title": "obra/superpowers", "url": "https://github.com/obra/superpowers", "date": "2026-11-08" }
+    { "title": "ultime-space/skills 仓库（624e48b）", "url": "https://github.com/ultime-space/skills/tree/624e48b60f6b993a10713f3ec9cce7b374c34fc7", "date": "2026-11-10" },
+    { "title": "npm @ultime/codecraft", "url": "https://www.npmjs.com/package/@ultime/codecraft", "date": "2026-11-10" },
+    { "title": "vercel-labs/skills", "url": "https://github.com/vercel-labs/skills", "date": "2026-11-10" },
+    { "title": "anthropics/skills", "url": "https://github.com/anthropics/skills", "date": "2026-11-10" },
+    { "title": "obra/superpowers", "url": "https://github.com/obra/superpowers", "date": "2026-11-10" }
   ]
 }

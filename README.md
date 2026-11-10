@@ -15,7 +15,7 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **4** 个项目。最后更新：2026-11-10 14:27:36。
+已分析 **5** 个项目。最后更新：2026-11-10 14:27:46。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
@@ -35,6 +35,7 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 | 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
 |---|---|---|---|---|---|---|---|
 | [ultime-space-core](06-web/ultime-space-core/README.md) | 把一组 seed 参数编译成 274 个 token 的设计系统内核。 | [ultime-space/core](https://github.com/ultime-space/core) | [打开](https://github.com/ultime-space/core) | [![GitHub stars](https://img.shields.io/github/stars/ultime-space/core?style=flat-square&label=%E2%AD%90)](https://github.com/ultime-space/core/stargazers) | L2 | 2026-11-10 | [Wiki](06-web/ultime-space-core/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/06-web/ultime-space-core/guide.html) |
+| [ultime-space-skills](06-web/ultime-space-skills/README.md) | 把代码规范、文档治理、设计知识做成三个可安装、可独立发版的 AI skill 包。 | [ultime-space/skills](https://github.com/ultime-space/skills) | [打开](https://github.com/ultime-space/skills) | [![GitHub stars](https://img.shields.io/github/stars/ultime-space/skills?style=flat-square&label=%E2%AD%90)](https://github.com/ultime-space/skills/stargazers) | L2 | 2026-11-10 | [Wiki](06-web/ultime-space-skills/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/06-web/ultime-space-skills/guide.html) |
 
 <!-- FORKYOU:INDEX:END -->
 

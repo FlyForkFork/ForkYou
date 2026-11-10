@@ -1,106 +1,106 @@
-# 07 · 贡献：从改一行文档到发一个版本
+# 07 贡献：一个人维护的三个 npm 包，靠什么守住质量
 
-> 这篇回答什么问题：想给这个仓库提 PR，需要什么环境、跑哪些命令、CI 会检查什么、发布怎么走、新手从哪切入、有哪些坑？
+> 这篇回答什么问题：想给 `ultime-space/skills` 提 PR，要过哪些关？维护者用什么机制保证「文档改了、测试没改」不会混过去？CI 和发布流水线分别负责什么？
 
-## 环境与工具链
+## 贡献入口
 
-| 项 | 要求 | 依据 |
-|---|---|---|
-| Node.js（skill 包 / CLI） | `>=20` | `skills/codecraft/package.json:59-61`（三个 skill 一致） |
-| Node.js（`skills` CLI 安装） | `>=22.20` | `README.md:35`、`README.md:74` |
-| 包管理 | npm；Codecraft 目录带 `pnpm-lock.yaml`，但脚本用 npm | `skills/codecraft/package.json:52-58` |
-| 运行时依赖 | 零依赖（只用 Node 标准库） | `skills/codecraft/package.json` 无 `dependencies` |
-| 系统权限 | 无特殊权限；`--changed/--since` 需要 git，gates 需要 shell | `skills/codecraft/src/cli.mjs:557-588`、`skills/codecraft/src/gates.mjs:204-249` |
-| 网络 | CLI 不发起网络请求；安装/发布才用 npm | `skills/codecraft/README.md:470` |
-| CI 运行器 | `ubuntu-latest` + Node 22 | `.github/workflows/ci.yml:8-55` |
+这个仓库没有根级 `CONTRIBUTING.md`（截至分析 commit `624e48b`，`git ls-files` 只有三个包内各自的 `skills/*/CONTRIBUTING.md`）。根 README 的「贡献」一节直接链到 `skills/codecraft/CONTRIBUTING.md`（`README.md:176-178`）。另外根目录有 `AGENTS.md`，是给 AI 协作者的红线（`AGENTS.md:9-15`）。
 
-## 本地命令（按 skill）
+三个包的贡献指南结构一致：工作流 → 改动规则 → 验证 → 版本。差异在「改什么必须同步改什么」：
 
-```bash
-# Codecraft
-cd skills/codecraft
-npm test                     # 109 个 node:test 用例
-npm run eval                 # 19 个 CLI fixture case
-npm run self-check           # 用自家规则扫自家仓库
-npm run release-check        # 版本三方对齐 + 必填文件
-npm pack --dry-run           # 看发布内容
+- codecraft：规则改动必须同时更新规则正文、`evals/golden-tasks.md`、相关测试（`skills/codecraft/CONTRIBUTING.md:13-17`）。
+- docscraft：文档结构改动必须同步 `SKILL.md` 路由表、测试与清单覆盖（`skills/docscraft/CONTRIBUTING.md:11-14`）。
+- designcraft：再加一条「提炼不能新增知识库没有的规则」——需要新增时先补主题文档，再同步场景与测试（`skills/designcraft/CONTRIBUTING.md:11-16`）。
 
-# Docscraft
-cd skills/docscraft
-npm test                     # 结构、版本、链接、路由、漂移类型
-npm run release-check
-npm pack --dry-run
+## 工作流：短分支、rebase、一次一件事
 
-# Designcraft
-cd skills/designcraft
-npm test                     # 结构、版本、链接、场景路径、纯知识约束
-npm run release-check
-npm pack --dry-run
-```
+三份指南写的是同一套（`skills/codecraft/CONTRIBUTING.md:7-11`）：
 
-仓库**没有配置 ESLint / Prettier / 类型检查脚本**；代码风格靠现有文件与 review 保持一致。这不是遗漏，是「零依赖」定位的一部分。
+1. 从 `main` 切 `feat/<主题>` 或 `fix/<主题>`；
+2. 完成后 `git rebase main` 再合并，主分支不保留中间提交；
+3. 一次提交只做一件事，提交信息用 `type(scope): subject`，正文写「为什么」。
 
-## CI 矩阵
+这条「主分支不保留中间提交」的规则，和仓库的发布方式匹配：每个包独立发版，历史越干净，`CHANGELOG` 与 tag 的对应关系越好查。
 
-`.github/workflows/ci.yml` 有三个并行 job：
+## 改动规则：契约类改动整族刷新
 
-| Job | 工作目录 | 步骤 |
-|---|---|---|
-| `test`（Codecraft） | `skills/codecraft` | `npm test` → `npm run eval` → `npm run self-check` → `npm pack --dry-run` |
-| `docscraft` | `skills/docscraft` | `npm test` → `npm pack --dry-run` |
-| `designcraft` | `skills/designcraft` | `npm test` → `npm run release-check` → `npm pack --dry-run` |
+三份指南都强调同一件事：**契约类改动整族刷新，不做零散小改**。codecraft 把「档位 / 命名 / 单位 / 角色」列为契约（`:17`）；docscraft 是「分层 / 类型 / 路由口径」（`skills/docscraft/CONTRIBUTING.md:14`）；designcraft 是「目标值 / 命名 / 评审分级 / 边界」（`skills/designcraft/CONTRIBUTING.md:14`）。
 
-触发条件：push 到 `main`、所有 pull request（`.github/workflows/ci.yml:3-7`）。没有 macOS/Windows 矩阵，也没有 Node 20/22 双版本矩阵——这是可以改进的地方。
+这背后的判断是：这些概念在 `SKILL.md` 路由、`docs/` 正文、`scenarios/` 剧本、`prompts/` 模板、测试里多处出现，只改一处会造成「入口说的和正文不一样」。`structure.test.mjs` 里的「路由表与 docs 可达性」测试就是这条规则的机检版（`skills/codecraft/tests/structure.test.mjs`）。
 
-## 发布流程
+designcraft 还有一条特殊约束：`docs/patterns.md` 是经验方案，不是规则；新增条目只改它、`templates/option-set.md` 与 evals，不改判据、不新增档位（`skills/designcraft/CONTRIBUTING.md:16`）。这是防止「经验沉淀」悄悄变成「新规则」。
 
-1. 改 `VERSION`、`package.json.version`、`CHANGELOG.md` 三处，保持完全一致。
-2. 本地跑 `npm test`、`npm run release-check`、`npm pack --dry-run`（Codecraft 还要 `npm run eval`、`npm run self-check`）。
-3. 提交并 push `main`。
-4. 打 tag 并推送：
-   ```bash
-   git tag codecraft-v2.0.0
-   git push origin codecraft-v2.0.0
-   ```
-5. GitHub Actions 的 `publish.yml` 校验 tag 与版本一致、检查版本未发布、跑 test/eval、执行 `npm publish --access public --provenance`。
-6. Docscraft / Designcraft 分别用 `docscraft-v*` / `designcraft-v*` 触发各自流水线。
+## 验证矩阵：五条命令，各有分工
 
-发布不需要 npm token：OIDC Trusted Publishing 已在 npm 侧配置（`.github/workflows/publish.yml:9-11`、`skills/codecraft/README.md:438-450` 的版本与稳定承诺段落）。
+以 codecraft 为例（`skills/codecraft/CONTRIBUTING.md:19-32`）：
 
-## Issue / PR 规则
+| 命令 | 管什么 |
+|---|---|
+| `npm test` | 单测：check / cli / gates / baseline / ignore / plan / detect / structure / docs / release-content |
+| `npm run eval` | 19 个 golden case，跑真实 CLI，验证 agent 行为 |
+| `npm run self-check` | 用 design-system 规则扫自己，`--exclude "evals/fixtures/**"` |
+| `npm run release-check` | 版本 / CHANGELOG / 打包清单 + 发布内容扫描 |
+| `npm pack --dry-run` | 人工确认实际打包文件 |
 
-- 仓库**没有** `.github/ISSUE_TEMPLATE` 或 PR 模板；按 `CONTRIBUTING.md` 的约定走。
-- 分支：从 `main` 切 `feat/<主题>` / `fix/<主题>`，完成后 `git rebase main`，主分支不保留中间提交（`skills/codecraft/CONTRIBUTING.md:7-12`）。
-- 提交信息：`type(scope): subject`，正文写「为什么」。
-- 规则改动必须同时更新：规则正文、`evals/golden-tasks.md`、相关测试；契约类改动整族刷新，不做零散小改（`skills/codecraft/CONTRIBUTING.md:18-24`）。
-- 安全漏洞：不要公开贴密钥；按 `SECURITY.md` 走私密通道，或先开不含敏感信息的 Issue 说明「需要私下同步」。
+指南还规定：「新增 / 修改规则必须补测试；没有反例的规则降级为参考」（`skills/codecraft/CONTRIBUTING.md:30`）。这条比「必须写测试」更具体——它要求规则本身带反例，否则无法验证它真的会命中。
 
-## 3–5 个新手入口
+designcraft 多一步「发布前自检」：独立代理回归，至少覆盖入口、列表、详情、官网各一个样本；只给 skill 文件与页面路径，不给口头解释，不读既有评测记录（`skills/designcraft/CONTRIBUTING.md:30-37`）。这是对「文档型 skill」的特殊验证——不能靠作者自己读一遍说「没问题」。
 
-1. **文档链接修复**：三个 skill 的 `structure.test.mjs` 都会检查相对链接；找一个断链并修，是最安全的第一个 PR。
-2. **补 scenario**：给 Codecraft 增加一个真实场景（如「遗留 Vue 2 迁移评审」），按现有 `scenarios/*.md` 的结构写，不需要改代码。
-3. **补 eval fixture**：在 `skills/codecraft/evals/fixtures/` 加一个最小违规样本，在 `cases.json` 加期望；这是理解 CLI 行为最快的方式。
-4. **补 Designcraft 评审案例**：`docs/` 已有 13 篇，新增一个「组件库评审」模板或 golden task，成本低、价值直接。
-5. **补 agent 适配说明**：目前只有 `adapters/generic/AGENTS.md`；可以为其他 agent 写「如何指向 SKILL.md」的说明，但不复制正文。
+## CI：三个 job，Linux + Node 22
 
-## 提交前检查清单
+`.github/workflows/ci.yml` 在 push `main` 和所有 PR 上触发，三个 job 并行：
 
-1. `npm test` 全绿；改了 CLI 行为必须补 `tests/` 用例。
-2. `npm run eval` 全绿；新增/修改规则要补 fixture 与 `cases.json` 期望。
-3. `npm run release-check` 通过；`VERSION` / `package.json` / `CHANGELOG.md` 三处一致。
-4. `npm pack --dry-run` 里没有测试夹具、内部脚本或密钥。
-5. 改了 SKILL.md 路由，就确认被引用的文件真实存在。
-6. 提交信息用 `type(scope): subject`，正文写「为什么」，不要只写「update」。
+- **test**（codecraft）：`npm test` → `npm run eval` → `npm run self-check` → `npm pack --dry-run`（`ci.yml:9-24`）。
+- **docscraft**：`npm test` → `npm pack --dry-run`（`:26-39`）。
+- **designcraft**：`npm test` → `npm run release-check` → `npm pack --dry-run`（`:41-55`）。
 
-维护者最在意的不是 PR 大小，而是「规则改动有没有同时改文档、测试、eval、README」；只改一处会被结构测试或 review 打回。小步 PR、每步可验证，比一次大改更容易合入。提交前把 `git diff` 自己读一遍，比等 reviewer 指出更省时间。这份清单也可以直接贴进 PR 模板。
+三个 job 都是 `ubuntu-latest` + Node 22。这个选择很省事，也留下一个真实盲区：**CI 从不跑 Windows**。本地实测在 Windows 检出（`core.autocrlf=true`，仓库无 `.gitattributes`）时，codecraft 的 `npm test` 出现 14 个失败（转 LF 后仍 13 个），根因是 `path.relative` 返回反斜杠，而测试断言 `src/config.ts` 这类正斜杠路径。失败集中在 A17、A6、A21、`--exclude`、`--changed` 与 frontmatter 检查。这是**可移植性缺陷**，不是测试写错：JSON/SARIF 输出里的 `artifactLocation.uri` 在 Windows 上会带反斜杠，下游消费方可能解析失败。CI 只有 Ubuntu，所以从未暴露。
 
-## 贡献前必须知道的坑
+## 发布：tag 触发、版本查重、OIDC
 
-- **SKILL.md 的路由路径必须真实存在**：结构测试会断言 `SKILL.md` 中引用的每个相对路径都能解析（`skills/codecraft/tests/structure.test.mjs:60-70`）；改文件名要同步改路由。
-- **新增文件要进 `files[]`**：否则 `npm pack` 不含它；release-check 只检查必填目录，不检查你新加的子目录。
-- **A21 不能 ignore**：配置校验会直接抛错（`skills/codecraft/src/ignore.mjs:25-29`）；发现密钥只能移除并轮换。
-- **`audit` 默认不跑 gates**：2.0 起必须显式 `--run-gates`；改 CI 时漏了这个 flag，门禁会静默消失（`skills/codecraft/src/cli.mjs:278-282`）。
-- **根 README 的目录树有笔误**：`README.md:93-96` 与实际结构不一致；改文档时别照抄。
-- **测试 fixture 是故意违规的**：`evals/fixtures/**` 里有空 catch、明文密钥等样本；`self-check` 必须 `--exclude` 它们，否则自家检查会红。
+发布不是一个 job，而是每个包一份 workflow：
 
-> 一句话记住：**这个仓库的贡献门槛是「零依赖 + 三文件版本对齐 + 结构测试」，最安全的起点是修链接/补场景，最危险的改动是碰 A21 与发布配置。**
+- `publish.yml`（codecraft）：tag `codecraft-v*` 或手动触发；权限 `contents: read` + `id-token: write`；先校验 tag 与 `package.json.version` 一致（`publish.yml:30-33`），再 `npm view` 查重（`:35-41`），然后 `npm test`、`npm run eval`，最后 `npm publish --access public --provenance`（`:43-51`）。
+- `publish-docscraft.yml` / `publish-designcraft.yml` 同构，只是 tag 前缀与包名不同。
+
+两个值得注意的设计：
+
+1. **发布前跑 eval，不只是 test**：单测过了但 agent 行为退化，仍然会被拦下。
+2. **`--provenance` + OIDC**：不保存长期 npm token；发布身份由 GitHub Actions 提供，包上带可验证来源。workflow 注释明确写了「Requires npm Trusted Publishing configured for ultime-space/skills + publish.yml」（`publish.yml:49`）。
+
+## 版本策略：semver，不按「感觉重要」
+
+三个包的 semver 定义一致：
+
+- **major**：破坏性变更——规则 ID 语义变更、配置格式不兼容、JSON 输出结构变化（codecraft）；路由结构不兼容、模板字段删除（docscraft / designcraft）。
+- **minor**：新能力——CLI 选项、检查规则、适配器、模板、向后兼容字段。
+- **patch**：修复、文档、提示词、测试、CI，或无行为变化的内部调整。
+
+codecraft 还写了两条反「版本通胀」的规则：`2.0` 不设时间表，没有破坏性变更就不进 major；跳过的版本号要在 CHANGELOG 里注明「未发布，变更已并入 X.Y.Z」，不留空号（`skills/codecraft/CONTRIBUTING.md:41-44`）。
+
+## 红线：AGENTS.md 的五条
+
+根 `AGENTS.md` 是给 AI 协作者的最短约束（`AGENTS.md:9-15`）：
+
+1. 子包不写 Ultime 内部材料（`docs/roadmap`、`docs/design-system`、`spec/` 等）；
+2. 概念/公式用抽象语言，不搬运内部正文；
+3. 跨包依赖只用已发布 npm 版本；
+4. 功能变更同批更新测试、README、`VERSION`、`CHANGELOG`；
+5. 每个 skill 目录独立自包含，不复制其他 skill 或根仓材料。
+
+这五条直接对应发布检查：内部路径/内部包名由 `check-package-content.mjs` 扫（`CONTENT_RULES`），版本一致性由 `release-check.mjs` 查，包自包含由「三份重复脚本」体现。
+
+## 局限与待改进
+
+- **没有根级 CONTRIBUTING**：新贡献者要先进某个 skill 目录才能看到指南；跨包改动没有统一说明。
+- **CI 无 Windows / macOS**：上面的反斜杠缺陷就是代价；加一个 `windows-latest` job 跑 `npm test` 即可暴露。
+- **没有 lint / format 检查**：代码风格靠人工；对 982 行的 `cli.mjs` 来说，后续可考虑加 ESLint，但会增加依赖，作者显然选择了零依赖。
+
+## 我能偷什么
+
+- **贡献指南按包写，而不是根级一份**：每个包的「改什么必须同步什么」不同，分开放更准确。
+- **规则必须带反例**：没有反例的规则降级为参考，避免「看似有规则、实际测不出」。
+- **契约类改动整族刷新**：命名/档位/路由这类概念一旦改，必须全链路一起改，禁止零散补丁。
+- **发布前跑 eval**：单测保代码，eval 保行为；文档型项目尤其需要后者。
+- **tag 与版本强校验**：发布流水线第一件事就是比对，错 tag 直接失败。
+- **用 OIDC provenance 替代长期 token**：供应链安全的最小成本做法。

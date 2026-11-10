@@ -1,40 +1,38 @@
-# ultime-space-skills
+# ultime-space/skills · ForkYou 分析
 
-> 把「AI 该怎么做代码、写文档、做设计」写成可安装、可版本化、可自检的 skill 包，而不是散落在聊天记录里的提示词。
+> 一个仓库、三个自包含 AI skill 包：Codecraft（JS/TS 代码规范 + 零依赖 CLI）、Docscraft（文档治理）、Designcraft（设计知识）。各自 semver、各自 npm 包、互不 import。
 
 | 项 | 值 |
 |---|---|
 | 上游 | [ultime-space/skills](https://github.com/ultime-space/skills) |
-| 分析 commit | `a20cafa2075327e3d6456fcbe4a4fada1bf26073`（2026-11-07） |
-| 许可 | 根目录无 LICENSE，GitHub 判为 `NOASSERTION`；三个 skill 目录内各自 MIT |
-| 规模 | 192 个文件；codecraft 112、designcraft 43、docscraft 30 |
-| 版本 | Codecraft 2.0.0 / Docscraft 0.4.0 / Designcraft 0.9.1（独立 semver） |
-| 形态 | 三个自包含 skill：规则文档 + 场景 + 模板 + 测试/evals；Codecraft 另带零依赖 CLI |
-
-**它解决什么**：agent 每次会话都从零理解项目约束，结论随模型和提示词漂移。Codecraft 把 21 条代码不变量（A1–A21）做成固定入口、审计契约和可执行门禁；Docscraft 管文档分层与单一真源；Designcraft 把视觉判断变成可引用判据。三者互不 import，安装统一交给 `skills` CLI。
-
-## 知识包导航
-
-| 文档 | 回答 |
-|---|---|
-| [01-positioning.md](01-positioning.md) | 在 agent skills 生态里是什么位置，和 vercel-labs、Anthropic、superpowers 差在哪 |
-| [02-architecture.md](02-architecture.md) | 集合层、三个 skill、安装/发布链路、运行时读取契约 |
-| [03-code-tour.md](03-code-tour.md) | 目录树、先读文件、Codecraft CLI 主流程、改哪里 |
-| [04-deep-dive-codecraft-cli.md](04-deep-dive-codecraft-cli.md) | `check/audit/plan/init`、规则包、ignore/baseline、gates、SARIF |
-| [04-deep-dive-skill-packaging.md](04-deep-dive-skill-packaging.md) | 自包含目录契约、semver、npm files 白名单、Trusted Publishing、evals |
-| [05-performance.md](05-performance.md) | CLI 扫描复杂度、文件遍历与规则匹配成本、skip/ignore 设计 |
-| [06-branches.md](06-branches.md) | 单分支事实与发布 tag 的关系 |
-| [07-contribute.md](07-contribute.md) | 本地命令、CI 矩阵、发布流程、新手入口 |
-| [08-takeaways.md](08-takeaways.md) | 可迁移到自家项目的 8 条做法、面试卡、吹B句 |
-| [09-ops.md](09-ops.md) | 三种安装方式、版本锁定、升级回滚、供应链安全 |
+| 分析 commit | `624e48b6`（2026-11-10） |
+| 档位 | default（6k–15k 中文字） |
+| 规模 | 203 文件（codecraft 114 / designcraft 49 / docscraft 32 / 根 8），115 篇 Markdown |
+| 版本 | Codecraft 2.0.2 · Docscraft 0.4.1 · Designcraft 0.11.0 |
+| 许可 | 根目录无 LICENSE（GitHub 判 NOASSERTION）；三个 skill 各自 MIT |
+| 图册 | [Guide](https://flyforkfork.github.io/ForkYou/06-web/ultime-space-skills/guide.html) |
 
 ## 一句话结论
 
-它不是「又一个 lint 工具」，而是把**规范正文、静态检查、项目门禁、AI 输出契约**打包成同一条证据链；最值得偷的是「规则 ID 宪法 + 可机检子集 + baseline 棘轮 + 发布证据」这套治理骨架。
+值得学的是它的**治理骨架**——规则 ID、机检子集、coverage、ignore/baseline 分离、fail-closed 门禁、发布内容扫描、OIDC 发布；不是它那 21 条具体规则。项目极年轻（本地浅克隆可见 16 个 commit、1 位作者；上游历史可能更长），不适合当无脑依赖。
 
-## 验证
+## 文档导航
 
-```bash
-node ForkYou/_forkyou/scripts/forkyou.mjs validate --project ultime-space-skills
-node _cache/tmp/audit-docs.mjs ForkYou/06-web/ultime-space-skills ultime-space-skills
-```
+| 文档 | 回答什么 |
+|---|---|
+| [01 定位](01-positioning.md) | 它在 agent skills 生态里占什么位置，和 vercel-labs / anthropics / superpowers 差在哪，值不值得学 |
+| [02 架构](02-architecture.md) | 一个内容仓库 + 一个本地 CLI + 三条发布流水线怎么闭合，关键取舍与代价 |
+| [03 代码走读](03-code-tour.md) | 从 `bin/codecraft.mjs` 到退出码的完整链路，先读哪 12 个文件，加规则/加 skill 改哪 |
+| [04 深挖 · CLI](04-deep-dive-codecraft-cli.md) | 静态扫描、规则包、ignore/baseline、gates、SARIF 的设计与边界 |
+| [04 深挖 · 打包](04-deep-dive-skill-packaging.md) | 自包含目录契约、三文件版本对齐、files 白名单、发布内容扫描、Trusted Publishing |
+| [05 性能](05-performance.md) | 扫描成本模型与本机实测，A21 二次遍历的代价 |
+| [07 贡献](07-contribute.md) | 环境、命令、CI 矩阵、发布流程、新手入口与坑 |
+| [08 心得](08-takeaways.md) | 可迁移想法、面试卡、局限与不该抄的地方 |
+
+跳过的文档与理由见 `meta.json` 的 `analysis.skipped`。
+
+## 本仓库分析的三条硬事实
+
+1. **本次最大变化是「发布内容扫描」**：三个 skill 各新增 `scripts/check-package-content.mjs`，用 `npm pack --dry-run --json` 拿真实打包清单再扫内容，把 AGENTS.md 的「子包不写内部材料」红线变成机器检查（`skills/codecraft/scripts/check-package-content.mjs:1-16`）。
+2. **Designcraft 从「评审知识」扩成「决策框架」**：0.10.0 加结构方案库（S1–S16 + 五项代价），0.11.0 加类型倾向层（8 类型卡 × 10 角色卡）并把 Refine 改成四段诊断闸门（`skills/designcraft/docs/patterns.md:65-248`、`skills/designcraft/scenarios/refine.md:41-80`）。
+3. **本地测试在 Windows 检出下会红 13 项**：findings 的 `file` 用 `path.relative` 产生 `\` 分隔，测试断言 `/`；仓库没有 `.gitattributes`。CI 只跑 ubuntu，所以从未暴露（实测见 05）。

@@ -1,96 +1,119 @@
-# 08 ·  takeaways：能偷的 8 个设计，面试怎么讲
+# 08 可迁移想法与面试卡
 
-> 这篇回答什么问题：如果我不使用这个项目，只从它身上拿走东西，应该拿走什么？面试被问到 agent skills / 代码治理时，怎么用 30 秒讲清楚？哪些地方不能吹？
+> 说明：面试卡基于 `624e48b` 的代码与文档证据整理。**本环境无法启动 subagent（深度上限），双 Agent 模拟面试未执行**，以下问答由主 Agent 自拟，答案逐条对应证据；无证据处标「待查实」。
 
-## 8 条可迁移想法
+## 一、可迁移想法
 
-### 1. 规则要有稳定 ID
-- **问题**：团队规范写在文档里，review 时只能说「不符合规范」，无法定位是哪一条。
-- **做法**：A1–A21 每条固定 ID、理由、正例/反例、验收、范围；报告与 plan 都带规则 ID。
-- **为什么好**：可引用、可统计、可逐条验收；agent 输出「为什么」时能指到条款而不是泛泛而谈。
-- **怎么用到我的项目**：先把现有规范编号，不求多，先保证每条有反例和验收方式。
+### 1. 入口只做路由，正文按需加载
 
-### 2. 入口与正文分离
-- **问题**：SKILL.md 越写越长，最后变成第二份规则，和 docs 漂移。
-- **做法**：SKILL.md 只做路由（读什么、按什么模式、禁止什么），正文全在 `docs/`。
-- **为什么好**：单一真源，agent 按需加载，token 成本可控。
-- **怎么用到我的项目**：AGENTS.md 只保留「去哪读」，不复制规则正文。
+- **问题**：skill 越写越长，模型每次都要读全文，上下文成本高，改一条规则还要动入口。
+- **做法**：`SKILL.md` 只保留 frontmatter、适用场景、读法路由和模式表，规则正文全部放 `docs/`；codecraft 末尾直接写「规则正文只在 `docs/`；本文件只做入口」（`skills/codecraft/SKILL.md:102`）。
+- **为什么好**：入口稳定、正文可独立演进；模型先读入口再按路由加载主题文档，token 花在真正相关的部分。
+- **怎么用到我的项目**：把 `AGENTS.md` / `CLAUDE.md` 控制在 100 行内，只写「什么时候读哪个文件」，不写具体规则。
 
-### 3. 只自动化高置信子集，并公开覆盖率
-- **问题**：静态检查覆盖不了所有架构判断，0 findings 被误读成「没问题」。
-- **做法**：CLI 只做 A2/A6/A11/A17/A21，其余交人工；报告带 `coverage`，列出跳过/未支持项。
-- **为什么好**：可信度来自「知道自己没查什么」，而不是假装全知。
-- **怎么用到我的项目**：任何扫描器都加 coverage 字段，0 findings 必须能解释。
+### 2. 规则 ID + 可机检子集 + coverage
 
-### 4. ignore 与 baseline 分开
-- **问题**：例外和存量混在一起，最后所有问题都被「临时忽略」。
-- **做法**：ignore 逐条、有理由、有到期、A21 不可豁免；baseline 只减不增，指纹不含行号。
-- **为什么好**：例外会过期，存量会收敛；两种「不报」的治理语义不同。
-- **怎么用到我的项目**：把「已知问题快照」和「规则豁免」做成两个文件/两个流程。
+- **问题**：团队规范写成文档没人看，写成 lint 又覆盖不全，最后「0 报错」被当成「没问题」。
+- **做法**：宪法固定 A1–A21 共 21 条不变量，CLI 只机检其中高置信的 5 条（A2/A6/A11/A17/A21）；每次输出 `coverage`，列出扫了多少文件、跳过多少、哪些规则有文本级局限（`skills/codecraft/src/check.mjs:156-181`）。
+- **为什么好**：不假装全自动；「没扫到」和「没问题」被明确分开，评审知道该补什么。
+- **怎么用到我的项目**：给规范编号，标注「机检/人工」，CI 只阻断机检部分，人工部分进 review checklist。
 
-### 5. 门禁 fail-closed
-- **问题**：gate 输出解析失败时，很多工具默认「没问题」，结果是假绿。
-- **做法**：threshold 解析不出 issue 数就 `violated=true`；gate 退出码非 0 或 threshold 为真都算失败。
-- **为什么好**：宁可误杀，不可放过；安全与质量门禁应默认不信任外部输出。
-- **怎么用到我的项目**：所有「外部命令 → 门禁」适配层都先定义失败语义，再写解析。
+### 3. ignore 与 baseline 分开治理
 
-### 6. 自包含 + 独立版本
-- **问题**：多包仓库共享版本，改一个包强迫所有包升级。
-- **做法**：每个 skill 独立 `VERSION` / `package.json` / `CHANGELOG`，tag 按包前缀区分。
-- **为什么好**：发布解耦，用户只升级需要的包；回滚也按包回滚。
-- **怎么用到我的项目**：monorepo 里先分清「必须同版本的包」和「可独立演进的包」，后者用独立 tag。
+- **问题**：所有「不报」混在一起，例外会腐烂成永久豁免，存量问题永远还不完。
+- **做法**：`ignore` 逐条、必须有 `rule/file/reason`，可设 `expires`，A21 直接拒绝豁免（`skills/codecraft/src/ignore.mjs:25-29`）；`baseline` 整批快照，指纹不含行号，`--update-baseline` 只减不增，critical 排除（`skills/codecraft/src/baseline.mjs:13-16`、`skills/codecraft/src/cli.mjs:372-411`）。
+- **为什么好**：例外有期限、存量只降不升；两种「不报」各司其职，治理可审计。
+- **怎么用到我的项目**：lint 豁免要求 `// reason + expiry`；历史债务用 baseline，禁止把新问题塞进 baseline。
 
-### 7. 发布即证据
-- **问题**：npm 包是谁发的、从哪个 commit 构建的，用户无法验证。
-- **做法**：GitHub Actions + npm Trusted Publishing（OIDC）+ `--provenance`，不存 token。
-- **为什么好**：供应链可验证，token 泄露风险下降；个人项目也能用。
-- **怎么用到我的项目**：把发布从「本地手跑」迁到 CI，先加 provenance，再谈签名。
+### 4. 失败要 fail-closed，不要 fail-open
 
-### 8. 结构测试是文档仓库的单元测试
-- **问题**：文档改完链接断了、路由指向不存在的文件、版本三处不一致，没人发现。
-- **做法**：`structure.test.mjs` 断言 frontmatter、版本一致、相对链接可解析、SKILL.md 路由路径存在、docs 可达。
-- **为什么好**：成本低，能挡住大部分「文档改坏了」；比人工 review 稳定。
-- **怎么用到我的项目**：先写 3 个断言：链接、版本、入口可达。
+- **问题**：门禁解析不了外部工具输出时，最容易「当作通过」，于是门禁形同虚设。
+- **做法**：`evaluateThreshold` 在 `actual == null` 时直接 `violated: true`（`skills/codecraft/src/gates.mjs:169-185`）；threshold 没有 `output` 在配置期就报错（`:122-126`）。
+- **为什么好**：解析失败是「不确定」，不确定不能当「没问题」；错误在配置期暴露比在 CI 里静默放行好。
+- **怎么用到我的项目**：所有「外部输出 → 判断」的桥接层，默认失败，只有明确成功才通过。
 
-## 面试 Q&A 卡片（6 张）
+### 5. 发布前扫「真实打包清单」
 
-**Q1：Agent Skill 是什么？和 MCP 有什么区别？**
-30 秒：Skill 是一组给 agent 的指令和资源，核心是 `SKILL.md` + 文档/模板，解决「怎么做」；MCP 是模型与外部工具/数据之间的协议，解决「能调用什么」。Skill 更像可版本化的操作手册，MCP 更像接口。
-追问：Skill 能带可执行代码吗？——可以，Codecraft 就带了一个零依赖 CLI。
+- **问题**：`.npmignore` / `files` 只管打哪些文件，不管内容里有没有内部路径、内部包名、本地绝对路径。
+- **做法**：`check-package-content.mjs` 用 `npm pack --dry-run --json --ignore-scripts` 拿真实清单，再逐文件扫六类禁入文件与三类内容规则；例外写进 `ALLOW` 并注明理由（`skills/codecraft/scripts/check-package-content.mjs:40-75`）。
+- **为什么好**：检查对象就是用户实际拿到的东西；不会出现「仓库里没有、包里却有」的盲区。
+- **怎么用到我的项目**：发布流水线加一步「对 pack 清单做内容扫描」，比维护手写白名单可靠。
 
-**Q2：为什么用 21 条不变量，而不是直接上 ESLint？**
-30 秒：ESLint 管语法与风格，管不了「依赖方向」「生成物只读」这类架构约束；21 条不变量是人与 AI 共用的判断框架，其中只有 5 条适合静态检查，其余明确交人工，避免假自动化。
-追问：那静态检查覆盖不够怎么办？——用项目门禁 + 审计契约补，且报告 coverage。
+### 6. 版本三方对齐 + tag 强校验
 
-**Q3：baseline 和 ignore 有什么区别？**
-30 秒：ignore 是逐条例外，必须有理由和到期日，安全规则不可豁免；baseline 是存量快照，只减不增，用来让老项目先上 CI、只拦新增。
-追问：为什么指纹不含行号？——编辑代码会让行号漂移，不含行号才能让基线稳定；代价是同一文件同一消息的重复问题会被合并。
+- **问题**：`VERSION`、`package.json`、`CHANGELOG`、git tag 四处各写一遍，发版总有一处对不上。
+- **做法**：`VERSION` 为真源，`release-check` 校验它与 `package.json`、`CHANGELOG` 一致；发布 workflow 再用 `node -e` 校验 tag 与版本一致，`npm view` 查重（`skills/codecraft/scripts/release-check.mjs:20-34`、`.github/workflows/publish.yml:30-41`）。
+- **为什么好**：错误在发布前暴露；tag 打错不会发出「版本与 tag 不符」的包。
+- **怎么用到我的项目**：版本只留一个真源，其余全部派生 + 自动校验；发布前先查重。
 
-**Q4：gate 的 threshold 为什么要 fail-closed？**
-30 秒：外部工具输出格式不可控，解析失败时如果默认通过，门禁会静默失效；fail-closed 把「不知道」当成失败，逼着人修解析或修输出。
-追问：会不会误杀？——会，所以 threshold 只用于有稳定输出格式的工具，并在配置期校验 output 类型。
+### 7. 知识型 skill 也要有回归网
 
-**Q5：Trusted Publishing 解决了什么？**
-30 秒：把 npm 发布权限从「长期 token」换成「GitHub Actions 的短期 OIDC 身份」，发布时由 npm 验证 workflow 身份并生成 provenance；仓库里不存 token，包来源可追溯。
-追问：还有什么风险？——workflow 本身被改、依赖被投毒仍有风险；provenance 只证明构建来源，不证明代码没后门。
+- **问题**：文档改一句话，看起来无害，但可能让 agent 的行为整体退化。
+- **做法**：codecraft 有 19 个 eval case，`evals/run.mjs` 用 `spawnSync` 跑真实 CLI；发布 workflow 在 `npm test` 后必跑 `npm run eval`（`skills/codecraft/evals/run.mjs:1-87`、`.github/workflows/publish.yml:43-47`）。
+- **为什么好**：单测保代码，eval 保行为；文档型项目尤其需要后者。
+- **怎么用到我的项目**：给 prompt / skill 建 golden tasks，固定输入与预期行为，改动后跑一遍。
 
-**Q6：Codecraft 的静态扫描最大局限是什么？**
-30 秒：纯文本级，不解析 AST、不做类型分析；动态 handler、运行时路径、条件导入都可能漏报，复杂 monorepo 也可能误报。它的定位是「高置信提示 + 门禁编排」，不是「替代 typecheck」。
-追问：那为什么不用 TypeScript 编译器？——会引入依赖和启动成本，与零依赖定位冲突；项目选择把复杂度留给项目自己的 typecheck。
+## 二、面试 Q&A 卡（8 张）
 
-## 吹B一句话（4 条）
+### 卡 1：为什么把一个 skill 拆成入口 + 多篇 docs，而不是写一个长文件？
 
-1. 「我见过一个仓库把代码规范拆成 21 条可引用不变量，静态检查只覆盖其中 5 条，剩下的明确写人工评审——这比号称全自动的 lint 诚实得多。」
-2. 「它的 baseline 指纹不含行号，所以编辑代码不会让存量基线全量失配；`--update-baseline` 默认只减不增，新问题进不了基线。」
-3. 「发布链没有 npm token：tag 触发 GitHub Actions，OIDC 换发布权限，`npm publish --provenance` 生成 SLSA 证明。」
-4. 「三个 skill 各自 semver、各自 tag、各自 npm 包，却共享一个仓库和一套安装入口——这是内容型 monorepo 的轻量解法。」
+**30 秒第一人称答案**：因为 skill 的读者是模型，上下文是硬成本。designcraft 正文约 2400 行，塞进入口等于每次对话先交一遍全文税。我把 `SKILL.md` 压到 97 行，只留适用范围、读法路由和模式表，正文按主题拆到 `docs/`，模型先读入口再按需加载。代价是路由写错会读不到正文，所以我用 `structure.test.mjs` 检查路由与 docs 可达性（`skills/designcraft/tests/structure.test.mjs`）。
 
-## 局限与不该抄的地方
+**追问**：路由表怎么保证不过期？——靠测试：45 项必备文件 + 路由可达性断言。
 
-- 项目很早期：0 stars、1 contributor、浅克隆历史；不要把「它这么做」当成「行业最佳实践」。
-- 根目录没有 LICENSE，GitHub 显示 NOASSERTION；对外分发只能按各 skill 目录的 MIT 走。
-- Docscraft / Designcraft 的 evals 是人工 golden tasks，没有自动 runner；不要以为它们有和 Codecraft 同级的回归保障。
-- 没有跨平台 CI 矩阵（只有 ubuntu-latest + Node 22），Windows/macOS 的路径行为没有 CI 证据。
-- 没有性能基准；05 篇的复杂度是代码推导，不是实测。
+### 卡 2：三个包为什么复制同一套发布脚本，而不是抽一个公共包？
 
-> 一句话记住：**最值得偷的是「规则 ID + 单一真源 + 机检子集 + ignore/baseline 分离 + fail-closed 门禁 + 发布证据」这六件套，而不是它具体的 21 条规则。**
+**30 秒第一人称答案**：这是有意的重复。`AGENTS.md` 红线要求每个 skill 目录独立自包含，跨包依赖只允许用已发布 npm 版本（`AGENTS.md:9-15`）。抽公共 devDependency 会让单包 clone 跑不了 release-check。我接受三份 `check-package-content.mjs`（187/184/184 行）的维护成本，换「每个包都能独立发布」；包再多就把检查器做成已发布小包，而不是复制第四份。
+
+**追问**：三份脚本怎么防止漂移？——靠人工同步；`release-content.test.mjs` 只测各自包，没有跨包一致性测试。
+
+### 卡 3：Codecraft 只做文本级检查，为什么不用 AST？准确性怎么保证？
+
+**30 秒第一人称答案**：因为目标是零依赖、低启动成本、可在任何项目里跑。用 TypeScript 编译器能提高 A2/A17 的准确率，但会把安装体积和启动时间拉上一个量级，也会限制只支持 JS/TS。我的补偿是：只机检高置信规则，`RULE_LIMITATIONS` 明确写出每条规则的盲区（`skills/codecraft/src/check.mjs:156-162`），输出 `coverage` 让用户知道扫了什么。准确性不靠「查得多」，靠「查到的都可解释、没查的明确说」。
+
+**追问**：复杂 monorepo 误报怎么办？——用 `boundaries.allowedImporters` 登记例外，用 `--exclude` 排除生成目录；误报不能靠 ignore 硬压，要有理由。
+
+### 卡 4：baseline 和 ignore 都能让问题消失，为什么保留两套？
+
+**30 秒第一人称答案**：因为它们治理的是两种不同的东西。`ignore` 是逐条例外：某行代码确实要这么写，必须写 `rule/file/reason`，可设到期日，A21 密钥直接拒绝豁免（`skills/codecraft/src/ignore.mjs:25-29`）。`baseline` 是存量快照：老项目一次接入几千条问题，先全记下来，之后只许减少、不许增加（`skills/codecraft/src/cli.mjs:372-411`）。两套分开，例外有期限、存量只降不升，治理才可审计。
+
+**追问**：baseline 会不会变成垃圾场？——`--update-baseline` 默认只减不增，新增条目要 `--force`；critical 永不入 baseline。
+
+### 卡 5：designcraft 0.11 的 Refine 为什么要加「诊断闸门」和停止条件？
+
+**30 秒第一人称答案**：因为设计评审最容易变成「我觉得不好看」然后直接改。0.11 把 Refine 拆成四段：证据与目标 → 诊断闸门 → 方案生成 → 交付校验（`skills/designcraft/scenarios/refine.md:37-80`）。诊断要求三证：现象、影响、可改（`:49-53`）；还有默认套路扫描五条，如等权卡片、图标+标题+副标题（`:55-63`）。停止条件是「证据不足就不进入方案生成」（`:65`）。报告边界也写死：只出 Markdown 方案集，不产出 HTML、不改文件（`:7-8`）。这是把评审从主观表达变成可复核流程。
+
+**追问**：怎么防止套路扫描变成新的八股？——`docs/patterns.md` 明确是经验方案不是规则，新增条目只改它和 evals，不改判据、不新增档位（`skills/designcraft/CONTRIBUTING.md:16`）。
+
+### 卡 6：你的扫描器性能如何？3,000 文件要 14 秒，怎么优化？
+
+**30 秒第一人称答案**：实测 200 文件约 0.5–0.6 秒、1,000 文件约 3.4–3.7 秒、3,000 文件约 13–14 秒，近似线性，约 3.4–4.8 ms/文件（Windows、Node 24、合成仓库，见 05）。慢在每文件被完整读三次：`isMinified`、`scanAppFile`、`scanSecrets` 各一次（`skills/codecraft/src/check.mjs:183-202`、`:626-632`）。最值得做的优化是把 `isMinified` 并进首次读取，省约 1/3 的读与行切分。但典型仓库只有几百文件，收益最大的是用 `--changed` 缩小输入。
+
+**追问**：为什么不做缓存？——CLI 是一次性进程，没有跨调用缓存；要做增量只能靠 `--changed` / `--since`。缓存有失效问题，作者选择简单。
+
+### 卡 7：Windows 上测试失败说明什么？为什么 CI 没发现？
+
+**30 秒第一人称答案**：说明路径处理有真实的可移植性缺陷。Windows 检出时 `path.relative` 返回 `src\config.ts`，测试断言的是 `src/config.ts`，于是 A17、A6、A21、`--exclude`、`--changed` 等 13–14 个用例失败。这不是测试太苛刻：JSON 和 SARIF 输出里的 `artifactLocation.uri` 会带反斜杠，下游工具可能解析失败。CI 只跑 `ubuntu-latest`（`.github/workflows/ci.yml:10-55`），所以从未暴露。修法是在 `path.relative` 结果上统一 `replace(/\\/g, '/')`，或者在测试断言前归一化；更好的做法是加一个 `windows-latest` job。
+
+**追问**：哪些地方已经归一化了？——`ignore.matchPath`（`ignore.mjs:96-101`）和 `baseline.fingerprint`（`baseline.mjs:13-16`）已经统一 `/`；漏的是 `check` / `cli` 的报告路径。
+
+### 卡 8：如果重做，你会改什么？
+
+**30 秒第一人称答案**：三件事。第一，路径归一化做成公共函数，所有对外输出统一 `/`，并加 Windows CI，这是已暴露的真 bug。第二，把三份 `check-package-content.mjs` 收敛成一个已发布的 dev 工具包，减少同步，但保持每个包可独立发布。第三，合并 `check` 的三次文件读取或加增量缓存，让 3,000 文件从 14 秒降到个位数。定位不变：仍是「零依赖、文本级、可解释」。
+
+**追问**：会不会加 AST？——除非目标用户变成大型 monorepo 且愿意承担依赖，否则不加；文本级 + 明确局限已经够用。
+
+## 三、吹B一句话（能落地）
+
+1. 「我们把 21 条代码宪法变成了 5 条可机检规则 + coverage 报告，0 findings 也能说清扫了什么。」
+2. 「发布前不是看仓库，而是看 `npm pack --dry-run` 的真实清单——用户拿到什么，我们就扫什么。」
+3. 「baseline 只减不增，ignore 必须写理由和到期日，密钥永远不能豁免——三种『不报』各有各的笼子。」
+4. 「三个 npm 包、三套独立发布流水线，tag、版本、CHANGELOG 三方对齐，OIDC provenance 发布，没有长期 token。」
+
+## 四、局限与不该抄的地方
+
+- **单人维护、0 star**：2026-11-10 API 显示 0 stars、1 fork、1 contributor（UltimeLam，60 次贡献），created 2026-10-26。工程完整度高，但社区验证几乎为零，别把「有 CI」当「被验证过」。
+- **不要抄「CI 只跑 Linux」**：至少加 Windows job，路径问题越早暴露越便宜。
+- **不要抄「无 lint」**：982 行的 `cli.mjs` 靠人工风格约束，长期会漂移。
+- **不要抄「文档即规则」的规模**：designcraft 15 篇 docs、约 2400 行，维护成本很高；没人手先从 3–5 篇开始。
+- **待查实**：作者是否在真实大型仓库做过性能基准；仓库内无 benchmark 记录。

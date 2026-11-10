@@ -3,15 +3,15 @@
   "id": "github:ultime-space/skills",
   "name": "ultime-space-skills",
   "one_liner": "把代码规范、文档治理、设计知识做成三个可安装、可独立发版的 AI skill 包。",
-  "description": "面向 AI 编程的 skill 集合：Codecraft（JS/TS 代码规范与架构，带零依赖 CLI）、Docscraft（文档组织与 AI 上下文治理）、Designcraft（设计系统知识）。三个 skill 自包含、独立 semver、互不 import，经 skills CLI / skills-npm 安装，tag 触发 GitHub Actions Trusted Publishing。",
+  "description": "面向 AI 编程的 skill 集合：Codecraft（JS/TS 代码规范与架构，带零依赖 CLI）、Docscraft（文档组织与 AI 上下文治理）、Designcraft（设计知识与评审框架）。三个 skill 自包含、独立 semver、互不 import，经 skills CLI / skills-npm 安装，tag 触发 GitHub Actions Trusted Publishing。",
   "provider": "github",
   "upstream": "ultime-space/skills",
   "fork": "FlyForkFork/ultime-space-skills",
   "category": "06-web",
   "depth": "L2",
   "length": "default",
-  "analyzed_commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
-  "analyzed_at": "2026-11-07T18:03:57.081Z",
+  "analyzed_commit": "624e48b60f6b993a10713f3ec9cce7b374c34fc7",
+  "analyzed_at": "2026-11-10T21:55:00+08:00",
   "upstream_url": "https://github.com/ultime-space/skills",
   "homepage": "https://github.com/ultime-space/skills",
   "license": "NOASSERTION",
@@ -38,37 +38,49 @@
     "04-deep-dive-codecraft-cli.md",
     "04-deep-dive-skill-packaging.md",
     "05-performance.md",
-    "06-branches.md",
     "07-contribute.md",
-    "08-takeaways.md",
-    "09-ops.md"
+    "08-takeaways.md"
   ],
   "guide": "guide.html",
+  "analysis": {
+    "profile": "default",
+    "reason": "仓库主体是三个 skill 包 + 零依赖 CLI + 构建/版本门禁，属于可运行工具链而非纯文档；但无服务、无协议、无索引，按 default 控制体量（6k–15k 中文字）。",
+    "skipped": [
+      {
+        "doc": "06-branches.md",
+        "reason": "单分支仓库（仅 main），RULES §6 规定单分支不写分支分析"
+      },
+      {
+        "doc": "09-ops.md",
+        "reason": "无可部署服务、无运行时配置/运维面；CLI 为本地一次性进程，部署与发布流程写入 07-contribute.md"
+      }
+    ]
+  },
   "sources": [
     {
-      "title": "ultime-space/skills 仓库",
-      "url": "https://github.com/ultime-space/skills",
-      "date": "2026-11-08"
+      "title": "ultime-space/skills 仓库（分析 commit 624e48b）",
+      "url": "https://github.com/ultime-space/skills/tree/624e48b60f6b993a10713f3ec9cce7b374c34fc7",
+      "date": "2026-11-10"
     },
     {
       "title": "npm @ultime/codecraft",
       "url": "https://www.npmjs.com/package/@ultime/codecraft",
-      "date": "2026-11-08"
+      "date": "2026-11-10"
     },
     {
       "title": "vercel-labs/skills：open agent skills CLI",
       "url": "https://github.com/vercel-labs/skills",
-      "date": "2026-11-08"
+      "date": "2026-11-10"
     },
     {
       "title": "anthropics/skills：Agent Skills 参考实现与规范",
       "url": "https://github.com/anthropics/skills",
-      "date": "2026-11-08"
+      "date": "2026-11-10"
     },
     {
       "title": "obra/superpowers：agentic skills 框架",
       "url": "https://github.com/obra/superpowers",
-      "date": "2026-11-08"
+      "date": "2026-11-10"
     }
   ]
 }
