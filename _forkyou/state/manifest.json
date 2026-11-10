@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:46.126Z",
+  "updated_at": "2026-11-10T14:27:56.436Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -355,7 +355,7 @@
       "length": "default",
       "license": "MIT",
       "language": "Python",
-      "stars": 19124,
+      "stars": 19205,
       "topics": [
         "ai",
         "ai-assistant",
@@ -372,8 +372,8 @@
         "xianyu-bot"
       ],
       "default_branch": "master",
-      "status": "prepared",
-      "updated_at": "2026-11-10T10:51:37.679Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:56.435Z",
       "branches": [
         {
           "name": "master",
@@ -496,7 +496,23 @@
           "diffstat": "176 files changed, 3271 insertions(+), 21874 deletions(-)"
         }
       ],
-      "prepared_at": "2026-11-10T11:04:38.623Z"
+      "prepared_at": "2026-11-10T11:04:38.623Z",
+      "analyzed_commit": "77f8d75869acd65f9dba72731b95c7c49ea67bdf",
+      "analyzed_at": "2026-11-10T22:00:00+08:00",
+      "docs": [
+        "README.md",
+        "01-positioning.md",
+        "02-architecture.md",
+        "03-code-tour.md",
+        "04-deep-dive-pipeline.md",
+        "04-deep-dive-ai-compat.md",
+        "05-performance.md",
+        "06-branches.md",
+        "07-contribute.md",
+        "08-takeaways.md",
+        "09-ops.md"
+      ],
+      "guide": null
     },
     "github:Minireel/HGhub": {
       "id": "github:Minireel/HGhub",

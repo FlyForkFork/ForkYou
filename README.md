@@ -15,7 +15,7 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **5** 个项目。最后更新：2026-11-10 14:27:46。
+已分析 **6** 个项目。最后更新：2026-11-10 14:27:56。
 
 ### 01-systems · 系统 / 桌面 / 跨设备
 
@@ -23,6 +23,12 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 |---|---|---|---|---|---|---|---|
 | [mac-everything](01-systems/mac-everything/README.md) | Everything 的 macOS 答案：菜单栏里毫秒级搜全盘文件名。 | [YuSec2021/mac-everything](https://github.com/YuSec2021/mac-everything) | [打开](https://github.com/YuSec2021/mac-everything/releases) | [![GitHub stars](https://img.shields.io/github/stars/YuSec2021/mac-everything?style=flat-square&label=%E2%AD%90)](https://github.com/YuSec2021/mac-everything/stargazers) | L2 | 2026-11-10 | [Wiki](01-systems/mac-everything/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/mac-everything/guide.html) |
 | [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽与音频的 P2P 软件 KVM，纯状态机路由 + 单线程 QUIC 网络 + 线程所有权表。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | [![GitHub stars](https://img.shields.io/github/stars/oinkvm/oink?style=flat-square&label=%E2%AD%90)](https://github.com/oinkvm/oink/stargazers) | L2 | 2026-11-10 | [Wiki](01-systems/oink/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/oink/guide.html) |
+
+### 02-ai-cv · AI / 计算机视觉
+
+| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
+|---|---|---|---|---|---|---|---|
+| [ai-goofish-monitor](02-ai-cv/ai-goofish-monitor/README.md) | 基于 Playwright 和AI实现的闲鱼多任务实时/定时监控与智能分析系统，配备了功能完善的后台管理UI。帮助用户从闲鱼海量商品中，找到心仪产品。 | [Usagi-org/ai-goofish-monitor](https://github.com/Usagi-org/ai-goofish-monitor) | — | [![GitHub stars](https://img.shields.io/github/stars/Usagi-org/ai-goofish-monitor?style=flat-square&label=%E2%AD%90)](https://github.com/Usagi-org/ai-goofish-monitor/stargazers) | L2 | 2026-11-10 | [Wiki](02-ai-cv/ai-goofish-monitor/README.md) |
 
 ### 03-infra · 基础设施 / 运维
 

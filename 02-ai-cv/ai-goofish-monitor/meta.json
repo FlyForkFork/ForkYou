@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "id": "github:Usagi-org/ai-goofish-monitor",
+  "name": "ai-goofish-monitor",
+  "provider": "github",
+  "upstream": "Usagi-org/ai-goofish-monitor",
+  "fork": "FlyForkFork/ai-goofish-monitor",
+  "category": "02-ai-cv",
+  "depth": "L2",
+  "length": "default",
+  "analysis": {
+    "profile": "default",
+    "reason": "可运行的 Web 应用：Python 后端 115 个文件、Vue 前端 79 个文件、TS 46 个文件，含 Playwright 抓取、多模态 AI 判定、APScheduler 调度、7 类通知渠道与 SQLite 持久化；模块多但无自研协议/索引等 deep 级机制，按 default 档覆盖定位、架构、代码走读、两个关键机制、性能、分支、贡献、运维与 takeaways。",
+    "skipped": []
+  },
+  "analyzed_commit": "77f8d75869acd65f9dba72731b95c7c49ea67bdf",
+  "analyzed_at": "2026-11-10T22:00:00+08:00",
+  "upstream_url": "https://github.com/Usagi-org/ai-goofish-monitor",
+  "homepage": null,
+  "license": "MIT",
+  "stars": 19205,
+  "language": "Python",
+  "topics": [
+    "ai",
+    "ai-assistant",
+    "ai-tools",
+    "automation",
+    "gemini",
+    "goofish",
+    "open-source",
+    "openai",
+    "playwright",
+    "tool",
+    "xian-yu",
+    "xianyu",
+    "xianyu-bot"
+  ],
+  "branches": [
+    "master",
+    "dev",
+    "doc",
+    "claude/issue-200-20250819-0604",
+    "claude/issue-207-20250822-0707",
+    "claude/issue-211-20250827-0632",
+    "claude/issue-216-20250828-0836",
+    "claude/issue-219-20250829-1323",
+    "claude/issue-220-20250829-1323",
+    "claude/issue-239-20250912-1044",
+    "claude/issue-239-20250912-1054",
+    "claude/issue-253-20250924-0449",
+    "claude/issue-254-20250924-0414",
+    "claude/issue-259-20251011-0655",
+    "claude/issue-260-20251011-0708",
+    "claude/issue-266-20251011-0701",
+    "claude/issue-272-20251027-0249",
+    "claude/issue-350-20260304-0754",
+    "claude/issue-352-20260304-0846",
+    "claude/issue-358-20260228-0238",
+    "claude/issue-361-20260303-0625",
+    "claude/issue-364-20260304-0557",
+    "claude/issue-371-20260306-0748",
+    "codex/fix-issue-with-ai-goofish-monitor",
+    "codex/github-mention",
+    "codex/github-mention-docker-browsertype.launch-executa",
+    "codex/github-mention-harkmq",
+    "revert-373-codex/github-mention-docker-browsertype.launch-executa"
+  ],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-pipeline.md",
+    "04-deep-dive-ai-compat.md",
+    "05-performance.md",
+    "06-branches.md",
+    "07-contribute.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "guide": null,
+  "sources": [
+    {
+      "title": "ai-goofish-monitor master @ 77f8d75",
+      "url": "https://github.com/Usagi-org/ai-goofish-monitor/commit/77f8d75869acd65f9dba72731b95c7c49ea67bdf",
+      "date": "2026-10-10"
+    },
+    {
+      "title": "ai-goofish-monitor repository",
+      "url": "https://github.com/Usagi-org/ai-goofish-monitor",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "GitHub API repository metadata (stars/forks/license/topics)",
+      "url": "https://api.github.com/repos/Usagi-org/ai-goofish-monitor",
+      "date": "2026-11-10"
+    },
+    {
+      "title": "Branch comparison API (ahead/behind/diff stats)",
+      "url": "https://api.github.com/repos/Usagi-org/ai-goofish-monitor/compare/master...codex/github-mention-harkmq",
+      "date": "2026-11-10"
+    }
+  ]
+}
