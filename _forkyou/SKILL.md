@@ -1,6 +1,6 @@
 # ForkYou Skill
 
-版本：1.0.0  
+版本：1.1.0
 触发词：`分析新 fork`、`分析 <repo>`、`刷新 <repo>`、`重建全部`、`ForkYou sync`。
 
 这个 skill 给任何 Agent 用。它不绑定某个模型、IDE 或云服务。脚本只负责机械工作；分析由当前 Agent 完成。
@@ -76,25 +76,42 @@ node ForkYou/_forkyou/scripts/forkyou.mjs analyze my-fork
 
 1. 读 `work.json`，确认 `clone_dir`、`output_dir`、`branches`、`depth`、`length`。
 2. 从 `branches` 知道默认分支和各分支 SHA/diffstat。
-3. 读源码：
+3. **先定输出规模（动笔前）**：读 `README*`、license、构建文件，用 `branches[].files`、`git ls-files`、语言构成判断项目形态，按 `RULES.md` §2 选 `lite` / `default` / `deep`；把档位和理由写进 `meta.json.analysis`，把要写的文档写进 `meta.json.docs`（至少 `README.md`、`08-takeaways.md`）。
+4. 按档位读源码：
    - `README*`、license、构建文件。
    - 入口文件、核心 crate/package。
    - 测试、CI、release workflow。
-4. 外部研究（≤5 来源）。
-5. 写 10 篇文档（8 个主题 + 2 篇 deep-dive）。
-6. 写 `guide.data.json`。
-7. 运行 `render-guide` 生成 `guide.html`。
+5. 外部研究（≤5 来源）。
+6. 按分析计划写文档：必须写 `README.md`、`08-takeaways.md`、`meta.json`；其余只写 `meta.docs` 里列出的文档，不硬凑。写完把实际文件同步进 `meta.docs`。
+   - 写 `08-takeaways.md` 前必须做双 Agent 模拟面试：
+     - 用 subagent 启一个“面试官”，把这个项目当成自己的设计实现，按档位出 `lite` 3–5 / `default` 6–8 / `deep` 8–12 题；
+     - 用另一个 subagent 当“面试者”，第一人称逐题回答，只引用分析里的 `file:line` 证据，无证据写“待查实”；
+     - 主 Agent 把问答整理成面试卡（问题、30 秒答案、追问）。
+7. 可选 guide：只有判定值得做时才写 `guide.data.json`，再运行 `render-guide`；`lite` 项目默认跳过。
 8. 运行 `validate`（结构检查；不需要每次启动 headless Chrome 截图）。
 9. 运行 `publish`。
 
+`meta.json.analysis` 示例：
+
+```json
+{
+  "profile": "lite",
+  "reason": "skill 规则集合，无可运行服务，192 个文件绝大多数是 Markdown",
+  "skipped": [
+    {"doc": "05-performance.md", "reason": "无运行时性能路径"},
+    {"doc": "09-ops.md", "reason": "无部署形态"}
+  ]
+}
+```
+
 > guide.html 只在用户明确报告显示问题时再单独调试；正常分析流程不跑浏览器截图验证。
 
-长度指令：
+输出规模默认值（先按 `RULES.md` §2 判定，再听用户指令）：
 
-- 用户说“越详细越好” → `--length deep`。
-- 用户说“精简版” → `--length lite`。
-- 用户说“写 8000 字” → `--length 8000`。
-- 默认 `default`。
+- skill 包、提示词/消息模板、纯文档仓库 → `--length lite`。
+- 正经开发项目 → `--length default`。
+- 有值得深挖的机制或用户说“越详细越好” → `--length deep`。
+- 用户说“写 8000 字” → `--length 8000`（允许 ±20%）。
 
 ## 4. 刷新
 

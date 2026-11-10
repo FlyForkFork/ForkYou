@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { readText, writeText, ensureDir, nowIso, shortSha } from './util.mjs';
+import { readText, writeText, ensureDir, nowIso, shortSha, REPO_ROOT } from './util.mjs';
 
 function mdEscape(s) {
   return String(s ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
@@ -8,6 +8,21 @@ function mdEscape(s) {
 
 function safeHttp(url) {
   return typeof url === 'string' && /^https?:\/\//i.test(url) ? url : '';
+}
+
+function starBadge(upstream) {
+  const m = String(upstream || '').match(/^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)$/);
+  if (!m) return '—';
+  const repo = `${m[1]}/${m[2]}`;
+  return `[![GitHub stars](https://img.shields.io/github/stars/${repo}?style=flat-square&label=%E2%AD%90)](https://github.com/${repo}/stargazers)`;
+}
+
+function pagesBase(config) {
+  const explicit = config?.publish?.pages_base;
+  if (explicit) return String(explicit).replace(/\/+$/, '');
+  const org = config?.provider?.org;
+  const repo = config?.provider?.content_repo;
+  return org && repo ? `https://${String(org).toLowerCase()}.github.io/${repo}` : '';
 }
 
 export function renderGuide(templatePath, data, meta = {}) {
@@ -54,6 +69,7 @@ export function renderRootReadme(existing, manifest, config) {
     .filter(p => p.status === 'analyzed')
     .sort((a, b) => String(a.category).localeCompare(String(b.category)) || String(a.name).localeCompare(String(b.name)));
   const cats = config?.analysis?.categories || [];
+  const pages = pagesBase(config);
   const byCat = new Map();
   for (const p of projects) {
     if (!byCat.has(p.category)) byCat.set(p.category, []);
@@ -72,15 +88,19 @@ export function renderRootReadme(existing, manifest, config) {
       if (!list.length) continue;
       lines.push(`### ${catId} · ${label}`);
       lines.push('');
-      lines.push('| 项目 | 一句话 | 上游 | 应用地址 | 深度 | 更新 | 分析 |');
-      lines.push('|---|---|---|---|---|---|---|');
+      lines.push('| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |');
+      lines.push('|---|---|---|---|---|---|---|---|');
       for (const p of list) {
         const one = mdEscape(p.one_liner || p.description || '—');
         const upstream = p.upstream ? `[${p.upstream}](https://github.com/${p.upstream})` : '—';
         const home = safeHttp(p.homepage) ? `[打开](${p.homepage})` : '—';
         const wiki = `${p.path}/README.md`;
-        const guide = `${p.path}/guide.html`;
-        lines.push(`| [${p.name}](${wiki}) | ${one} | ${upstream} | ${home} | ${p.depth || 'L2'} | ${String(p.analyzed_at || '').slice(0, 10)} | [Wiki](${wiki}) · [Guide](${guide}) |`);
+        const guideFile = p.guide ? path.join(REPO_ROOT, p.path, p.guide) : '';
+        const guideHref = guideFile && fs.existsSync(guideFile)
+          ? (pages ? `${pages}/${p.path}/${p.guide}` : `${p.path}/${p.guide}`)
+          : '';
+        const guide = guideHref ? ` · [Guide](${guideHref})` : '';
+        lines.push(`| [${p.name}](${wiki}) | ${one} | ${upstream} | ${home} | ${starBadge(p.upstream)} | ${p.depth || 'L2'} | ${String(p.analyzed_at || '').slice(0, 10)} | [Wiki](${wiki})${guide} |`);
       }
       lines.push('');
     }

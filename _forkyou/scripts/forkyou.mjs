@@ -108,11 +108,9 @@ function metaSeed(project, branchInfo) {
     branches: branchInfo.branches.map(b => ({
       name: b.name, sha: b.sha, default: b.default, ahead: b.ahead, behind: b.behind, diffstat: b.diffstat
     })),
-    docs: [
-      'README.md', '01-positioning.md', '02-architecture.md', '03-code-tour.md',
-      '05-performance.md', '06-branches.md', '07-contribute.md', '08-takeaways.md', '09-ops.md'
-    ],
-    guide: 'guide.html'
+    docs: ['README.md', '08-takeaways.md'],
+    analysis: null,
+    guide: null
   };
 }
 
@@ -401,7 +399,7 @@ function syncMetaFromProject(project) {
       analyzed_commit: meta.analyzed_commit || project.analyzed_commit,
       analyzed_at: meta.analyzed_at || project.analyzed_at,
       docs: meta.docs || project.docs,
-      guide: meta.guide || 'guide.html'
+      guide: meta.guide ?? null
     });
   }
   project.status = 'analyzed';

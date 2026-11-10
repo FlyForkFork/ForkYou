@@ -1,6 +1,6 @@
 # ForkYou 分析规则
 
-版本：1.0.0  
+版本：1.1.0
 适用对象：任何执行 ForkYou 分析的 Agent。规则不绑定某个模型、IDE 或云服务。
 
 ## 0. 总目标
@@ -31,48 +31,64 @@
 7. 不把 README 的宣传语当成架构事实；要回到代码。
 8. 源码分析必须基于本地 `git clone`（包含所有分支）；GitHub API 只用于发现 fork、读取元数据和 issue，不逐文件拉源码。
 
-## 2. 长度模式
+## 2. 输出规模：先判定，再动笔
 
-| 模式 | 触发 | 正文总量 | 用法 |
-|---|---|---|---|
-| `lite` | 用户说“精简版/快速看” | 约 5k–8k 中文字 | 只保留定位、架构、代码地图、贡献入口 |
-| `default` | 默认 | 约 1.2万–2.5万中文字 | 10 篇齐全（8 个主题 + 2 篇深挖），重点篇 3000–6000 字 |
-| `deep` | 用户说“越详细越好/深挖” | 3万–6万中文字，不设硬上限 | 每篇都展开，增加代码走读、benchmark、历史 |
-| 数字 | 用户说“写 8000 字” | 按数字执行 | 允许偏差 ±20% |
+写任何文档前，先读项目 README 和构建文件，按**项目形态**定档，不要默认全套：
 
-每篇建议：
+| 档位 | 默认适用 | 判定信号 | 最低产出 | 正文量 |
+|---|---|---|---|---|
+| `lite` | skill 包、提示词/消息模板、纯文档或配置仓库、<500 行脚本 | README 主要是规则/用法/模板；没有服务、进程、协议、索引；代码只做文件读写 | `README.md`、`08-takeaways.md`、`meta.json` | 1k–4k 中文字 |
+| `default` | 正经开发项目：有可运行代码、多模块、构建/测试链路 | 有构建文件、入口、测试；代码 >500 行；有明确工程取舍 | 同上，另加 `01`/`02`/`03`/`07` 中适用的文档 | 6k–15k 中文字 |
+| `deep` | 核心机制值得拆的项目 | 算法/协议/并发/存储/性能/架构有可迁移设计，或用户明确要求深挖 | 全部适用文档 + 2–4 篇 `04-deep-dive-*` | 2万–4万 中文字，不设硬上限 |
 
-- `01-positioning.md`：800–2000 字。
-- `02-architecture.md`：2500–6000 字。
-- `03-code-tour.md`：2500–6000 字。
-- `04-deep-dive-*.md`：每篇 1500–4000 字，至少 2 篇；L3 至少 3 篇。
-- `05-performance.md`：1000–3000 字；不适用时 300–800 字说明为什么。
-- `06-branches.md`：800–2500 字。
-- `07-contribute.md`：1000–2500 字。
-- `08-takeaways.md`：1000–2500 字。
-- `09-ops.md`：800–2000 字；不适用时短写。
+判定顺序：
+
+1. 先读 `README*`：它自述是 skill、模板、规范、文档集合，还是可运行系统。
+2. 再用 `work.json.branches[].files`、`git ls-files`、语言构成和构建文件修正。文件多不等于项目复杂：大量 Markdown 的 skill 仓库仍是 `lite`。
+3. 拿不准时从 `default` 起步；证据表明是 skill/模板/文档项目就降到 `lite`；有值得拆的机制才升 `deep`。
+4. 把档位和理由写进 `meta.json.analysis`：`profile`、`reason`、`skipped[{doc, reason}]`；实际写的文档写进 `meta.json.docs`。
+
+用户指令覆盖默认档位：`--length lite|default|deep|N`。`N` 按数字执行，允许 ±20%。
+
+写到的文档按以下长度控制：
+
 - `README.md`：≤800 字。
+- `08-takeaways.md`：800–2500 字，`lite` 也要写。
+- `01-positioning.md`：600–2000 字。
+- `02-architecture.md`：1500–5000 字。
+- `03-code-tour.md`：1500–5000 字。
+- `04-deep-dive-*.md`：每篇 1200–3500 字。
+- `05-performance.md`：800–2500 字。
+- `06-branches.md`：600–2000 字。
+- `07-contribute.md`：800–2000 字。
+- `09-ops.md`：600–1800 字。
 - `guide.html`：以图为主，正文不超过 3000 字。
 
-## 3. 固定文档结构
+## 3. 文档结构：只有三个文件必填
 
-每个项目目录必须有：
+每个项目目录必须包含：
 
 ```text
-README.md
-meta.json
-01-positioning.md
-02-architecture.md
-03-code-tour.md
-04-deep-dive-*.md   # 至少 2 篇
-05-performance.md
-06-branches.md
-07-contribute.md
-08-takeaways.md
-09-ops.md
-guide.data.json
-guide.html
+README.md        # 项目速览 + 实际文档导航
+meta.json        # 机器可读元数据（含 analysis 决策）
+08-takeaways.md  # 可迁移想法、面试卡、吹B句——这是必须能吸收的内容
 ```
+
+其余文档不是固定套餐，由 Agent 根据项目实际内容决定；写进 `meta.json.docs` 的文件必须真实存在：
+
+| 文档 | 什么时候写 | 什么时候跳过 |
+|---|---|---|
+| `01-positioning.md` | 有竞品、定位或生态位要讲 | 内部小工具，README 已说清 |
+| `02-architecture.md` | 有模块、进程、数据流或部署拓扑 | 单文件脚本 |
+| `03-code-tour.md` | 有可读代码且 >500 行 | 纯文档/skill 包 |
+| `04-deep-dive-*.md` | 有值得拆的核心机制 | 没有可迁移机制 |
+| `05-performance.md` | 性能敏感，或有明确成本模型 | 无运行时性能路径，不要硬编 |
+| `06-branches.md` | 有多个非发布分支且差异有意义 | 单分支或只有 CI/发布分支 |
+| `07-contribute.md` | 项目接受外部贡献 | 个人项目、不接受 PR |
+| `09-ops.md` | 有部署、配置、升级、故障排查面 | 库、skill、单机 CLI |
+| `guide.data.json` + `guide.html` | 项目适合 10 分钟图册，且 Agent 判定有价值 | `lite` 项目默认不生成 |
+
+跳过的文档不写空文件，把原因记进 `meta.analysis.skipped`。
 
 ### 01-positioning.md
 
@@ -113,7 +129,7 @@ guide.html
 
 ### 04-deep-dive-*.md
 
-按项目内容选 2–4 个主题，不要硬凑。候选：
+只有决定写 04 时，才按项目内容选 2–4 个主题，不要硬凑；没有可拆的机制就整类跳过。候选：
 
 - 算法：调度、路由、匹配、压缩、检测、渲染、搜索。
 - 性能：热路径、内存布局、零拷贝、批处理、缓存。
@@ -143,7 +159,7 @@ guide.html
 - 官方 benchmark 或本机实测；写命令。
 - 优化手法：零拷贝、对象池、批处理、锁粒度、SIMD、缓存、异步。
 - 瓶颈与反例：哪些优化其实没用。
-- 如果项目不是性能型，写清楚“不适用”的原因，不要硬编。
+- 不适用就不生成这篇；不要为空文档硬编“不适用”。
 
 ### 06-branches.md
 
@@ -153,7 +169,7 @@ guide.html
 - 读代码建议：先读哪个分支，哪些分支可以忽略。
 - 分支风险：未合并、实验性、长期偏离。
 
-数据来源：`_cache/work/<id>/work.json` 的 `branches` 字段（分支 SHA/diffstat）和本地 `git diff`。不要靠猜。
+数据来源：`_cache/work/<id>/work.json` 的 `branches` 字段（分支 SHA/diffstat）和本地 `git diff`。不要靠猜。只有 `main` 一个分支时不写这篇。
 
 ### 07-contribute.md
 
@@ -167,16 +183,26 @@ guide.html
 
 ### 08-takeaways.md
 
+写这篇前必须走一次**双 Agent 模拟面试**：把这个项目当成你自己设计、实现的作品来拷问。
+
+1. **面试官 subAgent**：根据分析档位出题，`lite` 3–5 题、`default` 6–8 题、`deep` 8–12 题。题目覆盖：定位与取舍、架构、核心机制、性能/边界、失败与替代方案、如果重做会怎么改；要追问细节，不要问百科题。
+2. **面试者 subAgent**：逐题用第一人称回答（“我为什么这么设计”），答案必须落在分析材料或代码证据上；没有证据的写“待查实”，不要编造指标、历史或用户数据。
+3. **主 Agent 整理**：去重、压缩成下面的面试卡；问答必须和可迁移想法分开。
+
+固定内容：
+
 - 5–10 条可迁移想法，固定格式：
   - 问题 →
   - 做法 →
   - 为什么好 →
   - 怎么用到我的项目。
-- 面试 Q&A 卡片 6–8 张：问题、30 秒答案、追问。
+- 面试 Q&A 卡片：数量按上面的档位；每题给问题、30 秒第一人称答案、追问。
 - “吹B一句话” 3–5 条，但要能落地，不要空话。
 - 局限与不该抄的地方。
 
 ### 09-ops.md
+
+没有部署/配置/运维面就不写这篇（库、skill、单机 CLI 通常跳过）。
 
 - 安装/部署方式。
 - 配置项、端口、数据目录、日志位置。
@@ -197,7 +223,7 @@ guide.html
 
 ## 5. guide.html 规则
 
-固定 8 段，没内容就自动隐藏：
+`guide` 是可选产物：`lite` 项目默认不做；只有项目适合“10 分钟图册”时才生成。所有 README 里的 Guide 链接必须用 GitHub Pages 绝对地址（`https://<org>.github.io/<repo>/<category>/<project>/guide.html`），不要用仓库内的 `guide.html`（GitHub 会显示源码）。生成时固定 8 段，没内容就自动隐藏：
 
 1. Hero：项目名、一句话、应用地址、关键 metadata。
 2. 60 秒心智模型：3 张卡。
@@ -230,7 +256,7 @@ guide.html
 - 优先：官方文档、论文、release notes、作者博客、Issue/PR。
 - 每个来源记录：标题、URL、日期、用它支撑哪个结论。
 - 不把搜索结果当事实；要回到原文。
-- 来源列表放 `guide.data.json.sources` 和 `01-positioning.md` 末尾。
+- 来源列表放 `meta.json.sources`，并写进实际生成的 `01-positioning.md` 或 `guide.data.json`（如果生成了）。
 
 ## 8. 安全与许可证
 
@@ -250,12 +276,15 @@ guide.html
 
 ## 10. 质量检查清单
 
-- [ ] 10 篇文档齐全（8 个主题 + 2 篇深挖）。
+- [ ] `README.md`、`08-takeaways.md`、`meta.json` 齐全。
+- [ ] `meta.json.analysis` 有 `profile` 和 `reason`，`skipped` 与实际文件一致。
+- [ ] `meta.json.docs` 列出的每个文件都存在。
+- [ ] `08-takeaways.md` 的面试卡来自双 Agent 模拟，题量与档位匹配。
 - [ ] 每个技术结论有 `file:line` 或来源。
-- [ ] 竞品对比表至少 3 个方案。
-- [ ] 架构图和数据流能对应到代码。
-- [ ] 分支差异有 diff 数据。
-- [ ] 贡献命令来自 CI/README，不是编的。
-- [ ] guide.html 能本地打开，8 段可交互。
+- [ ] 生成 `01-positioning.md` 时，竞品对比表至少 3 个方案。
+- [ ] 生成 `02-architecture.md` 时，架构图和数据流能对应到代码。
+- [ ] 生成 `06-branches.md` 时，分支差异有 diff 数据。
+- [ ] 生成 `07-contribute.md` 时，贡献命令来自 CI/README，不是编的。
+- [ ] 生成 `guide.html` 时，能本地打开，8 段可交互。
 - [ ] 没有 TODO、没有占位符、没有秘密。
 - [ ] `meta.json` 和 manifest 一致。

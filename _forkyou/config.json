@@ -53,6 +53,7 @@
   "publish": {
     "branch": "main",
     "author_name": "zhaofeifei",
-    "author_email": "vipxyz@vip.qq.com"
+    "author_email": "vipxyz@vip.qq.com",
+    "pages_base": "https://flyforkfork.github.io/ForkYou"
   }
 }

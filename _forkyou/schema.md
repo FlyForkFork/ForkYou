@@ -13,6 +13,11 @@
   "category": "01-systems",
   "depth": "L2",
   "length": "default",
+  "analysis": {
+    "profile": "default",
+    "reason": "有可运行的多模块服务，构建/测试齐全",
+    "skipped": [{"doc": "05-performance.md", "reason": "无性能敏感路径"}]
+  },
   "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
   "analyzed_at": "2026-11-07T01:30:00+08:00",
   "upstream_url": "https://github.com/example-org/example-repo",
@@ -22,13 +27,17 @@
   "language": "Rust",
   "topics": ["kvm", "tauri"],
   "branches": ["main", "feature-x"],
-  "docs": ["01-positioning.md", "..."],
+  "docs": ["README.md", "08-takeaways.md", "01-positioning.md", "..."],
   "guide": "guide.html",
   "sources": [{"title": "...", "url": "...", "date": "..."}]
 }
 ```
 
-必填：`id`、`name`、`provider`、`upstream`、`fork`、`category`、`depth`、`analyzed_commit`、`analyzed_at`、`upstream_url`、`license`、`branches`、`docs`、`guide`。
+必填：`id`、`name`、`provider`、`upstream`、`fork`、`category`、`depth`、`analyzed_commit`、`analyzed_at`、`upstream_url`、`license`、`branches`、`docs`、`analysis`。
+
+`analysis.profile` 取值 `lite` / `default` / `deep`，由 Agent 按 `RULES.md` §2 判定；`docs` 列出实际写的文档，必须包含 `README.md`、`08-takeaways.md`。旧项目没有 `analysis` 时按 `length` 推断。
+
+`guide` 可选：只有生成 `guide.html` 时才写，否则省略或写 `null`。
 
 ## `manifest.json`（仓库状态）
 
@@ -61,7 +70,7 @@
 
 `status` 取值：`new` → `prepared` → `analyzed`；失败为 `failed`；跳过为 `skipped`。
 
-## `guide.data.json`
+## `guide.data.json`（可选，生成 guide 时才写）
 
 ```json
 {

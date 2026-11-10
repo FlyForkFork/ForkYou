@@ -83,36 +83,44 @@ export function projectPath(project) {
 export function validateProjectDir(dir, opts = {}) {
   const errors = [];
   const warnings = [];
-  const depth = opts.depth || 'L2';
-  const required = [
-    'README.md', 'meta.json', '01-positioning.md', '02-architecture.md',
-    '03-code-tour.md', '05-performance.md', '06-branches.md', '07-contribute.md',
-    '08-takeaways.md', '09-ops.md', 'guide.data.json', 'guide.html'
-  ];
+  const required = ['README.md', 'meta.json', '08-takeaways.md'];
   for (const f of required) {
     if (!fs.existsSync(path.join(dir, f))) errors.push(`missing ${f}`);
   }
-  const deep = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /^04-deep-dive-.+\.md$/.test(f)) : [];
-  const need = depth === 'L3' ? 3 : depth === 'L1' ? 1 : 2;
-  if (deep.length < need) errors.push(`need at least ${need} 04-deep-dive-*.md, found ${deep.length}`);
 
   const metaFile = path.join(dir, 'meta.json');
   const meta = readJson(metaFile);
   if (!meta) errors.push('meta.json is not valid JSON');
   else {
-    for (const k of ['id', 'name', 'provider', 'upstream', 'fork', 'category', 'depth', 'analyzed_commit', 'analyzed_at', 'upstream_url', 'license', 'branches', 'docs', 'guide']) {
+    for (const k of ['id', 'name', 'provider', 'upstream', 'fork', 'category', 'depth', 'analyzed_commit', 'analyzed_at', 'upstream_url', 'license', 'branches', 'docs']) {
       if (meta[k] == null || meta[k] === '') errors.push(`meta.json missing ${k}`);
+    }
+    if (!Array.isArray(meta.docs) || meta.docs.length === 0) {
+      errors.push('meta.json missing docs');
+    } else {
+      for (const f of meta.docs) {
+        if (!fs.existsSync(path.join(dir, f))) errors.push(`meta.docs lists missing ${f}`);
+      }
+    }
+    const profile = meta.analysis?.profile || meta.length || 'default';
+    if (!meta.analysis?.profile) warnings.push('meta.json missing analysis.profile (required for new analyses)');
+    if (!['lite', 'default', 'deep'].includes(profile)) warnings.push(`unknown analysis profile: ${profile}`);
+    if (profile === 'deep') {
+      const deepDocs = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /^04-deep-dive-.+\.md$/.test(f)) : [];
+      if (deepDocs.length < 2) warnings.push(`deep profile has fewer than 2 deep-dive docs, found ${deepDocs.length}`);
     }
   }
 
   const guideFile = path.join(dir, 'guide.data.json');
-  const guide = readJson(guideFile);
-  if (!guide) errors.push('guide.data.json is not valid JSON');
-  else {
-    if (!guide.title) errors.push('guide.data.json missing title');
-    if (!Array.isArray(guide.architecture?.layers) || guide.architecture.layers.length === 0) errors.push('guide.data.json missing architecture.layers');
-    if (!Array.isArray(guide.cheats) || guide.cheats.length < 3) warnings.push('guide.data.json has fewer than 3 cheat cards');
-    if (!Array.isArray(guide.code_map) || guide.code_map.length < 5) warnings.push('guide.data.json has fewer than 5 code_map entries');
+  if (fs.existsSync(guideFile)) {
+    const guide = readJson(guideFile);
+    if (!guide) errors.push('guide.data.json is not valid JSON');
+    else {
+      if (!guide.title) errors.push('guide.data.json missing title');
+      if (!Array.isArray(guide.architecture?.layers) || guide.architecture.layers.length === 0) errors.push('guide.data.json missing architecture.layers');
+      if (!Array.isArray(guide.cheats) || guide.cheats.length < 3) warnings.push('guide.data.json has fewer than 3 cheat cards');
+      if (!Array.isArray(guide.code_map) || guide.code_map.length < 5) warnings.push('guide.data.json has fewer than 5 code_map entries');
+    }
   }
 
   const htmlFile = path.join(dir, 'guide.html');
