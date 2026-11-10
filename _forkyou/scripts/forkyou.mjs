@@ -4,7 +4,7 @@ import path from 'node:path';
 import {
   WORKSPACE, REPO_ROOT, TEMPLATES_DIR, loadConfig, parseArgs, bool,
   readJson, writeJson, readText, writeText, ensureDir, nowIso, shortSha,
-  walkFiles, formatBytes, dirSize, getToken
+  formatBytes, dirSize, getToken
 } from './lib/util.mjs';
 import {
   getAuthenticatedUser, getRepo, listOrgForks, forkInfo, getRateLimit
@@ -379,12 +379,6 @@ function renderGuideCmd(opts) {
   out(`rendered ${outFile} (${html.length} chars)`);
 }
 
-function collectProjectFiles(project) {
-  const dir = path.join(REPO_ROOT, project.path);
-  if (!fs.existsSync(dir)) throw new Error(`missing project dir: ${dir}`);
-  return walkFiles(dir).map(f => path.join(project.path, f).replace(/\\/g, '/'));
-}
-
 function syncMetaFromProject(project) {
   const dir = path.join(REPO_ROOT, project.path);
   const meta = readJson(path.join(dir, 'meta.json'));
@@ -398,6 +392,7 @@ function syncMetaFromProject(project) {
       depth: meta.depth || project.depth,
       analyzed_commit: meta.analyzed_commit || project.analyzed_commit,
       analyzed_at: meta.analyzed_at || project.analyzed_at,
+      analysis: meta.analysis || project.analysis,
       docs: meta.docs || project.docs,
       guide: meta.guide ?? null
     });
@@ -429,10 +424,12 @@ async function publish(opts) {
     if (!projects.length) throw new Error('no analyzed projects to publish');
     for (const p of projects) {
       syncMetaFromProject(p);
-      for (const f of collectProjectFiles(p)) paths.add(f);
+      paths.add(p.path);
     }
     if (!dry) saveManifest(manifest);
-    message = `docs: add ${projects.map(p => p.name).join(', ')} analysis`;
+    message = projects.length === 1
+      ? `analyze(${projects[0].name}): ${projects[0].analysis?.profile || projects[0].depth || 'default'} @ ${String(projects[0].analyzed_commit || '').slice(0, 8)}`
+      : `analyze(${projects.map(p => `${p.name}:${p.analysis?.profile || p.depth || 'default'}`).join(', ')})`;
   }
   // Render the root README from the in-memory manifest; write it only on a real publish.
   const finalManifest = bool(opts.scaffold) ? loadManifest() : manifest;
