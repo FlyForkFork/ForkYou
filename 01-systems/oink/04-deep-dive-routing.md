@@ -39,7 +39,7 @@ Oink 的选择是把这五条全部反过来：**状态机不碰系统、时间�
 
 三个入口：`on_local_event(ev, now)`（`router.rs:1644`）、`receive_message(from, msg, now)`（`router.rs:1843`）、`tick(now)`（`router.rs:1857`）。一个出口：`drain_outputs() -> Vec<Output>`（`router.rs:1575`）。一个"我下次想被叫醒的时间"：`next_deadline()`（`router.rs:1586`）。
 
-`Micros` 是 `u64`（`router.rs:76`），注释直接写「由调用方提供（服务进程用真实时钟，模拟器用虚拟时钟）」。这就是可测试性的全部秘密——不需要 mock 时钟，时钟是参数。
+`Micros` 是 `u64`（`router.rs:83`），注释直接写「由调用方提供（服务进程用真实时钟，模拟器用虚拟时钟）」。这就是可测试性的全部秘密——不需要 mock 时钟，时钟是参数。
 
 `Output` 枚举（`router.rs:215`）包含 `Send{to,msg,delivery}`、`Inject`、`LockWindows`、`SetMode`、`RestoreLocal{at}`、`Status`、`Dnd`、`CursorTrail`、`CursorTrailResume`、`CursorTrailResumeClipped`、`CursorTrailDepart`、`UserActivity`、`LocalUserActivity`、`ResetUserIdle`、`ExitVolumeKey`。每一个都对应 input 线程里的一个执行分支。**这个枚举就是路由子系统的公开 API**，想加行为就得加变体，编译器会强制你去实现它。
 
@@ -112,7 +112,7 @@ now.saturating_add(60_000_000)
 | 事实 | 位置 |
 |---|---|
 | 纯状态机、不读系统时钟、随机实例标识 | `crates/oink-routing/src/router.rs:1-5` |
-| 时间类型由调用方注入 | `crates/oink-routing/src/router.rs:76` |
+| 时间类型由调用方注入 | `crates/oink-routing/src/router.rs:83` |
 | 两档投递语义 + Reliable 的保序承诺 | `crates/oink-routing/src/router.rs:94` |
 | 决策种类与原因枚举 | `crates/oink-routing/src/router.rs:104-129` |
 | 副作用出口 `drain_outputs` / `next_deadline` | `crates/oink-routing/src/router.rs:1575,1586` |

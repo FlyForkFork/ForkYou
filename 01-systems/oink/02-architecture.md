@@ -77,7 +77,7 @@ sequenceDiagram
 
 关键点：
 
-1. **Router 不知道系统时间**。`crates/oink-routing/src/router.rs:1-5` 明确写它是"纯状态机，输入事件/对端消息/定时器 → 注入/发送/模式切换"，`Micros` 由调用方传入（`router.rs:76`）。所有定时行为通过 `next_deadline()`（`router.rs:1586`）暴露给外部定时器，Router 自己不注册 timer。
+1. **Router 不知道系统时间**。`crates/oink-routing/src/router.rs:1-5` 明确写它是"纯状态机，输入事件/对端消息/定时器 → 注入/发送/模式切换"，`Micros` 由调用方传入（`router.rs:83`）。所有定时行为通过 `next_deadline()`（`router.rs:1586`）暴露给外部定时器，Router 自己不注册 timer。
 2. **副作用全部外化**。`drain_outputs()`（`router.rs:1575`）把决策变成 `Vec<Output>`，`Output` 枚举（`router.rs:215`）里是 `Send{to,msg,delivery}`、`Inject`、`LockWindows`、`SetMode`、`RestoreLocal{at}` 这类命令，没有一个直接调用 OS API。这让"两台虚拟设备 + 虚拟时钟"能测完整流程（`crates/oink-routing/tests/` 里有 `multi_owner_top_edge.rs`、`projection_regressions.rs`）。
 3. **可靠性语义在消息上，不在连接上**。`Delivery` 只有两档（`router.rs:94`）：`Datagram` 用于游戏模式相对运动（迟到即无意义），`Reliable` 用于按键/按钮/焦点移交，且注释写明"发往同一设备的所有 Reliable 保持发送顺序：焦点移交必须先于随后的按键到达"。这个不变量是"不丢键"的根基——如果焦点移交和紧随的按键走了不同流，对端可能先收到按键而不知道该注入到哪。
 4. **实时线程永不等待普通线程**。`crates/oink-agent/src/threads/mod.rs:10-14`：「Between threads there are exactly three things: one queue per stream per end; read-only snapshots replaced whole; small fixed-size commands. A realtime thread never waits for an ordinary one: no shared lock, no file I/O, no log formatting.」
