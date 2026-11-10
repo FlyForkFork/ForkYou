@@ -1,103 +1,108 @@
-# 07 · 贡献：从 clone 到 PR 的最短路径
+# 07 · 贡献：在 0.x 的生成器里改一个值
 
-> 结论先行：这是一个零第三方运行时依赖、pnpm + Node 22.18 的 TypeScript 仓库。贡献的核心纪律只有三条：**改 seed/模型必须重算产物、加 token 必须加合同与测试、方向守卫不能绕过**。命令都可以从 `package.json` 与 CI 反推，不需要额外工具链。
+**这篇回答什么问题**：想给 `@ultime/core` 提 PR，需要什么工具链、跑哪些命令、改哪些文件、哪些坑不能踩。
 
-## 环境
+## 工具链与系统要求
 
-- Node.js **>= 22.18**（`package.json` 的 engines）。
-- pnpm **12.6.0**（`packageManager` 字段；CI 用同一版本，`.github/workflows/ci.yml:22-24`）。
-- 无需数据库、浏览器或 API key；全部构建离线完成。
+- **Node.js**：`>=22.18`（`package.json:70-72`）；CI 用 Node 22（`.github/workflows/ci.yml:22-24`）。
+- **pnpm**：`packageManager: pnpm@12.6.0`（`package.json:73`）；CI 用 `pnpm/action-setup@v4` 固定 12.6.0（`.github/workflows/ci.yml:18-20`）。
+- **OS**：纯 Node/TypeScript，无原生扩展；Linux/macOS/Windows 均可。CI 只在 `ubuntu-latest` 跑。
+- **依赖**：`pnpm install --frozen-lockfile`；仓库自带 `pnpm-lock.yaml`，不要随意升级 lockfile。
+
+## 本地构建、测试、检查
 
 ```bash
-git clone https://github.com/ultime-space/core.git
-cd core
 pnpm install --frozen-lockfile
-pnpm check
-pnpm test
+pnpm check        # vp check + check-model.ts + build.ts --check
+pnpm test         # vp test（7 个测试文件）
+pnpm typecheck    # tsc --noEmit
+pnpm build:tokens # 只重算 tokens.css / tokens.json / tokens.dtcg.json / kernel.json
+pnpm build        # 产物 + dist 库出口
+npm pack --dry-run
 ```
 
-`pnpm check` 已包含格式、lint、方向守卫与产物同源检查（`package.json` 的 scripts）；`pnpm test` 跑 5 个测试文件；`pnpm typecheck` 单独跑 `tsc --noEmit`，CI 没把它列进主闸，但本地建议跑。
+`pnpm check` 的三段分别在 `package.json:84`：格式/lint、静态守卫、产物同源。任何一段失败都不应提交。
 
-## 常用命令
+## CI 矩阵与发布流程
 
-| 命令 | 作用 | 何时用 |
-|---|---|---|
-| `pnpm check` | `vp check` + `check-model.ts` + `build.ts --check` | 提交前必跑 |
-| `pnpm test` | 5 个测试文件 | 改逻辑后必跑 |
-| `pnpm typecheck` | `tsc --noEmit` | 改类型/签名后 |
-| `pnpm build:tokens` | 生成四份产物 | 改 seed 或模型后 |
-| `pnpm build` | `tsx scripts/build.ts && vp build` | 验证发布包 |
-| `npm pack --dry-run` | 检查 npm 包内容 | 发布前 |
+CI（`.github/workflows/ci.yml`）：
 
-`pnpm build:tokens` 默认读 `theme.example.json`，也可以用 `--seed <path>` 指定别的 seed（`scripts/build.ts:30-31`）。`--check` 模式只比对不写盘，用于 CI 与 pre-commit。
+- 触发：push 到 `main`、所有 PR；
+- 权限：`contents: read`；
+- 步骤：checkout → pnpm 12.6.0 → Node 22 → `pnpm install --frozen-lockfile` → `pnpm check` → `pnpm test`。
 
-## 工作流
+发布（`.github/workflows/publish.yml`）：
 
-1. **开分支**：从 `main` 切 `feat/<topic>` 或 `fix/<topic>`；仓库没有 develop 分支（见 06 篇）。
-2. **一个主题一个提交**：`CONTRIBUTING.md` 明确要求；不要把格式化与功能混在一起。
-3. **改代码**：模型改动放 `src/model/**`，出口改动放 `src/exporters/**`，守卫改动放 `scripts/check-model.ts`。
-4. **补测试**：新增 token 必须补合同与回归；`rules/03-testing.md` 要求快照不能替代合同。
-5. **重算产物**：跑 `pnpm build:tokens`，把 `tokens.css`、`tokens.json`、`tokens.dtcg.json`、`kernel.json` 与源码同提。
-6. **本地验证**：`pnpm check && pnpm test && pnpm typecheck`。
-7. **提 PR**：说明改了什么、为什么、怎么验；涉及合同变更要单独列出。
+1. push tag `v*` 或手动触发；
+2. 校验 tag 必须等于 `v` + `package.json.version`（`publish.yml:31-37`）；
+3. 若该版本已在 npm 上，跳过发布、只做校验（`:39-47`）；
+4. `npm publish --access public --provenance`，走 Trusted Publishing / OIDC（`permissions: id-token: write`，`:9-11`、`:58-62`）；
+5. 发布后轮询 npm registry 最多 5 分钟确认可见（`:64-78`）。
 
-## 加一个 token 的检查清单
+注意 `prepublishOnly` 是 `pnpm check && pnpm test && pnpm build`（`package.json:89`），所以手动 `npm publish` 也会先跑全套检查。
 
-- [ ] `src/tree.ts` 的 `TokenType` 是否需要新类型。
-- [ ] 模型里是否有派生函数；能不能从现有 seed 算出，而不是新增一份名单。
-- [ ] `src/build.ts` 的树拼接是否挂上了新组。
-- [ ] `src/contracts.ts` 是否加了对应合同（档位/派生关系/模式完整性）。
-- [ ] `tests/core.test.ts` 是否有回归；默认合同必须仍然全过。
-- [ ] `pnpm build:tokens` 后四份产物是否更新。
-- [ ] `pnpm check` 是否通过（pre-commit 会再跑一遍）。
+## 测试怎么写
 
-## 代码风格与边界
+仓库用 Vitest（`vp test`），测试文件在 `tests/`，共 7 个、857 行。写测试时按“事实层”选文件，而不是按功能名：
 
-- **模型不带载体语法**：`src/model/**` 里不能出现 `px`/`rem`/`var()`/`color-mix`；这些只允许在 exporter 里（`AGENTS.md:22`）。
-- **方向单向**：model 不得 import build/exporters/tools/studio/contracts/index；四类模型原则上互不 import（`scripts/check-model.ts:61-69`；单文件类别覆盖有限，见 04 篇）。
-- **零第三方运行时依赖**：新增第三方 import 会被 `core-dependency` 守卫拒绝；零依赖是项目红线，`package.json` 的 dependencies 变化需人工确认。
-- **语义不进 core**：role/语义表/布局/断点/交互反馈归上层（`AGENTS.md:20`）。
+- 改 `seed.ts` / `skeleton.ts` / `motion.ts` / `light.ts` / `color/**` → `tests/core.test.ts`，断言计数、公式、模式完整性；
+- 改 `contracts.ts` → 仍在 `core.test.ts` 或新增合同断言；合同是纯函数，可以直接构造一个坏树验证 `pass: false`；
+- 改 `exporters/**` / `tools/tokens.ts` → `tests/tools.test.ts`，断言平台过滤、字节数、`--check` 语义；
+- 改 `tools/config.ts` / `semantics.ts` → `tests/tools-config.test.ts`；
+- 改 `studio/**` → `tests/studio.test.ts`、`tests/selection.test.ts`、`tests/derivation.test.ts`；
+- 改 CLI → `tests/cli.test.ts`。
 
-## 发布相关
+一个实用原则：**测试应该断言“关系”而不是“快照”**。比如“第 5 档 radius 等于 4×base”“duration.3 等于 unit×3”“选择后 total 等于各类别之和”，这些断言在改 seed 后仍然成立；只断言“274 个 token”会在每次正常扩展时误报。
 
-- 包版本、schemaVersion、engineVersion 是三个独立版本号（`rules/04-release.md:9-15`）。
-- 发布顺序：`@ultime/cli` → `@ultime/studio` → `@ultime/core`（`rules/04-release.md:21-23`）。
-- GitHub Actions 的 publish 工作流由 `v*` tag 触发，要求 tag 与 `package.json` 的 version 一致；已发布的版本会跳过（`.github/workflows/publish.yml`）。
-- 使用 npm Trusted Publishing（OIDC）与 `--provenance`，不需要长期 token。
+## 发布顺序与包依赖
 
-## 常见失败
+`@ultime/core` 依赖 `@ultime/cli ^0.1.0` 与 `@ultime/studio ^0.1.0`（`package.json` 的 `dependencies`），所以发布顺序必须是 **cli / studio 先发，core 后发**；否则 core 的 `npm publish` 会拉不到新依赖。当前仓库只包含 core，另外两个包不在这个 clone 里，发布协调需要看组织级流程（待查实：本仓库没有 workspace 配置）。
 
-1. **产物过期 / 产物不一致**：改了 seed 或模型但没跑 `pnpm build:tokens`；重跑即可。
-2. **`model-direction`**：model 里 import 了上层模块；可新建 `src/model/types.ts` 或把共享逻辑上移到 `src/tree.ts`。
-3. **`category-isolation`**：color 里 import 了 light；通过 build 层传参，不要让模型互相调用。
-4. **合同失败**：先看 `kernel.json` 的 `contracts.ids` 与失败行，再决定是修派生还是改目标；不要为了让测试过而放宽合同。
+`publish.yml` 的 tag 校验是硬门禁：tag 必须等于 `v` + `package.json.version`，否则直接失败（`.github/workflows/publish.yml:31-37`）。发布后脚本会轮询 npm registry 最多 5 分钟（`:64-78`），这是为了让“tag 已推、npm 还没可见”的窗口有一个确定的失败点。
 
-## PR 描述模板
+## PR 提交前检查清单
 
-建议按四段写，和仓库的「证据优先」文化一致：
+1. `pnpm install --frozen-lockfile` 通过，没有改 `pnpm-lock.yaml`；
+2. `pnpm check` 三段全绿（格式/lint、`check-model.ts`、`build.ts --check`）；
+3. `pnpm test` 7 个文件全绿；
+4. `pnpm typecheck` 无错；
+5. 如果改了 `src/model/**` 或 `theme.example.json`，`pnpm build:tokens` 已重跑，四份产物同批 staged；
+6. 如果改了合同/档位/出口，`README.md`、`CHANGELOG.md`、`AGENTS.md` 中受影响的部分已同步；
+7. `npm pack --dry-run` 的 files 列表没有多带源码/测试/临时文件。
 
-```text
-## 改了什么
-一句话说明范围；涉及 token/合同就列出新增或变更的 ID。
+## 文档与 AI 文档同步
 
-## 为什么
-是修 bug、补能力，还是调整设计目标？如果是合同变更，说明旧合同哪里不对。
+这个仓库把文档分成三层：`README.md` 给使用者（安装、出口、产物、边界），`DESIGN.md` 给设计决策（数值出处、为什么派生优先），`rules/*.md` + `AGENTS.md` 给贡献者与 AI（红线、验证命令、提交规则）。功能变更时三层的更新义务不同：
 
-## 怎么验
-列出跑过的命令与结果：pnpm check、pnpm test、pnpm typecheck；如果改了产物，说明四份文件都重算。
+- 改公开 API / 产物 / 配置字段 → 必须改 `README.md` 对应章节；
+- 改数值目标或派生策略 → 必须改 `DESIGN.md` 的出处说明；
+- 改目录结构 / 红线 / 验证命令 → 必须改 `AGENTS.md` 与 `rules/README.md`；
+- 只改内部实现、无行为变化 → 可以只写 `CHANGELOG.md`，并在 PR 说明“无功能性更新”。
 
-## 风险
-是否有破坏性变更（schemaVersion/engineVersion/公共入口）？是否需要同步 Studio 字段或文档？
-```
+`llms.txt` / `skills.md` / `agent.md` 是给 AI 工具的索引，不是营销材料；它们的准确性直接影响 agent 会不会从错误入口开始读。改公开出口时顺手检查这三个文件，比事后让 agent 猜要便宜。
 
-## Review 时看什么
+## Issue / PR 规则
 
-- **派生是否唯一**：新增的值能不能从 seed 算出来？如果写死了名单，先问为什么。
-- **合同是否覆盖**：新 token 有没有对应合同？没有合同的 token 等于没有验收标准。
-- **方向是否干净**：`pnpm check` 过了不代表 import 图一定对；review 时看新文件的 import 列表。
-- **产物是否同源**：四份生成物是否与源码同批提交；`build.ts --check` 是否真的跑过。
-- **文档是否同步**：新增 seed 旋钮要更新 `theme.example.json` 与 Studio 字段；新增出口要更新 09 篇的产物表。
+- 从 `main` 切 `feat/<主题>` 或 `fix/<主题>`；完成后 `git rebase main` 再合并，主分支不保留中间提交（`CONTRIBUTING.md:5-9`）。
+- 一次提交一件事；提交信息用 `type(scope): subject`，正文写“为什么”。
+- 项目接受 PR，但只有 1 位维护者（`git shortlog` 只有 UltimeLam）、0 个 open issue；没有 `good first issue` 标签可捡。**建议先开 issue 说明动机**，再提 PR。
+- 安全报告不要公开贴密钥/客户数据；见 `SECURITY.md:5-15`。
 
-## 结论
+## 3–5 个适合新手的入口
 
-贡献门槛不高：环境两条命令、验证三条命令、纪律三句话。真正的门槛是理解「派生优先」——如果你发现自己要新增一份手写名单，先停下来想想能不能从 seed 算出来。
+1. **补测试**：`tests/selection.test.ts` 和 `tests/derivation.test.ts` 是 0.7 新增的，覆盖选择/派生的边界最容易上手；也可给 `tests/core.test.ts` 加新的 seed 组合。
+2. **补导出适配器**：`src/exporters/` 只有 CSS / JSON / DTCG 三个出口；新增一个 SCSS / Swift / Compose 出口不会碰模型，是理解“树 → 翻译”的最好入口。
+3. **补中性配方**：`src/model/color/ramp.ts:50-71` 已有 `neutral / paper-night / same-warm / cool / sepia` 五个配方；加一个配方只需改 recipe 表 + 测试。
+4. **补 CLI 诊断**：`src/cli/commands/inspect.ts` 只读输出产物/平台/模式/类别/合同/颜色/诊断；可以加“按合同 ID 过滤”“输出 markdown”等只读功能。
+5. **补文档**：`README.md` / `AGENTS.md` / `rules/*.md` 对 AI 与人类都重要；文档改动不需要重算产物，但仍要过 `pnpm check` 的格式检查。
+
+## 贡献前必须知道的坑
+
+- **生成物不能手改**：`tokens.css` / `tokens.json` / `tokens.dtcg.json` / `kernel.json` 由 `pnpm build:tokens` 生成；改 `src/seed.ts` 或 `src/model/**` 后必须重跑并同批提交（`CONTRIBUTING.md:13`、`AGENTS.md` 红线）。
+- **改合同要同批改模型**：`src/contracts.ts` 里有很多硬编码档数（如 `size-monotonic` 要求 5 档 8 步、`type-steps` 要求 9 档），改 `skeleton.ts` 的档位必须同步改合同，否则 `pnpm check` 会失败（`src/contracts.ts:174-218`）。
+- **0.x 允许 Breaking**：minor 版本可含破坏性变更，但必须写进 README「版本与兼容」和 `CHANGELOG.md`（`CONTRIBUTING.md:27-30`）。
+- **`tokens.json` 的 schemaVersion 仍是 4.0.0**：与内核 `6.0.0` 不一致（`src/exporters/json.ts:32`）；如果你要修版本一致性，这是一块明确的遗留，但要同时改测试和快照。
+- **`--check` 对格式敏感**：产物逐字节比较，任何空格/换行差异都会 drift；不要用格式化工具重排生成物。
+- **旧 seed 不迁移**：0.5.0 把 `lightTint` / `ambientTint` / `rimAlpha` / `bevel` 改名为 `lightColor` / `ambientColor` / `ambientAlpha` / `key`，不提供迁移器（`CHANGELOG.md:27-31`）；升级前先读 `kernel.json` 的 `schemaVersion/engineVersion`。
+
+**一句话记住**：在这个仓库里，贡献不是“改一个 token”，而是“改 seed 或模型 → 重算四份产物 → 让合同、测试、文档一起过”；生成物和源永远同批提交。

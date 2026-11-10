@@ -1,85 +1,122 @@
-# 04 · 深挖：确定性构建与守卫体系
+# 04 · 深潜：构建守卫——让“架构约束”变成构建失败
 
-> 结论先行：`@ultime/core` 把「构建」当成一份可审计的合同，而不是一次脚本执行。同一 seed、同一版本必须逐字节产出一模一样的四份文件；谁引了不该引的包、谁把模型层写脏、谁手改了生成物，CI 和 pre-commit 都会拦住。核心手段是**纯函数装配 + 稳定序列化 + 合同断言 + 静态守卫**。
+**这篇回答什么问题**：一个生成器怎么保证“同一 seed 产出同一份结果”，又怎么保证作者不会在不知不觉中把方向、契约或载体语法写坏。
 
-## 问题：一个 token 构建器会怎么烂掉
+## 1. 问题是什么
 
-设计系统仓库最常见的腐烂路径有三条：
+这个仓库要同时守住三类东西：
 
-1. **生成物被手改**：线上缺一个颜色，工程师直接编辑 `tokens.css`；下次构建被覆盖，事故复现不了。
-2. **依赖方向倒灌**：模型层为了省事 import 了 exporter，或者颜色代码 import 了 CLI；编译能过，但包一旦被浏览器/边缘运行时引用就炸。
-3. **构建不可复现**：manifest 里写入时间戳、绝对路径或随机数，两个环境构建出不同 hash，缓存、审计、回滚都失效。
+1. **值的正确性**：274 个 token 必须满足几何递增、圆角公式、字号阶梯、动效公式、颜色对比度等约束；
+2. **结构的正确性**：树里不能出现 `role` / `mass` / `profile` 这类语义节点，不能出现 `var()` / `color-mix` / `--x` 这类载体语法；
+3. **方向与依赖的正确性**：`model/**` 不能反向 import `build` / `exporters` / `tools` / `studio`，四个模型类别不能互相 import，core 不能引第三方运行时依赖。
 
-本项目的守卫分别对准这三条：产物同源校验、模型方向守卫、类别隔离守卫、manifest 无时间戳。
+问题在于：这些约束如果只写在文档里，第一次赶工期就会被绕过；如果只靠 code review，reviewer 要同时记得 34 类合同 ID 和 5 类依赖规则。仓库的答案是 **把约束变成构建的一部分**：合同在 `buildCore` 里跑，静态守卫在 `pnpm check` 里跑，产物同源在 `build --check` 里跑。
 
-## 朴素做法为什么不够
+## 2. 朴素做法为什么不够
 
-- **只靠 code review**：人能看见明显的反向 import，但看不见 `../exporters/css` 这种相对路径，也记不住四个类别之间「谁都不能 import 谁」。
-- **只靠 TypeScript**：类型系统不约束模块图；`import { treeToCss } from '../exporters/css'` 在 model 里完全合法。
-- **只靠 ESLint**：可以配 `no-restricted-imports`，但项目要求零第三方运行时依赖，也不想为一条守卫引入整个 lint 生态；作者选择 90 行手写脚本（`scripts/check-model.ts`）。
-- **只靠快照测试**：快照能发现变化，但不能证明「变化是合法的」；`rules/03-testing.md` 明确说快照不能替代合同。
+- **只写测试**：测试可以覆盖“某个 seed 下颜色达标”，但不能保证“换一个 seed 后仍然单调/仍然有 4 档”。合同把“对所有 seed 都成立的形状”写成断言，测试只需要抽样。
+- **只写文档/评审清单**：`DESIGN.md` 的八条原则很好，但评审者会累、会漏；`check-model.ts` 用 90 行把 5 条红线变成退出码。
+- **只比对快照**：快照能发现“产物变了”，不能解释“为什么变”；合同输出 `actual / target / pass / blocking`，能直接定位是哪条规则破了。
+- **在出口里做校验**：CSS / JSON / DTCG 三个出口各写一套校验，必然漂移。这个仓库把校验放在树和合同层，出口只翻译。
 
-## 核心机制
+## 3. 核心机制
 
-### 1. seed 解析：唯一输入，稳定哈希
+### 3.1 纯函数装配 + 单一构建计划
 
-`resolveSeed` 把用户传入的 partial seed 与 `DEFAULT_SEED` 深合并：对象递归合并、数组整体替换、`null` 表示显式清空（`src/seed.ts:200-212`）。合并结果再经 `stableStringify` 按键排序序列化（`src/seed.ts:228-235`），最后用 FNV-1a 32 位得到 `seedHash`（`src/seed.ts:237-246`）。FNV 不是密码学哈希，只用于「同 seed 同版本」的快速指纹；manifest 里因此没有时间戳、没有机器名、没有绝对路径（`src/build.ts:97-129`）。
+`buildCore(input: SeedInput = {})` 不读文件、不写文件、不取时间，只做 `resolveSeed → 四个模型 → 拼树 → auditContracts → countByCategory`（`src/build.ts:57-94`）。0.6 起，`planProject` 把这次派生固定成 `ProjectBuild`：
 
-### 2. 装配：四个纯函数，一个出口
+```ts
+// src/tools/project.ts:65
+const core = buildCore(inputSeed)
+const artifacts = emitTokens(core, { platforms, output })
+const diagnostics = contractDiagnostics(core)
+return { config, core, manifest: buildManifest(core), artifacts, diagnostics }
+```
 
-`buildCore` 的顺序是固定的：`resolveSeed → deriveSkeleton → prepareLight → deriveMotion → 拼树 → auditContracts → countByCategory`（`src/build.ts:57-94`）。每个模型只接收 seed 与上游结果，不读文件、不读环境变量、不写全局缓存；`prepareLight` 甚至把颜色算出的 `shadowInk` 作为输入传给光影模型（`src/build.ts:42-49`），保证「同一枚墨」不是靠约定而是靠数据流。
+CLI、`inspect`、`scripts/build.ts`、studio 的 validate/preview/export 都消费这一份结果；0.6 的 Breaking 正是删掉 `tokens.subset` / `tokens.config.json`，避免“同一个 seed 在 CLI 和 studio 里各派生一次”（`CHANGELOG.md:14-22`）。
 
-树的拼接也是显式的：骨架全部展开，颜色只取 surface/ink/line/tone/state/scrim 六个子组，再挂 shadow/occlusion/highlight/shade/motion（`src/build.ts:70-90`）。没有隐式注册表，也没有「插件自动发现」。
+### 3.2 合同：133 行，34 类 ID，分阻断级
 
-### 3. 合同：133 条断言，分两级
+`auditContracts` 生成 `ContractReport { rows, total, failed, ids }`（`src/contracts.ts:42-47`）。行分两类：
 
-`auditContracts` 生成 133 条合同记录，归为 34 类 ID（`kernel.json`）。合同分两级：
+- **结构合同**（`blocking: true`）：space 单调、size 5 档 8 步、radius = (n−1)×base、字号 = base+steps、行高/字距固定、duration/loop/delay 公式、easing 合法/镜像/t 范围、shadow 4 档三槽、occlusion 4 档、无语义节点、模式值两端完整、无载体语法、surface.canvas 不透明、scrim 单值、单墨、状态 target hover/pressed/disabled（`src/contracts.ts:163-370`）。
+- **颜色报告**（`blocking: false`）：由 `colorRows` 把 `ColorResult.report` 的每一行转成合同行（`src/contracts.ts:144-156`），包括面阶、线、墨、色族文字/边框/前景、色相分离、不可达填充、端点偏离等。
 
-- **结构合同（blocking）**：space 18 档严格递增且为正（`src/contracts.ts:163-173`）、size 5 档每档 +8（`src/contracts.ts:174-183`）、radius 必须等于 `(n−1)×base`（`src/contracts.ts:184-189`）、字号必须是 `base+steps` 且递增（`src/contracts.ts:190-201`）、动效必须由 unit×n 派生（`src/contracts.ts:221-231`）、阴影必须 4 档且层数正确（`src/contracts.ts:280-290`）、树里不得出现 role/roles/mass/profile 语义节点（`src/contracts.ts:302-311`）、不得出现 `var(`/`color-mix`/`--` 载体语法（`src/contracts.ts:314-323`）。
-- **颜色报告（非 blocking）**：面/线/墨/色族的对比度记录为 pass/warn，`failed` 只统计 `blocking && !pass` 的行（`src/contracts.ts:374-375`）。所以颜色偏差不会让构建失败，但会写进 manifest 的 `color.report`，可被上层策略读取。
+`failed` 只数 `blocking && !pass`（`src/contracts.ts:374-375`）；颜色偏差只进 manifest 和诊断 warn，不会让构建失败。这是很关键的分级：结构错误必须阻断，颜色是设计取舍，允许 `contrastAllow` 把 deviation 降为 warn（`src/model/color/derive.ts:939-945`）。
 
-### 4. manifest：把构建结果变成可审计对象
+### 3.3 五类静态守卫
 
-`buildManifest` 输出 schemaVersion 6.0.0、engineVersion 0.5.0、单位、主题模式、完整 seed、`seedHash`、动效缓动、counts、contracts 的 total/failed/ids、color 的 levels/report 以及 artifacts 清单（`src/build.ts:97-129`）。它不包含「构建时间」——这不是疏忽，而是可复现性的必要条件。`tests/core.test.ts:225-230` 专门断言 manifest 里没有时间戳字段。
+`scripts/check-model.ts` 不跑构建，只扫源码：
 
-### 5. 方向守卫：静态扫描 import
+1. **core-dependency**：`node:` 之外的非相对 import 只允许 `@ultime/studio` 在 `src/studio/**`、`@ultime/cli` 在 `src/cli/**`；
+2. **core-scope**：相对 import 不得逃出 `src/`；
+3. **model-direction**：`model/**` 不得 import `build` / `exporters` / `tools` / `studio` / `contracts` / `index`；
+4. **category-isolation**：`model/<category>/**` 之间不得互相 import；
+5. **model-forbidden-token**：把默认 seed 构建出的树序列化，禁止 `var(` / `color-mix` / `--[a-z]` 出现（`scripts/check-model.ts:38-82`）。
 
-`scripts/check-model.ts` 把守卫拆成五个检查：
+### 3.4 产物同源：`build --check`
 
-- **core-dependency**：除 `node:` 外，非相对 import 一律拒绝；唯一例外是 `src/studio/**` 可以用 `@ultime/studio`，`src/cli/**` 可以用 `@ultime/cli`（`scripts/check-model.ts:43-51`）。这保证 core 的运行时依赖只有两个同作者包，模型层永远零第三方依赖。
-- **core-scope**：禁止 `../..` 越出 core 根目录（`scripts/check-model.ts:54-58`）。
-- **model-direction**：`src/model/**` 不得 import `build`、`exporters`、`tools`、`studio`、`contracts` 或 `index`（`scripts/check-model.ts:61-65`）。
-- **category-isolation**：`model/<category>/` 子目录之间不得互相 import；需要注意 `skeleton.ts`、`light.ts`、`motion.ts` 是单文件，`categoryOf` 的正则只识别子目录（`scripts/check-model.ts:33-36`），因此这三者与 color 的隔离当前主要靠约定，守卫覆盖有限（推断）。需要共享的类型可新建 `src/model/types.ts` 或上移到 `src/tree.ts`（`scripts/check-model.ts:66-69`）。
-- **model-forbidden-token**：构建默认 seed 后，把整棵树序列化，用正则检查 `var(`、`color-mix`、`--[a-z]` 是否出现（`scripts/check-model.ts:74-82`）。模型只能产出值、量纲与 `$type`，载体语法属于出口。
+`scripts/build.ts:38-48` 在 `--check` 模式下不写盘，把内存生成的每个文件与磁盘内容做字符串比较；不一致就列出 drift 并以退出码 1 结束（`:73-80`）。`pnpm check` 把它串在 `vp check && tsx scripts/check-model.ts && tsx scripts/build.ts --check` 后面（`package.json:84`）。
 
-### 6. 产物同源：逐字节比对
+### 3.5 一条合同行长什么样
 
-`scripts/build.ts --check` 不写盘，只把内存中生成的四份产物与磁盘上的文件逐字节比较；不一致时打印 drift 并以退出码 1 结束（`scripts/build.ts:44-55`、`85-92`）。pre-commit 钩子先跑 `vp staged`，再跑 `build.ts --check`，最后跑 `check-model.ts`（`.githooks/pre-commit:23-30`）；CI 则把 `pnpm check` 作为主闸（`.github/workflows/ci.yml:30-34`）。任何人改了 seed 或模型却没重新生成，提交阶段就会失败。
+`row()` 把所有检查归一到同一结构（`src/contracts.ts:58-76`）：`id`（如 `space-monotonic`）、`blocking`、`pass`、`actual`、`target`、`message`。这样 CLI 只需要判断 `blocking && !pass`，不需要知道每条规则的具体逻辑；`inspect --json` 也能原样输出，让上层工具按 `id` 聚合。
 
-## 代码证据
+`monotonic(values, step)` 检查“严格递增且每步相等”，`nearly(a,b)` 用 0.01 容差比较浮点，`bezierValid` 检查四个控制点的 x 在 `[0,1]`、y 不限，`easingFamilyValid` 额外检查 `standard` 首尾与对称、`accelerate` 是 `decelerate` 的镜像、`decelerate` 的 d1=0、`s1=0`、`s3=1`（`src/contracts.ts:78-104`）。这些辅助函数都是纯函数，测试可以直接喂边界值，不需要先构建整棵树。
 
-1. **稳定合并与哈希**：`src/seed.ts:200-246`，数组替换、null 清空、键排序、FNV-1a 一条链。
-2. **唯一装配点**：`src/build.ts:57-94`，四模型顺序固定，树拼接显式。
-3. **结构合同失败即失败**：`src/contracts.ts:374-375` 只把 blocking 的失败计入 `failed`，`scripts/build.ts:94` 据此退出 1。
-4. **无时间戳 manifest**：`src/build.ts:97-129` 与 `tests/core.test.ts:225-230` 的断言互相印证。
-5. **五组检查**：`scripts/check-model.ts:33-82`，categoryOf + import 扫描 + 默认树正则。
-6. **产物同源**：`scripts/build.ts:44-55` 的逐字节比对与 `.githooks/pre-commit:23-30` 的提交前重算。
+### 3.6 诊断如何汇入 CLI 与 studio
 
-## 复杂度与边界
+`planProject` 把合同行转成 `BuildDiagnostic[]`：`code` 是 `contract.${id}`，`level` 由 `blocking` 决定，`path` 固定 `/tokens/seed`（`src/tools/project.ts:53-62`）。CLI 的 `build` 在 `errors.length > 0 || contracts.failed > 0` 时退出 1（`scripts/build.ts:82-83`）；`inspect` 则是只读，把诊断打印出来但不影响退出码。
 
-- **构建复杂度**：骨架 O(档位数)，颜色 O(色族数 × 求解步数)，光影 O(层数)，动效 O(轴数)；整体是常量级，不随 token 总数超线性增长。实际构建时间待实测（项目未提供 benchmark）。
-- **守卫边界**：`check-model.ts` 是静态文本扫描，不是 TypeScript AST；它按正则匹配 `import`/`from` 说明符，能覆盖常见的静态与 `import()` 形式，但对 `require()`、路径别名、条件导出等覆盖有限（推断：基于源码实现判断）。它也不是安全边界，只是方向约定。
-- **合同边界**：结构合同能保证「派生一致」，不能保证「设计好看」；颜色报告不阻断，需要上层自己决定是否把 warn 升级为失败。
-- **确定性边界**：FNV-1a 32 位存在碰撞可能；它用于指纹而非安全校验。项目没有把它当作内容寻址存储的 key。
+studio 的 `validate` 做了两层裁剪：先只保留 `contract.*` 与 `other` 两组，再把合同组截前 12 条（`src/studio/index.ts:150-155`）。这是产品判断——配置器 UI 一次显示 133 条合同没有意义，先让用户看到最靠前的失败，再让他主动展开。注意这意味着 **studio 的 validate 不等于 CLI 的 build 门禁**：前者可能只显示 12 条，后者按全部 `failed` 判断。
 
-## 取舍
+### 3.7 新增一条合同要改哪几处
 
-**用 90 行手写守卫替代 ESLint 规则**。代价是覆盖不如成熟 lint 全面，收益是零依赖、启动快、规则与仓库结构强绑定。对于只有 71 个文件的内核，这是合理的懒办法；如果仓库长到几百个文件，应该换成基于 TypeScript Program 的检查。
+假设要加一条“`space` 的最大档不得小于 120”。正确路径是：
 
-**结构合同严格、颜色合同宽松**。这是把「可计算」与「需审美」分开：字号/圆角/动效是纯数学，失败一定是 bug；颜色对比度受色域与品牌限制，失败可能是合理取舍。这个分级比「全部阻断」或「全部警告」都更实用。
+1. 在 `auditContracts` 里用 `rows.push(row('space-max', true, max >= 120, max, '>= 120', '...'))` 追加一行（`src/contracts.ts:163-173` 是现成的 space 段）；
+2. 决定 `blocking`：这是结构规则，应设 `true`；
+3. 如果要让 CLI 输出可读，`row` 的 `message` 要写“实际/目标”；
+4. 在 `tests/core.test.ts` 加一个坏 seed，断言 `failed > 0` 且 `ids` 含 `space-max`；
+5. 更新 `README` 或 `rules/README.md` 的合同说明（如果对外承诺了合同列表）。
 
-## 可迁移的三件事
+不要做的是：把新规则塞进 exporter（出口不该知道业务规则）、或只在测试里断言（CI 不会在每个 seed 上跑）。合同是“对所有 seed 都成立”的规则，测试只是抽样；两者的职责不同。
 
-1. **把生成物同源校验放进提交钩子**：比「请勿手改」的注释有效一百倍；`--check` 模式是低成本高收益的标配。
-2. **manifest 去掉时间戳**：可复现构建的第一步；需要审计时间就放到外部发布记录，不要污染产物。
-3. **用目录边界做架构约束**：`model` 不得 import `exporters` 这类规则，写成 90 行脚本就能在 CI 里强制执行，不必等 code review。
+## 4. 代码证据
+
+| 证据 | 说明 |
+| --- | --- |
+| `src/build.ts:57-94` | 纯函数装配点：输入输出都可序列化，无 I/O、无时间 |
+| `src/tools/project.ts:65-115` | 一次 `buildCore` 产出 core / manifest / artifacts / diagnostics |
+| `src/contracts.ts:159-375` | 133 行合同生成；`failed` 只数 blocking |
+| `src/contracts.ts:144-156` | 颜色行统一 `blocking: false` |
+| `scripts/check-model.ts:38-82` | 五类静态守卫与默认树序列化检查 |
+| `scripts/build.ts:38-48` | `--check` 逐字节比对，不写盘 |
+| `src/build.ts:96-127` | manifest 无时间戳/绝对路径，只留版本、seed、seedHash、motion、counts、contracts、color |
+
+## 5. 复杂度与边界条件
+
+- **合同成本**：`auditContracts` 在树构建后跑一次；`semanticNodes` / `modeCompleteness` / `carrierSyntax` 各遍历整棵树一次，`countByCategory` 再遍历一次。对 274 个 token 是常数级，真正的成本在颜色派生（见 05）。
+- **合同行数不等于合同类数**：133 行 / 34 类，颜色报告会按“族 × 模式 × 面”重复，所以看到 `total: 133` 不要以为有 133 条独立规则。
+- **`failed` 的语义很窄**：只统计 `blocking && !pass`；颜色 deviation 不会让 `failed > 0`，必须看 `manifest.color.levels` 或诊断。
+- **静态守卫不是 AST**：`check-model.ts` 用正则匹配 import，对 `import(variable)`、`require()`、类型层 re-export 等写法覆盖有限；`categoryOf` 只识别 `model/<category>/` 子目录，`model/skeleton.ts` / `model/light.ts` / `model/motion.ts` 这类单文件类别实际上不受 `category-isolation` 保护（`scripts/check-model.ts:33-36`、`:66-69`）。这是已知盲区。
+- **FNV-1a 只有 32 位**：`seedHash` 用于指纹，不用于安全；碰撞概率不是零（`src/seed.ts:237-246`）。
+- **诊断路径不精确**：`contractDiagnostics` 把所有合同错误的 `path` 都写成 `/tokens/seed`（`src/tools/project.ts:53-62`），颜色合同的定位仍要靠 `pair` 文本。
+
+## 6. 取舍与局限
+
+1. **合同与模型耦合**：合同直接 import `SkeletonResult` / `ColorResult` 等模型类型（`src/contracts.ts:13-19`），模型改字段会同时改合同；好处是“同一份事实”不被复制，代价是模型 API 不是稳定边界。
+2. **颜色合同是报告不是门禁**：`tone-fill-unreachable` / `hue-separation` 等只影响 `level`，不影响 `failed`；如果团队把“颜色必须全 pass”当发布条件，需要自己读 `manifest.color.levels` 并加门禁。
+3. **`--check` 是字符串比较**：能发现任何字节变化，也会把“仅换行/格式化”的变化当成 drift；这是有意的（生成物必须同源），但会让格式化工具与生成器互相打架。
+4. **`tokens.json` 的 `schemaVersion: '4.0.0'` 与内核 `6.0.0` 不一致**（`src/exporters/json.ts:32`、`src/version.ts:8`），说明“版本单一来源”还没有做到所有出口；这是当前代码的真实遗留。
+5. **没有外部 benchmark**：守卫与合同本身没有性能预算，构建变慢不会让 CI 失败；只有人工观察。
+
+## 7. 我能偷什么
+
+- **把“架构约束”写成可执行检查**：哪怕只是 90 行正则 + 序列化检查，也比一份“请遵守分层”的文档更能防止回退。
+- **合同分级**：结构错误阻断、设计偏差只报告；不要把“颜色不完美”与“半径公式破了”混成同一个失败级别。
+- **单一构建事实**：让 CLI、配置器、脚本共享一个 `ProjectBuild`，比让每个入口各自调用 `buildCore` 更不容易漂移。
+- **产物同源检查放进 CI**：`--check` 不写盘，只比较；这是生成器项目最划算的一条防线。
+- **manifest 去掉时间戳**：可复现的构建记录不包含“什么时候构建的”，只包含“用什么输入、什么版本、什么结果”。
+
+**一句话记住**：这个项目的“守卫”不是测试套件的别名，而是把模型约束、依赖方向和产物同源都变成退出码——构建失败比评审记忆可靠。

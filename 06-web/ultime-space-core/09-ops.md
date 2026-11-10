@@ -1,92 +1,116 @@
-# 09 · 运维：安装、配置、产物与回滚
+# 09 · 运维：一个离线构建工具怎么上线、排障、升级
 
-> 结论先行：`@ultime/core` 是**离线构建工具**，没有服务进程、数据库、网络调用或遥测。运维面很小：装包、跑 CLI、管四份产物、按版本回滚。真正的风险不在运行时，而在「seed 泄漏商业设计」与「生成物被手改」两件事上。
+**这篇回答什么问题**：把 `@ultime/core` 放进项目后，怎么装、怎么配、出问题看哪里、升级会不会炸。
 
-## 安装
+## 安装/部署方式
 
-```bash
-# Node >= 22.18
-npm install -D @ultime/core
-# 或
-pnpm add -D @ultime/core
-```
-
-包同时提供库入口与 CLI：
+`@ultime/core` 是构建期库和 CLI，不是服务；没有守护进程、端口、数据库或定时任务。
 
 ```bash
-npx ultime init          # 生成最小 ultime.config.json
-npx ultime build         # 生成四份产物
-npx ultime build --check # 只比对不写盘，CI 用
-npx ultime schema        # 输出 Studio 可用的 schema
+pnpm add @ultime/core
+# 或已在 devDependencies 中：
+pnpm install --frozen-lockfile
 ```
 
-`bin/ultime.js` 只有 6 行，真正逻辑在 `dist/cli.js`；`init` 默认只把输出目录设为 `src/styles/tokens`，不覆盖已有配置（`src/cli/commands/init.ts:7-23`）。
+要求 Node.js `>=22.18`（`package.json:70-72`）。安装后：
 
-## 配置
+- 程序化调用：`import { buildCore } from '@ultime/core'`，或 `import { planProject } from '@ultime/core/tools'`；
+- CLI：`pnpm exec ultime <command>`（bin 名 `ultime`，`package.json:10-12`）；
+- 配置器：`import { themeStudio } from '@ultime/core/studio'`（会引入 `@ultime/studio` 依赖）。
 
-配置文件支持 JSONC（注释会被手写状态机剥离，`src/seed.ts:249-296`），CLI 默认读 `./ultime.config.json`。配置只有两层：顶层 `$schema`/`tokens`，所有选项都在 `tokens` 下：
+部署到 CI 时只需把 `pnpm build:tokens --check` 放进流水线；产物可以入库，也可以作为构建产物上传。
+
+## 配置项、目录与日志
+
+`ultime init` 会写一份 `ultime.config.json`（JSONC）。可用字段只有：
 
 ```jsonc
 {
-  "$schema": "https://ultime.dev/schema/ultime.config.json",
   "tokens": {
-    "seed": { "color": { "primaryHue": 222 }, "skeleton": { "radius": { "base": 4 } } },
-    "output": "src/styles/tokens",
+    "seed": {},                    // 对象，或指向 seed 文件的相对路径字符串
     "platforms": ["css", "json", "dtcg"],
-    "subset": { "space": [4, 8, 12], "size": [32, 40], "radius": [4, 8], "fontSize": [14, 16], "lineHeight": [1.4], "letterSpacing": [0], "motionDuration": [100], "motionDelay": [50], "motionLoop": [1000] },
-    "semantics": { "template": "default", "overrides": {} }
+    "output": "ultime-tokens",     // 产物目录
+    "semantics": {                 // 可选：语义表
+      "template": {},
+      "overrides": {}
+    }
   }
 }
 ```
 
-仓库根还有一个 `tokens.config.json`，它只是九维 subset 的示例片段，不是完整 CLI 配置；不要把它直接喂给 `ultime build`。
+`validateConfig` 只认 `tokens.seed / platforms / output / semantics`，未知字段直接报错（`src/tools/config.ts`）。`platforms` 为空、`output` 为空都会被配置器判 error（`src/studio/index.ts:133-147`）。
 
-校验规则在 `src/tools/config.ts:44-131`：未知字段报错、seed 可为对象或路径、subset 九维必须全给、platforms 不能为空、semantics 只接受 role.slot 覆盖。`seed` 写成文件路径时，路径相对配置文件解析（`src/cli/config-file.ts:14-44`）。
+- **数据目录**：默认 `ultime-tokens/`，输出 `tokens.css` / `tokens.json` / `tokens.dtcg.json` / `kernel.json`；选择导出不含 `kernel.json`。
+- **日志**：没有日志文件；CLI 把摘要和诊断打到 stdout/stderr（`scripts/build.ts:50-80`）。`ultime inspect --json` 输出机器可读的产物、平台、模式、计数、合同、颜色、诊断（`src/cli/commands/inspect.ts:54-69`）。
 
-## 产物
+## 资源需求
 
-一次构建生成四份文件（`scripts/build.ts:33-39`）：
+- 无网络、无外部服务；Node 进程一次构建。
+- 本机实测 `buildCore` 约 90ms、四份产物合计约 319KB（见 05）；CPU/内存没有官方基准，待查实。
+- 磁盘占用主要是产物 + 依赖；DTCG 文件最大（默认 186KB）。
 
-| 文件 | 用途 | 是否可手改 |
-|---|---|---|
-| `tokens.css` | Web CSS 变量，含 light/dark 与 reduced-motion | 否 |
-| `tokens.json` | 通用 JSON 快照 | 否 |
-| `tokens.dtcg.json` | DTCG 标准格式，供下游工具消费 | 否 |
-| `kernel.json` | 构建 manifest：seed、counts、合同、颜色报告、artifacts | 否 |
+## 日常操作手册
 
-`kernel.json` 是排障入口：先看 `contracts.failed` 是否为 0，再看 `color.levels` 有没有 warn，最后核对 `seedHash` 是否与预期 seed 一致。它不含时间戳，所以不能用来判断「哪次构建」，只能判断「哪份输入」。
+**首次接入**：`ultime init` 生成 `ultime.config.json` → 改 `tokens.seed` 指向品牌 seed（或直接内联对象）→ `ultime build` → 把 `ultime-tokens/` 加进 `.gitignore` 或按需入库。仓库自己的选择是入库，因为产物要参与 diff 与 `--check`。
 
-如果配置了 `semantics`，还会多一份 `semantics.json`，只写 token 路径与角色映射，不写值（`src/tools/semantics.ts:159-166`）。
+**日常改主题**：改 seed → `pnpm build:tokens` → 看 CLI 摘要的 `seedHash` 与合同失败数 → `git diff` 只应出现预期文件 → 提交源与产物。不要把生成物当源码改，也不要把产物排除在 diff 之外。
 
-## 升级
+**接入 CI**：两步足够——`pnpm install --frozen-lockfile` 后跑 `pnpm check`；`check` 里的 `build --check` 会在“源码新、产物旧”时退出 1。如果项目不在 pnpm workspace 里，也可以直接跑 `npx ultime build --check`。
 
-- **版本策略**：包版本、schemaVersion、engineVersion 三者独立（`rules/04-release.md:9-15`）；升级前先看 `kernel.json` 的 `schemaVersion` 是否变化。
-- **升级步骤**：改 `package.json` 版本 → `pnpm install` → 跑 `pnpm build:tokens` → `pnpm check` → 对比新旧 `kernel.json` 的 counts/contracts → 提交产物。
-- **破坏性变更**：0.x 阶段 API 可能变；根入口与四个子入口（`./seed`、`./exporters`、`./tools`、`./studio`）都是公共面，升级时优先看 exports 是否变动。
-- **CI 固定版本**：生产项目建议锁死 `@ultime/core` 的精确版本，不要用 `^`，因为 0.x 的 minor 也可能破坏。
+**发布前**：对比上一版 `kernel.json` 的 `schemaVersion` / `engineVersion` / `counts` / `contracts.ids`；如果 `counts` 变了，确认是预期新增；如果 `contracts.total` 变了，确认合同代码与模型同批改过。
 
-## 回滚
+**多品牌/多项目**：一个 seed 一份配置、一个输出目录；不要试图用一份 `tokens.css` 覆盖多个品牌。若要复用构建，用 `planProject` 在 Node 里循环多个 seed，而不是在 CLI 里传多个配置——CLI 一次只处理一个 `tokens` 区。
 
-1. **包回滚**：`pnpm add -D @ultime/core@<old-version>`，再 `pnpm build:tokens` 重算；不要保留旧产物混用。
-2. **产物回滚**：如果产物已提交，`git revert` 对应提交；不要手恢复单个 CSS 文件，否则与 seed 不一致。
-3. **schema 回滚**：如果 `schemaVersion` 变了，旧产物可能无法被新代码读取；按 `rules/04-release.md` 的版本顺序回退三个包（cli → studio → core）。
+## 资源与容量规划
 
-## 安全
+- **CPU**：单次构建单核；没有并行/worker。CI 里把它当普通 Node 脚本即可。
+- **内存**：树 + 三份字符串，默认规模在几十 MB 内；DTCG 186KB、CSS 59KB，真正的内存峰值来自 `JSON.stringify` 的中间字符串（推断，未做 heap profile）。
+- **磁盘**：默认四份产物约 319KB；如果每天构建并提交，git 仓库会随历史增长，建议对 `tokens.dtcg.json` 这类大文件接受 diff 噪声，或用 `--check` + 构建产物上传替代入库。
 
-- **无网络**：构建不发起任何网络请求，`SECURITY.md` 明确说明这是离线构建器；供应链风险主要来自 npm 依赖，而 core 的运行时依赖只有同作者两个包。
-- **seed 可能含商业信息**：品牌色相、比例、字体栈会写进 `kernel.json` 的 `seed` 字段；如果仓库公开，先确认这些参数能不能公开。不能公开就把 seed 放私有配置仓库，产物入库前删掉 `kernel.json` 或脱敏。
-- **生成物完整性**：`build.ts --check` 是唯一可信的完整性检查；不要用「文件修改时间」判断产物是否最新。
-- **权限**：CLI 只需要读写项目目录与输出目录，不需要 sudo、不需要全局安装；`npx` 临时执行即可。
+## 可观测性
 
-## 监控与排障
+看四个地方：
 
-没有运行时监控可做。构建期排障按这个顺序：
+1. **`kernel.json`**：`schemaVersion` / `engineVersion` / `seedHash` / `counts` / `contracts` / `color.levels`。同 seed 的 `seedHash` 应稳定。
+2. **CLI 摘要**：token 总数、分类计数、合同总数/失败数/覆盖类数、产物个数（`scripts/build.ts:51-66`）。
+3. **诊断**：`planProject.diagnostics` 的 `level/code/message/path`；合同失败 code 是 `contract.<id>`，`blocking` 为 error，颜色为 warn（`src/tools/project.ts:53-62`）。
+4. **颜色报告**：`manifest.color.levels` 的 pass/warn/deviation 计数；默认 seed 是 `pass: 106`，非 pass 才需要看 `report` 明细。
 
-1. `pnpm build:tokens --check` 看是否有 drift；有则重跑生成。
-2. 看 `kernel.json` 的 `contracts.failed`；非 0 时按 `contracts.ids` 定位。
-3. 看 `color.report` 的 warn；颜色偏差不阻断，但可能是品牌验收问题。
-4. 看 `seedHash`；与预期不符说明 seed 文件读错或合并逻辑变了。
+## 故障模式与排查
 
-## 结论
+| 现象 | 可能原因 | 排查 |
+| --- | --- | --- |
+| `配置：未知字段 ...` | `ultime.config.json` 拼错字段 | 只保留 `tokens.seed/platforms/output/semantics` |
+| `tokens.seed 是文件路径：请先读取成对象` | 直接把字符串传给 `planProject` | 先 `readJsonc` / `readSeedFile`，CLI 已处理 |
+| `build --check` 报“产物与源不一致” | 改了 seed/模型没重跑 `build:tokens`，或手改了生成物 | 跑 `pnpm build:tokens` 后提交四份产物 |
+| `contracts.failed > 0` | 结构合同失败（几何/动效/光影/树结构） | 看 `kernel.json.contracts.ids` 和诊断里的 `actual/target` |
+| `color.levels.warn > 0` | 颜色目标不可达或偏离 | 看 `manifest.color.report` 的 `pair/reason`；可调 `contrastAllow`，但别滥用 |
+| `semantics.invalid` | 语义表引用了不存在的路径或环 | `validateSemantics` 检查路径、`@role.slot` 引用与环（`src/tools/semantics.ts`） |
+| `ERR_PNPM_BROKEN_LOCKFILE` | pnpm 版本低于 `pnpm@12` | 用 `corepack`/pnpm 12.6.0，不要用 pnpm 9 读 lockfile |
+| `tokens.json.schemaVersion` 还是 4.0.0 | 已知遗留，`src/exporters/json.ts:32` 硬编码 | 升级判断以 `kernel.json` 的 `6.0.0` 为准，或提交修复 |
 
-运维成本极低：装包、跑命令、管四份文件。真正需要制度化的是**版本锁定、产物同源、seed 保密**三件事；把这三件写进 CI 与发布清单，就算运维完成。
+## 升级检查清单
+
+从 0.5.x 升到 0.7.x（或未来 0.8）时，按这份清单走：
+
+1. **读 CHANGELOG 的 Breaking 段**：0.5.0 改光影命名、0.6 删 `tokens.subset`、0.7 新增 studio 选择 API；0.8 又会收紧出口。0.x 的 minor 不等于兼容。
+2. **对比两份 kernel**：旧产物的 `schemaVersion/engineVersion/counts/contracts.ids/color.levels` 与新构建逐项比；`engineVersion` 变是算法变，`counts` 变是树变，两者都要有解释。
+3. **跑 `pnpm check`**：格式/守卫/产物同源三段；如果 `--check` 失败但源码没改，通常是新版本改变了序列化格式，按新版重跑 `build:tokens`。
+4. **看依赖**：`@ultime/cli` / `@ultime/studio` 的版本要与 core 匹配；core 的 `package.json` 已写 `^0.1.0`，跨大版本要一起升。
+5. **回滚演练**：把包 pin 回旧版，用旧版重跑构建，确认旧产物能覆盖新产物；不要用新版生成的产物配旧版引擎。
+
+## 安全注意事项
+
+- 内核离线运行，不发起网络请求（`SECURITY.md:11-14`）；主要风险是 **seed / theme 里写入凭据或内部信息**，以及产物被手改后与源不一致。
+- 生成物可能被提交到公开仓库：seed 中的品牌色、内部命名、注释都可能泄露；提交前检查 `tokens.json` 的 `seed` 字段（它包含完整 seed）。
+- 依赖供应链：`@ultime/cli` / `@ultime/studio` 是仅有的第三方运行时依赖；发布走 npm Trusted Publishing + provenance（`.github/workflows/publish.yml:9-11`、`:58-62`）。
+- 不要把 `selection` / `derivation` 当成安全边界：它们只过滤/重算已构建的树，不执行用户代码（`src/studio/derivation.ts:1-6`）。
+
+## 升级与回滚
+
+- **版本语义**：`schemaVersion` 管树与合同字段的兼容面，`engineVersion` 管派生实现（`README.md:282-288`）。0.7.0 只升 `engineVersion`，树/合同不变；0.5.0 是契约刷新（`rim` → `highlight.ambient` 等）。
+- **升级前**：对比新旧 `kernel.json` 的 `schemaVersion / engineVersion / counts / contracts`；如果 `schemaVersion` 变，先读 `CHANGELOG.md`，0.x 不提供迁移器。
+- **回滚**：把包版本 pin 回旧版，用**旧版重新生成**产物；不要用新版产物配旧版引擎。产物与 seed 同批回滚。
+- **CI 建议**：`pnpm check`（含 `build --check`）作为合并门禁；发布 tag 必须是 `v` + `package.json.version`，否则 publish workflow 直接失败（`.github/workflows/publish.yml:31-37`）。
+
+**一句话记住**：它没有“线上运维”，只有“构建产物治理”：看住 `kernel.json` 的版本/计数/seedHash，盯住 `contracts.failed` 和 `color.levels`，升级时先比 manifest 再换包。

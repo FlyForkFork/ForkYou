@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:27.215Z",
+  "updated_at": "2026-11-10T14:27:36.811Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -266,19 +266,19 @@
       "stars": 0,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-07T18:49:52.043Z",
-      "analyzed_commit": "a0dd5ddfe2eab3298e76b90d6ef9aae216f8b26a",
-      "analyzed_at": "2026-11-07T18:03:05.579Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:36.806Z",
+      "analyzed_commit": "15fd53ea8a95b243982ff61410facf9e852cab8f",
+      "analyzed_at": "2026-11-10T21:20:22+08:00",
       "docs": [
         "README.md",
         "01-positioning.md",
         "02-architecture.md",
         "03-code-tour.md",
-        "04-deep-dive-color-derivation.md",
         "04-deep-dive-build-guards.md",
+        "04-deep-dive-color-derivation.md",
+        "04-deep-dive-selection-pipeline.md",
         "05-performance.md",
-        "06-branches.md",
         "07-contribute.md",
         "08-takeaways.md",
         "09-ops.md"
