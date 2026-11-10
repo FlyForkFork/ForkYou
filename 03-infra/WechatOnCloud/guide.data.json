@@ -18,7 +18,7 @@
     "stars": 3967,
     "language": "TypeScript + Docker/Shell",
     "commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
-    "updated": "2026-11-07"
+    "updated": "2026-11-10"
   },
   "links": {
     "github": "https://github.com/Gloridust/WechatOnCloud",
@@ -28,7 +28,7 @@
   "stats": [
     {
       "label": "代码规模",
-      "value": "约 1.4 万行 TS/TSX/Shell"
+      "value": "14,977 行 TS/TSX/Shell"
     },
     {
       "label": "语言",
@@ -212,7 +212,7 @@
           "api",
           "auth"
         ],
-        "code": "panel/server/src/index.ts:302-334"
+        "code": "panel/server/src/index.ts:245-334"
       },
       {
         "title": "拿实例列表",
@@ -229,7 +229,7 @@
           "api",
           "nginx"
         ],
-        "code": "panel/server/src/index.ts:1886-1903"
+        "code": "panel/server/src/index.ts:1886-1906"
       },
       {
         "title": "WebSocket 升级",
@@ -238,7 +238,7 @@
           "api",
           "kasm"
         ],
-        "code": "panel/server/src/index.ts:1947-2036"
+        "code": "panel/server/src/index.ts:1947-2035"
       },
       {
         "title": "单连接接管",
@@ -247,7 +247,7 @@
           "api",
           "kasm"
         ],
-        "code": "panel/server/src/index.ts:1085-1141"
+        "code": "panel/server/src/index.ts:1092-1141"
       },
       {
         "title": "输入中文",
@@ -265,7 +265,7 @@
           "api",
           "lifecycle"
         ],
-        "code": "panel/server/src/index.ts:1738-1773"
+        "code": "panel/server/src/index.ts:1738-1787"
       },
       {
         "title": "升级实例",
@@ -273,7 +273,7 @@
         "highlight": [
           "lifecycle"
         ],
-        "code": "panel/server/src/docker.ts:868-926"
+        "code": "panel/server/src/docker.ts:880-926"
       }
     ]
   },
@@ -328,13 +328,13 @@
     },
     {
       "path": "panel/server/src/host-guard.ts",
-      "role": "DNS rebinding 防护（panel/server/src/host-guard.ts:97-140）",
+      "role": "DNS rebinding 防护：白名单 + 外部域名不看 XFH（panel/server/src/host-guard.ts:121-139）",
       "read_order": 9,
       "url": "https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/server/src/host-guard.ts"
     },
     {
       "path": "panel/web/src/pages/Desktop.tsx",
-      "role": "桌面页输入/音频状态机（panel/web/src/pages/Desktop.tsx:543-662）",
+      "role": "桌面页输入桥/粘贴桥/音频状态机（panel/web/src/pages/Desktop.tsx:27-313）",
       "read_order": 10,
       "url": "https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/panel/web/src/pages/Desktop.tsx"
     }

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-10T14:27:17.633Z",
+  "updated_at": "2026-11-10T14:27:27.215Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -164,8 +164,8 @@
       "stars": 3967,
       "topics": [],
       "default_branch": "main",
-      "status": "prepared",
-      "updated_at": "2026-11-06T19:33:32.618Z",
+      "status": "analyzed",
+      "updated_at": "2026-11-10T14:27:27.212Z",
       "branches": [
         {
           "name": "claude/project-issue-review-f7c99z",
@@ -230,7 +230,7 @@
       ],
       "prepared_at": "2026-11-10T11:00:20.831Z",
       "analyzed_commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
-      "analyzed_at": "2026-11-07T03:10:00+08:00",
+      "analyzed_at": "2026-11-10T21:20:00+08:00",
       "docs": [
         "README.md",
         "01-positioning.md",

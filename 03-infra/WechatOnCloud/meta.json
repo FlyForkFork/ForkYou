@@ -8,9 +8,9 @@
   "fork": "FlyForkFork/WechatOnCloud",
   "category": "03-infra",
   "depth": "L2",
-  "length": "default",
+  "length": "deep",
   "analyzed_commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
-  "analyzed_at": "2026-11-07T03:10:00+08:00",
+  "analyzed_at": "2026-11-10T21:20:00+08:00",
   "upstream_url": "https://github.com/Gloridust/WechatOnCloud",
   "homepage": "https://github.com/Gloridust/WechatOnCloud#readme",
   "license": "NOASSERTION",
@@ -28,6 +28,11 @@
     "fastify",
     "react"
   ],
+  "analysis": {
+    "profile": "deep",
+    "reason": "多实例容器编排 + docker.sock 代理 + KasmVNC 反向代理与会话接管 + RBAC 与凭据隔离，部署与安全设计可迁移；单文件规模（docker.ts 2702 行、index.ts 2192 行）与 P0 驱动的架构守则值得逐条拆解。",
+    "skipped": []
+  },
   "branches": [
     "main",
     "claude/project-issue-review-f7c99z",
@@ -57,8 +62,18 @@
   "guide": "guide.html",
   "sources": [
     {
-      "title": "Gloridust/WechatOnCloud README",
-      "url": "https://github.com/Gloridust/WechatOnCloud",
+      "title": "Gloridust/WechatOnCloud README @86d82519",
+      "url": "https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/README.md",
+      "date": "2026-11-01"
+    },
+    {
+      "title": "架构守则（10 条 P0 不变式）@86d82519",
+      "url": "https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/doc/dev/%E6%9E%B6%E6%9E%84%E5%AE%88%E5%88%99.md",
+      "date": "2026-11-01"
+    },
+    {
+      "title": "安全加固（docker.sock 威胁面与 socket-proxy）@86d82519",
+      "url": "https://github.com/Gloridust/WechatOnCloud/blob/86d82519c5e6b28aae7ef3caa279086afa244d4d/doc/%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA.md",
       "date": "2026-11-01"
     },
     {
@@ -77,7 +92,7 @@
       "date": "2026-11-07"
     },
     {
-      "title": "KasmVNC 1.5.2 Release Notes",
+      "title": "KasmVNC v1.5.2 Release Notes",
       "url": "https://github.com/kasmtech/KasmVNC/releases/tag/v1.5.2",
       "date": "2025-10-24"
     }
