@@ -66,16 +66,17 @@ export function ensureLocalBranches(repoDir, branches) {
 export function collectBranchInfo({ provider, upstream, cloneDir, defaultBranch, maxBranches = 20 }) {
   const branches = listRemoteBranches(cloneDir);
   if (!branches.length) throw new Error(`No remote branches in ${cloneDir}`);
-  const selected = branches.slice(0, Math.max(1, maxBranches));
+  const def = defaultBranch && branches.includes(defaultBranch) ? defaultBranch : branches[0];
+  const selected = [def, ...branches.filter(b => b !== def)].slice(0, Math.max(1, maxBranches));
   const info = {
     schema: 1,
     provider,
     upstream,
     inspected_at: nowIso(),
     clone_dir: cloneDir,
-    default_branch: defaultBranch || branches[0],
+    default_branch: def,
     branches: [],
-    branches_skipped: branches.slice(selected.length)
+    branches_skipped: branches.filter(b => !selected.includes(b))
   };
   for (const branch of selected) {
     const sha = remoteBranchSha(cloneDir, branch);

@@ -6,7 +6,7 @@
     "name": "github",
     "org": "FlyForkFork",
     "content_repo": "ForkYou",
-    "protocol": "https",
+    "protocol": "ssh",
     "token_env": "FORKYOU_GITHUB_TOKEN"
   },
   "analysis": {

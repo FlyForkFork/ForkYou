@@ -15,28 +15,9 @@ ForkYou 是一个**分析内容仓库**，不是源码仓库。每个 fork 的�
 ## 项目索引
 
 <!-- FORKYOU:INDEX:START -->
-已分析 **5** 个项目。最后更新：2026-11-07 18:50:26。
+还没有分析结果。
 
-### 01-systems · 系统 / 桌面 / 跨设备
-
-| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
-|---|---|---|---|---|---|---|---|
-| [mac-everything](01-systems/mac-everything/README.md) | Everything 的 macOS 答案：菜单栏里毫秒级搜全盘文件名。 | [YuSec2021/mac-everything](https://github.com/YuSec2021/mac-everything) | [打开](https://github.com/YuSec2021/mac-everything/releases) | [![GitHub stars](https://img.shields.io/github/stars/YuSec2021/mac-everything?style=flat-square&label=%E2%AD%90)](https://github.com/YuSec2021/mac-everything/stargazers) | L2 | 2026-11-07 | [Wiki](01-systems/mac-everything/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/mac-everything/guide.html) |
-| [oink](01-systems/oink/README.md) | 把多台 Mac/PC 变成一套键鼠、剪贴板、拖拽和音频的 P2P 软件 KVM。 | [oinkvm/oink](https://github.com/oinkvm/oink) | [打开](https://github.com/oinkvm/oink/releases) | [![GitHub stars](https://img.shields.io/github/stars/oinkvm/oink?style=flat-square&label=%E2%AD%90)](https://github.com/oinkvm/oink/stargazers) | L2 | 2026-11-07 | [Wiki](01-systems/oink/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/01-systems/oink/guide.html) |
-
-### 03-infra · 基础设施 / 运维
-
-| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
-|---|---|---|---|---|---|---|---|
-| [WechatOnCloud](03-infra/WechatOnCloud/README.md) | 在 NAS / 服务器上跑「服务端微信」，多端浏览器共享同一会话。 | [Gloridust/WechatOnCloud](https://github.com/Gloridust/WechatOnCloud) | [打开](https://github.com/Gloridust/WechatOnCloud#readme) | [![GitHub stars](https://img.shields.io/github/stars/Gloridust/WechatOnCloud?style=flat-square&label=%E2%AD%90)](https://github.com/Gloridust/WechatOnCloud/stargazers) | L2 | 2026-11-07 | [Wiki](03-infra/WechatOnCloud/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/03-infra/WechatOnCloud/guide.html) |
-
-### 06-web · Web / 前端
-
-| 项目 | 一句话 | 上游 | 应用地址 | Star | 深度 | 更新 | 分析 |
-|---|---|---|---|---|---|---|---|
-| [ultime-space-core](06-web/ultime-space-core/README.md) | 把一组 seed 参数编译成 274 个 token 的设计系统内核。 | [ultime-space/core](https://github.com/ultime-space/core) | [打开](https://github.com/ultime-space/core) | [![GitHub stars](https://img.shields.io/github/stars/ultime-space/core?style=flat-square&label=%E2%AD%90)](https://github.com/ultime-space/core/stargazers) | L2 | 2026-11-07 | [Wiki](06-web/ultime-space-core/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/06-web/ultime-space-core/guide.html) |
-| [ultime-space-skills](06-web/ultime-space-skills/README.md) | 把代码规范、文档治理、设计知识做成三个可安装、可独立发版的 AI skill 包。 | [ultime-space/skills](https://github.com/ultime-space/skills) | [打开](https://github.com/ultime-space/skills) | [![GitHub stars](https://img.shields.io/github/stars/ultime-space/skills?style=flat-square&label=%E2%AD%90)](https://github.com/ultime-space/skills/stargazers) | L2 | 2026-11-07 | [Wiki](06-web/ultime-space-skills/README.md) · [Guide](https://flyforkfork.github.io/ForkYou/06-web/ultime-space-skills/guide.html) |
-
+运行 `node ForkYou/_forkyou/scripts/forkyou.mjs sync` 开始。
 <!-- FORKYOU:INDEX:END -->
 
 ## 怎么用

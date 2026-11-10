@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-07T18:50:26.591Z",
+  "updated_at": "2026-11-10T11:04:38.623Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -38,23 +38,23 @@
         "windows"
       ],
       "default_branch": "main",
-      "status": "analyzed",
+      "status": "prepared",
       "updated_at": "2026-11-06T18:36:05.405Z",
       "branches": [
         {
           "name": "main",
-          "sha": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
+          "sha": "d8b29328678bfb50b5a9385a284f74572290c03b",
           "default": true,
           "diffstat": ""
         },
         {
           "name": "update-feed-state",
-          "sha": "c120e81b3102805fe708871d206c7069fd814987",
+          "sha": "78c74faaf21ca2325168a23ff2e260d9589efecd",
           "default": false,
-          "diffstat": "3975 files changed, 497 insertions(+), 670579 deletions(-)"
+          "diffstat": "4055 files changed, 831 insertions(+), 693031 deletions(-)"
         }
       ],
-      "prepared_at": "2026-11-06T18:13:29.391Z",
+      "prepared_at": "2026-11-10T10:59:05.522Z",
       "analyzed_commit": "546f65b2135e7a1491d2d743f0a1e072a74df36f",
       "analyzed_at": "2026-11-07T01:30:00+08:00",
       "docs": [
@@ -90,53 +90,41 @@
       "stars": 1,
       "topics": [],
       "default_branch": "main",
-      "status": "analyzed",
+      "status": "prepared",
       "updated_at": "2026-11-06T19:32:55.650Z",
       "branches": [
-        {
-          "name": "ci/release-dmg",
-          "sha": "b4165d56f8ef3a64eced549716412fa688dfc255",
-          "default": false,
-          "diffstat": "46 files changed, 815 insertions(+), 2164 deletions(-)"
-        },
         {
           "name": "claude/release-workflow",
           "sha": "fd3789ab536b726d4bd9438f3c9a442943f6851a",
           "default": false,
-          "diffstat": "77 files changed, 1772 insertions(+), 3221 deletions(-)"
+          "diffstat": "93 files changed, 1858 insertions(+), 4387 deletions(-)"
         },
         {
-          "name": "codex/sync-about-changelog",
-          "sha": "7ee6c3b70dd9c2a9b538219f8f3b73154af6bbec",
+          "name": "claude/trusting-dirac-c373be",
+          "sha": "646eaf295573ab240a0a771a021f1fb3433024de",
           "default": false,
           "diffstat": ""
         },
         {
-          "name": "fix/index-rewrite-amplification",
-          "sha": "93c5bbb45aeb19a944a383d39d99e26fc014e589",
+          "name": "fix/persist-content-settings",
+          "sha": "46b24723e0a12175ebe2a9c4d77e6334b9aba22e",
           "default": false,
-          "diffstat": "52 files changed, 821 insertions(+), 2395 deletions(-)"
+          "diffstat": "7 files changed, 76 insertions(+), 914 deletions(-)"
         },
         {
-          "name": "fix/root-rescan-duplicates",
-          "sha": "7f9c5bf74639b5367314f214b532d653847fd3f6",
+          "name": "fix/rebuild-index-v6",
+          "sha": "8ebc85f220b229d322431d2d5f90a5b39dfa2c89",
           "default": false,
-          "diffstat": "49 files changed, 815 insertions(+), 2355 deletions(-)"
+          "diffstat": "13 files changed, 184 insertions(+), 44 deletions(-)"
         },
         {
           "name": "main",
-          "sha": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
+          "sha": "0db6b601fb0baa6129356fd4416ded034666d4f5",
           "default": true,
           "diffstat": ""
-        },
-        {
-          "name": "refactor/swiftui-p1",
-          "sha": "c2f05249aee3563761811904a21859b0e73548b1",
-          "default": false,
-          "diffstat": "17 files changed, 102 insertions(+), 403 deletions(-)"
         }
       ],
-      "prepared_at": "2026-11-06T18:59:01.851Z",
+      "prepared_at": "2026-11-10T10:59:35.710Z",
       "analyzed_commit": "70bbad53dcd4fff07aeccef89c826f576c75e1e5",
       "analyzed_at": "2026-11-07T03:10:00+08:00",
       "docs": [
@@ -174,7 +162,7 @@
       "stars": 3967,
       "topics": [],
       "default_branch": "main",
-      "status": "analyzed",
+      "status": "prepared",
       "updated_at": "2026-11-06T19:33:32.618Z",
       "branches": [
         {
@@ -238,7 +226,7 @@
           "diffstat": ""
         }
       ],
-      "prepared_at": "2026-11-06T18:55:32.875Z",
+      "prepared_at": "2026-11-10T11:00:20.831Z",
       "analyzed_commit": "86d82519c5e6b28aae7ef3caa279086afa244d4d",
       "analyzed_at": "2026-11-07T03:10:00+08:00",
       "docs": [
@@ -276,7 +264,7 @@
       "stars": 0,
       "topics": [],
       "default_branch": "main",
-      "status": "analyzed",
+      "status": "prepared",
       "updated_at": "2026-11-07T18:49:52.043Z",
       "analyzed_commit": "a0dd5ddfe2eab3298e76b90d6ef9aae216f8b26a",
       "analyzed_at": "2026-11-07T18:03:05.579Z",
@@ -293,7 +281,16 @@
         "08-takeaways.md",
         "09-ops.md"
       ],
-      "guide": "guide.html"
+      "guide": "guide.html",
+      "branches": [
+        {
+          "name": "main",
+          "sha": "15fd53ea8a95b243982ff61410facf9e852cab8f",
+          "default": true,
+          "diffstat": ""
+        }
+      ],
+      "prepared_at": "2026-11-10T11:00:38.618Z"
     },
     "github:ultime-space/skills": {
       "id": "github:ultime-space/skills",
@@ -314,17 +311,17 @@
       "stars": 0,
       "topics": [],
       "default_branch": "main",
-      "status": "analyzed",
+      "status": "prepared",
       "updated_at": "2026-11-07T18:50:26.587Z",
       "branches": [
         {
           "name": "main",
-          "sha": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
+          "sha": "624e48b60f6b993a10713f3ec9cce7b374c34fc7",
           "default": true,
           "diffstat": ""
         }
       ],
-      "prepared_at": "2026-11-07T18:03:57.083Z",
+      "prepared_at": "2026-11-10T11:00:54.748Z",
       "analyzed_commit": "a20cafa2075327e3d6456fcbe4a4fada1bf26073",
       "analyzed_at": "2026-11-07T18:03:57.081Z",
       "docs": [
@@ -341,6 +338,215 @@
         "09-ops.md"
       ],
       "guide": "guide.html"
+    },
+    "github:Usagi-org/ai-goofish-monitor": {
+      "id": "github:Usagi-org/ai-goofish-monitor",
+      "name": "ai-goofish-monitor",
+      "provider": "github",
+      "upstream": "Usagi-org/ai-goofish-monitor",
+      "fork": "FlyForkFork/ai-goofish-monitor",
+      "upstream_url": "https://github.com/Usagi-org/ai-goofish-monitor",
+      "homepage": "",
+      "description": "基于 Playwright 和AI实现的闲鱼多任务实时/定时监控与智能分析系统，配备了功能完善的后台管理UI。帮助用户从闲鱼海量商品中，找到心仪产品。",
+      "one_liner": "基于 Playwright 和AI实现的闲鱼多任务实时/定时监控与智能分析系统，配备了功能完善的后台管理UI。帮助用户从闲鱼海量商品中，找到心仪产品。",
+      "category": "02-ai-cv",
+      "path": "02-ai-cv/ai-goofish-monitor",
+      "depth": "L2",
+      "length": "default",
+      "license": "MIT",
+      "language": "Python",
+      "stars": 19124,
+      "topics": [
+        "ai",
+        "ai-assistant",
+        "ai-tools",
+        "automation",
+        "gemini",
+        "goofish",
+        "open-source",
+        "openai",
+        "playwright",
+        "tool",
+        "xian-yu",
+        "xianyu",
+        "xianyu-bot"
+      ],
+      "default_branch": "master",
+      "status": "prepared",
+      "updated_at": "2026-11-10T10:51:37.679Z",
+      "branches": [
+        {
+          "name": "master",
+          "sha": "77f8d75869acd65f9dba72731b95c7c49ea67bdf",
+          "default": true,
+          "diffstat": ""
+        },
+        {
+          "name": "claude/issue-200-20250819-0604",
+          "sha": "fadb0d9406a5205ed4745d1fe02a71cb86204ddb",
+          "default": false,
+          "diffstat": "313 files changed, 6514 insertions(+), 34282 deletions(-)"
+        },
+        {
+          "name": "claude/issue-207-20250822-0707",
+          "sha": "5fa37f027a1f8cfd5f464c620f67da5dbe4ed111",
+          "default": false,
+          "diffstat": "313 files changed, 6574 insertions(+), 34266 deletions(-)"
+        },
+        {
+          "name": "claude/issue-211-20250827-0632",
+          "sha": "4f51c39cb3598ae049291859db20b2affc581716",
+          "default": false,
+          "diffstat": "317 files changed, 7066 insertions(+), 34262 deletions(-)"
+        },
+        {
+          "name": "claude/issue-216-20250828-0836",
+          "sha": "d185b9d14ea4e7f0c6a39b85ebc7889e0ce0cb4a",
+          "default": false,
+          "diffstat": "316 files changed, 7160 insertions(+), 34256 deletions(-)"
+        },
+        {
+          "name": "claude/issue-219-20250829-1323",
+          "sha": "ce0163066b472ebd69dd21437d5879c28ea9311e",
+          "default": false,
+          "diffstat": "315 files changed, 6845 insertions(+), 34256 deletions(-)"
+        },
+        {
+          "name": "claude/issue-220-20250829-1323",
+          "sha": "9869e61b0bd12ad85555737a9ee5b1d0f6988199",
+          "default": false,
+          "diffstat": "316 files changed, 6846 insertions(+), 34256 deletions(-)"
+        },
+        {
+          "name": "claude/issue-239-20250912-1044",
+          "sha": "45fd4af4820081243ea0ca8657c7e1b6a3b15d9a",
+          "default": false,
+          "diffstat": "316 files changed, 7400 insertions(+), 34233 deletions(-)"
+        },
+        {
+          "name": "claude/issue-239-20250912-1054",
+          "sha": "b9cecbd26c9f82a0b76986c3f199af7defa51dcf",
+          "default": false,
+          "diffstat": "316 files changed, 7356 insertions(+), 34233 deletions(-)"
+        },
+        {
+          "name": "claude/issue-253-20250924-0449",
+          "sha": "cc216a5a757d4181c854bed92ce3eac193c916db",
+          "default": false,
+          "diffstat": "316 files changed, 7213 insertions(+), 34335 deletions(-)"
+        },
+        {
+          "name": "claude/issue-254-20250924-0414",
+          "sha": "bd9a6551a45acc8dd9dd249d8b3b5cbc0cbd2f1a",
+          "default": false,
+          "diffstat": "316 files changed, 7206 insertions(+), 34337 deletions(-)"
+        },
+        {
+          "name": "claude/issue-259-20251011-0655",
+          "sha": "54f3ded8437f9b8ca0dffcb1a5ebf21c543c06c2",
+          "default": false,
+          "diffstat": "316 files changed, 7423 insertions(+), 34218 deletions(-)"
+        },
+        {
+          "name": "claude/issue-260-20251011-0708",
+          "sha": "8b7369b67205f093707ec7b00e2505c675a22e35",
+          "default": false,
+          "diffstat": "316 files changed, 7467 insertions(+), 34218 deletions(-)"
+        },
+        {
+          "name": "claude/issue-266-20251011-0701",
+          "sha": "03fa57fc3abff3ba43b6bca4c053cfe6fb0933e7",
+          "default": false,
+          "diffstat": "316 files changed, 7445 insertions(+), 34218 deletions(-)"
+        },
+        {
+          "name": "claude/issue-272-20251027-0249",
+          "sha": "f8d8b0ef9ad3afa49757084a6a8648a70d701f94",
+          "default": false,
+          "diffstat": "316 files changed, 7431 insertions(+), 34210 deletions(-)"
+        },
+        {
+          "name": "claude/issue-350-20260304-0754",
+          "sha": "3968b644fc548939ebfae9cc2c2f328afa575ce9",
+          "default": false,
+          "diffstat": "174 files changed, 3278 insertions(+), 20947 deletions(-)"
+        },
+        {
+          "name": "claude/issue-352-20260304-0846",
+          "sha": "a06bdf18e8a0d391304e845c5e246c5401ead775",
+          "default": false,
+          "diffstat": "174 files changed, 3279 insertions(+), 20947 deletions(-)"
+        },
+        {
+          "name": "claude/issue-358-20260228-0238",
+          "sha": "0d32eb3733cd6154769a200e4b6f23372c11b64c",
+          "default": false,
+          "diffstat": "179 files changed, 3118 insertions(+), 22507 deletions(-)"
+        },
+        {
+          "name": "claude/issue-361-20260303-0625",
+          "sha": "888fe322bb2339c715a8f90b86e92c2d1b46f6fa",
+          "default": false,
+          "diffstat": "176 files changed, 3278 insertions(+), 21875 deletions(-)"
+        },
+        {
+          "name": "claude/issue-364-20260304-0557",
+          "sha": "984e279466b71993cf781befdb814b722ef49aba",
+          "default": false,
+          "diffstat": "176 files changed, 3271 insertions(+), 21874 deletions(-)"
+        }
+      ],
+      "prepared_at": "2026-11-10T11:04:38.623Z"
+    },
+    "github:Minireel/HGhub": {
+      "id": "github:Minireel/HGhub",
+      "name": "HGhub",
+      "provider": "github",
+      "upstream": "Minireel/HGhub",
+      "fork": "FlyForkFork/HGhub",
+      "upstream_url": "https://github.com/Minireel/HGhub",
+      "homepage": "",
+      "description": "YellowFruit third-party client",
+      "one_liner": "YellowFruit third-party client",
+      "category": "01-systems",
+      "path": "01-systems/HGhub",
+      "depth": "L2",
+      "length": "default",
+      "license": "NOASSERTION",
+      "language": "TypeScript",
+      "stars": 7518,
+      "topics": [
+        "android",
+        "drama",
+        "free",
+        "movie-web-app",
+        "reels",
+        "windows"
+      ],
+      "default_branch": "main",
+      "status": "prepared",
+      "updated_at": "2026-11-10T10:56:48.738Z",
+      "branches": [
+        {
+          "name": "codex/fix-ios-build",
+          "sha": "d251486861e269ebf74d0a28a5de07739c0ea8ce",
+          "default": false,
+          "diffstat": "9 files changed, 161 insertions(+), 160 deletions(-)"
+        },
+        {
+          "name": "codex/source-only-maintenance",
+          "sha": "c5cec6b4d62827911d9951acd88ed0fb1d01dc4c",
+          "default": false,
+          "diffstat": "8 files changed, 10 insertions(+), 112 deletions(-)"
+        },
+        {
+          "name": "main",
+          "sha": "5f88442961ad9cdac50af4421cf76b3ac06d64e2",
+          "default": true,
+          "diffstat": ""
+        }
+      ],
+      "prepared_at": "2026-11-10T11:02:24.701Z"
     }
   }
 }
