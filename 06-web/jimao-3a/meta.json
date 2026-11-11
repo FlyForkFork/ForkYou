@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "id": "github:FlyForkFork/jimao-3a-src",
+  "name": "jimao-3a",
+  "one_liner": "一个 1.4 MB 的单文件 WebGL2 港口突袭 FPS：零图片、零音频，贴图/几何/音效全部运行时程序化生成。",
+  "provider": "github",
+  "upstream": "FlyForkFork/jimao-3a-src",
+  "fork": "FlyForkFork/jimao-3a",
+  "category": "06-web",
+  "depth": "L2",
+  "length": "deep",
+  "analyzed_commit": "ce22e9a592fc8c4b2960a26a32437732d92ed2dd",
+  "analyzed_at": "2026-11-11T14:55:00+08:00",
+  "upstream_url": "https://github.com/FlyForkFork/jimao-3a-src",
+  "homepage": "https://github.com/FlyForkFork/jimao-3a-src",
+  "license": "NOASSERTION",
+  "stars": 0,
+  "language": "HTML",
+  "version": "开发体验版（无版本号）",
+  "topics": [
+    "webgl2",
+    "threejs",
+    "single-file",
+    "procedural-generation",
+    "procedural-textures",
+    "fps",
+    "game",
+    "shader",
+    "web-audio",
+    "javascript"
+  ],
+  "branches": ["main"],
+  "docs": [
+    "README.md",
+    "01-positioning.md",
+    "02-architecture.md",
+    "03-code-tour.md",
+    "04-deep-dive-procedural-assets.md",
+    "04-deep-dive-renderer.md",
+    "04-deep-dive-enemy-ai.md",
+    "04-deep-dive-physics-nav.md",
+    "05-performance.md",
+    "08-takeaways.md",
+    "09-ops.md"
+  ],
+  "analysis": {
+    "profile": "deep",
+    "reason": "单文件 WebGL2 FPS 的极端交付实验：1.4 MB 内嵌 Three.js r185，29 个 texture set 在运行时用 GLSL 烘焙成 PBR 贴图，另有 26 个全屏后处理 pass、token 协调的敌人 AI、AABB 胶囊物理与 0.5 m 网格 A*。体积/贴图来源是用户明确关注点，渲染、AI、物理各有独立取舍，值得拆四篇深挖。",
+    "skipped": [
+      {
+        "doc": "06-branches.md",
+        "reason": "仓库只有 main 一个分支，按 RULES §3 不写；分支基线信息并入 01/02"
+      },
+      {
+        "doc": "07-contribute.md",
+        "reason": "这是 ForkYou 建立的分析归档仓库，没有上游社区、Issue/PR 流程或 CI；按 RULES 跳过，运行方式并入 README/03"
+      },
+      {
+        "doc": "guide.html",
+        "reason": "可选交互式 Guide 首版不做；10 分钟图册不是 deep 档必需交付"
+      }
+    ]
+  },
+  "sources": [
+    {
+      "title": "jimao-3a-src/index.html（单文件源码基线，1,425,707 B）",
+      "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html",
+      "date": "2026-11-11"
+    },
+    {
+      "title": "GitHub API — FlyForkFork/jimao-3a-src 元数据（public、非 fork、main、NOASSERTION、stars 0）",
+      "url": "https://api.github.com/repos/FlyForkFork/jimao-3a-src",
+      "date": "2026-11-11"
+    },
+    {
+      "title": "FlyForkFork/jimao-3a fork（parent=jimao-3a-src，main SHA ce22e9a）",
+      "url": "https://github.com/FlyForkFork/jimao-3a",
+      "date": "2026-11-11"
+    }
+  ]
+}
