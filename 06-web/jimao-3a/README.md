@@ -27,6 +27,7 @@
 | [05 性能](05-performance.md) | 哪里最贵、纹理内存多少、怎么降档 | 做性能判断 |
 | [08 收获](08-takeaways.md) | 可迁移想法、模拟面试 Q&A、不该抄的地方 | 做分享/面试 |
 | [09 运维](09-ops.md) | 怎么部署、有哪些参数、黑屏/卡顿怎么查 | 要落地 |
+| [Guide](https://flyforkfork.github.io/ForkYou/06-web/jimao-3a/guide.html) | 10 分钟交互图册：架构、一帧流程、代码地图、面试卡 | 想快速浏览 |
 
 ## 快速开始
 

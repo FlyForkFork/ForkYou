@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-11-11T07:09:43.217Z",
+  "updated_at": "2026-11-11T07:38:10.909Z",
   "projects": {
     "github:oinkvm/oink": {
       "id": "github:oinkvm/oink",
@@ -610,7 +610,7 @@
       ],
       "default_branch": "main",
       "status": "analyzed",
-      "updated_at": "2026-11-11T07:09:43.217Z",
+      "updated_at": "2026-11-11T07:38:10.909Z",
       "analyzed_commit": "ce22e9a592fc8c4b2960a26a32437732d92ed2dd",
       "analyzed_at": "2026-11-11T14:55:00+08:00",
       "docs": [
@@ -624,7 +624,9 @@
         "04-deep-dive-physics-nav.md",
         "05-performance.md",
         "08-takeaways.md",
-        "09-ops.md"
+        "09-ops.md",
+        "guide.data.json",
+        "guide.html"
       ],
       "branches": [
         {
@@ -646,14 +648,10 @@
           {
             "doc": "07-contribute.md",
             "reason": "这是 ForkYou 建立的分析归档仓库，没有上游社区、Issue/PR 流程或 CI；按 RULES 跳过，运行方式并入 README/03"
-          },
-          {
-            "doc": "guide.html",
-            "reason": "可选交互式 Guide 首版不做；10 分钟图册不是 deep 档必需交付"
           }
         ]
       },
-      "guide": null
+      "guide": "guide.html"
     }
   }
 }

@@ -1,0 +1,230 @@
+{
+  "slug": "jimao-3a",
+  "title": "几猫 3A 大作",
+  "subtitle": "1.4 MB 单文件 WebGL2 港口突袭 FPS：零图片、零音频，贴图/几何/音效全部运行时生成",
+  "one_liner": "把 Three.js、程序化 PBR 贴图、敌人 AI、AABB 物理和 WebAudio 塞进一个 HTML 的开发体验版 FPS。",
+  "category": "06-web",
+  "tags": ["WebGL2", "Three.js", "Single-file", "Procedural Generation", "FPS", "GLSL"],
+  "meta": {
+    "upstream": "FlyForkFork/jimao-3a-src",
+    "license": "NOASSERTION",
+    "stars": 0,
+    "language": "HTML + JavaScript",
+    "commit": "ce22e9a592fc8c4b2960a26a32437732d92ed2dd",
+    "updated": "2026-11-11"
+  },
+  "links": {
+    "github": "https://github.com/FlyForkFork/jimao-3a-src",
+    "homepage": "https://github.com/FlyForkFork/jimao-3a",
+    "docs": "https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/README.md"
+  },
+  "stats": [
+    { "label": "文件大小", "value": "1,425,707 B" },
+    { "label": "行数", "value": "6,214 行" },
+    { "label": "gzip", "value": "449,312 B" },
+    { "label": "Three.js", "value": "701,719 B" },
+    { "label": "图片 / 音频", "value": "0 / 0" },
+    { "label": "贴图 Set", "value": "29 套" }
+  ],
+  "mental_model": [
+    {
+      "title": "它是谁",
+      "body": "一个单文件 WebGL2 第一人称射击游戏：港区里有三处上行中继，玩家要切断它们、穿过机械飞鸥与机械猎犬的封锁，最后登船撤离。整个游戏只有一个 index.html，Three.js r185 也内嵌在里面。"
+    },
+    {
+      "title": "怎么工作",
+      "body": "启动时 QC 初始化模块，C1 用基本体和 36 种道具原型搭出港区；Gg 在 GPU 上用 27 个表面函数烘焙 29 套 PBR 贴图；Hg 渲染、jy 做约 26 个全屏后处理；x_ 处理玩家移动，Em 用状态机、token 和 0.5 m 网格 A* 驱动敌人。"
+    },
+    {
+      "title": "为什么特别",
+      "body": "没有一张图片、一段音频，也没有 data URI。下载体积只有 1.4 MB，代价是首次启动要现场生成几十 MB 纹理；这不是“压缩得好”，而是把资产换成了生成资产的程序。"
+    }
+  ],
+  "architecture": {
+    "title": "单文件里的五层",
+    "layers": [
+      {
+        "name": "页面与输入",
+        "nodes": [
+          { "id": "dom", "label": "DOM / CSS HUD", "desc": "标题页、设置、暂停、死亡与结算界面；HUD 由 hM 更新（index.html:6087）。键盘鼠标、触屏与 Gamepad 输入统一进输入层。" },
+          { "id": "input", "label": "输入 / 指针锁", "desc": "WASD、鼠标视角、左键开火、右键瞄准、R 换弹、E 交互、Space 跳跃、Shift 冲刺、C/Ctrl 蹲伏。" }
+        ]
+      },
+      {
+        "name": "游戏逻辑",
+        "nodes": [
+          { "id": "game", "label": "mM 状态机", "desc": "title / intro / playing / paused / dead / complete 六态；管理三处中继、波次、撤离、评分与检查点（index.html:6202）。" },
+          { "id": "player", "label": "x_ 玩家", "desc": "胶囊体移动、冲刺、蹲伏、跳跃、坠落伤害、镜头 bob/recoil/shake、ADS 与 FOV 过渡（index.html:5939）。" },
+          { "id": "combat", "label": "zv 战斗", "desc": "PAC9 步枪的射速、扩散、后坐力、命中判定、弹孔与抛壳；武器 viewmodel 动画在 dm（index.html:6065）。" },
+          { "id": "enemy", "label": "Em 敌人", "desc": "飞鸥远程弹丸、猎犬四足近战；patrol / investigate / search / engage 状态机 + 全局 token 协调 + rally（index.html:6065）。" }
+        ]
+      },
+      {
+        "name": "世界构建",
+        "nodes": [
+          { "id": "level", "label": "C1 关卡", "desc": "3 个中继、42 个敌人生成点、55 个掩体点、12 个电影机位，分成 yard / shed / quay 三区（index.html:5453）。" },
+          { "id": "props", "label": "ob / Gi 道具", "desc": "box/slab/cyl/tube/ibeam/stairs/catwalk 等 builder，36 种道具原型；按材质 UUID + 阴影 + layer 合并静态网格，减少 draw call。" },
+          { "id": "physics", "label": "d3 物理", "desc": "AABB 列表、slab raycast、lineOfSight、groundHeight、moveCapsule 子步进与圆形 push-out；0.5 m 网格 A*，9,000 节点上限（index.html:5453）。" }
+        ]
+      },
+      {
+        "name": "资产与渲染",
+        "nodes": [
+          { "id": "mats", "label": "Gg 材质工厂", "desc": "全屏 quad + ShaderMaterial 把 27 个 Tn 表面函数烘焙成 29 个 texture set × 3 张 MRT：albedo / ORM / height，再由 i3 生成 normal（index.html:5453、5294、4833-5280）。" },
+          { "id": "ground", "label": "O1 地面", "desc": "Rb 生成 1024/512 水洼 mask，Cb 生成 detail albedo+normal，Pb 用 canvas 2048/1024 画车道线与中文路面字，N1 包成 DataTexture（index.html:5474、5825）。" },
+          { "id": "render", "label": "Hg 渲染器", "desc": "WebGLRenderer、阴影、天空、平面反射、动态分辨率；z() 以 21.5/17.4 ms 为目标调整 scale，最低 0.6（index.html:4744）。" },
+          { "id": "post", "label": "jy 后处理", "desc": "15 种 pass、约 26 个全屏 pass：depthcopy、AO、体积光、Bloom、motion blur、自适应曝光、FXAA/grain/sharpen（index.html:4743）。" }
+        ]
+      },
+      {
+        "name": "平台",
+        "nodes": [
+          { "id": "webgl", "label": "WebGL2", "desc": "唯一运行时依赖是浏览器；Three.js r185 以文本内嵌，无外部脚本、图片、字体或音频文件。" },
+          { "id": "audio", "label": "WebAudio", "desc": "u_ 预渲染 PCM 缓冲，按 6 ms 时间片在空闲时合成；枪声、脚步、环境声与动态配乐都不是音频文件。" }
+        ]
+      }
+    ],
+    "edges": [
+      { "from": "input", "to": "game", "label": "事件" },
+      { "from": "game", "to": "player", "label": "更新" },
+      { "from": "game", "to": "combat", "label": "开火" },
+      { "from": "game", "to": "enemy", "label": "波次" },
+      { "from": "player", "to": "physics", "label": "moveCapsule" },
+      { "from": "enemy", "to": "physics", "label": "raycast / A*" },
+      { "from": "level", "to": "props", "label": "place" },
+      { "from": "props", "to": "render", "label": "meshes" },
+      { "from": "mats", "to": "render", "label": "materials" },
+      { "from": "ground", "to": "render", "label": "terrain" },
+      { "from": "render", "to": "post", "label": "HDR" },
+      { "from": "post", "to": "webgl", "label": "final" },
+      { "from": "game", "to": "audio", "label": "sfx" },
+      { "from": "dom", "to": "game", "label": "menu" }
+    ]
+  },
+  "mechanism": {
+    "title": "一帧从输入到画面",
+    "steps": [
+      {
+        "title": "启动：模块注册表按序初始化",
+        "detail": "QC 把 mats / level / backdrop / ground / fx / weapon / enemies / props / render 等模块注册进 gM，再用 r() 逐个执行；只有 render 和 level 没有 stub，其余模块失败会退回占位实现，保证流程能跑完。",
+        "highlight": ["game", "render"],
+        "code": "const M = r('mats', () => Gg(...));\nconst L = r('level', () => C1(...));\n// render / level: 核心模块，失败应 fatal"
+      },
+      {
+        "title": "建关：基本体与 36 种道具原型",
+        "detail": "C1 调用 ob 的 box/slab/cyl/tube/ibeam/stairs/catwalk 等 builder，把集装箱、防撞墩、灯杆、岗亭、闸杆、系缆桩、货架、冷藏箱等摆成 yard / shed / quay 三区，并记录 42 个敌人生成点与 55 个掩体点。",
+        "highlight": ["level", "props"],
+        "code": "const L = new C1(scene, mats);\nL.build();\n// stats: relays 3, spawns 42, covers 55, cameras 12"
+      },
+      {
+        "title": "材质：27 个表面函数烘焙 29 套 PBR",
+        "detail": "Gg 为每个 set 拼一个 fragment shader：e3 提供 pcg3/h3/gn/fbm/vor/scr 等噪声函数，Tn[fn] 描述这一类表面；一次渲染到 3 张 MRT，再用 i3 从 height 生成 normal。结果缓存在 Map 里，同名材质复用。",
+        "highlight": ["mats", "render"],
+        "code": "renderTarget0: albedo (sqrt gamma)\nrenderTarget1: AO / roughness / metal\nrenderTarget2: height\nnormal = i3(height)"
+      },
+      {
+        "title": "玩家：胶囊体移动 + 武器状态",
+        "detail": "x_ 以 walk 3.8 / sprint 6.4 / crouch 1.9 m/s 移动，gravity 21、jumpApex 1、coyote 0.12 s、jumpBuffer 0.13 s；d3 把位移切成子步，逐步做圆形 push-out。dm 处理弹匣、枪机、换弹关键帧与后坐力。",
+        "highlight": ["player", "combat", "physics"],
+        "code": "const steps = Math.ceil(hypot(dx, dz) / (radius * 0.6));\nfor (let i = 0; i < steps; i++) moveCapsule(dx / steps, dz / steps);"
+      },
+      {
+        "title": "敌人：感知、token、寻路",
+        "detail": "Em 每 0.11–0.19 s 做一次感知：45 m 视野、200° 视锥、3.5 m 内忽略视锥；exposure 上升 0.1 / 下降 0.45，4 s 失去目标、8 s 搜索。全局 token 限制同时开火人数 2（人多时 3），间隔 1.25 s；猎犬用 0.5 m 网格 A* 追人。",
+        "highlight": ["enemy", "physics"],
+        "code": "if (exposure > 1 && requestToken(enemy)) engage();\n// maxTokens 2 / maxTokensCrowd 3 / tokenGap 1.25s"
+      },
+      {
+        "title": "渲染：约 26 个全屏 pass 收尾",
+        "detail": "Hg 先渲染不透明与透明物体，jy 依次跑 depthcopy/depthhalf、AO、体积光、composite、motion、bloom down/up、streak、adapt、dirt、grade、final。动态分辨率按 45 帧窗口的帧时间调 scale，连续降档后还会继续退。",
+        "highlight": ["render", "post", "webgl"],
+        "code": "// 15 pass types, ~26 fullscreen draws\n// target 21.5ms (desktop) / 17.4ms (high refresh)\nscale = clamp(scale * 0.9, 0.6, 1.0)"
+      }
+    ]
+  },
+  "code_map": [
+    { "path": "index.html:6202", "role": "启动 + 游戏状态机：QC/mM/gM 模块注册表，先读这里建立全局", "read_order": 1, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6202" },
+    { "path": "index.html:5453", "role": "材质工厂 Gg、关卡 C1、物理 d3：单文件里最密的三个系统", "read_order": 2, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5453" },
+    { "path": "index.html:5294", "role": "29 个 texture set c3 + 48 个材质预设 l1：调参从这里开始", "read_order": 3, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5294" },
+    { "path": "index.html:4833-5280", "role": "27 个表面函数 Tn：沥青、混凝土、锈蚀、链条网等“美术语言”", "read_order": 4, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4833-L5280" },
+    { "path": "index.html:4744", "role": "渲染器 Hg + 公共 GLSL e3：光照、阴影、天空与噪声库", "read_order": 5, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4744" },
+    { "path": "index.html:4743", "role": "后处理 jy：15 种 pass 的排列与开销", "read_order": 6, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4743" },
+    { "path": "index.html:5474", "role": "地面 Rb/Cb/Pb + 平面反射：水洼、车道线、中文路面字", "read_order": 7, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5474" },
+    { "path": "index.html:5939", "role": "玩家 x_、战斗 zv、音频 c_：移动、开火、合成音效", "read_order": 8, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5939" },
+    { "path": "index.html:6065", "role": "敌人 Em、武器 dm、常量 Ui：状态机、token、四足 IK", "read_order": 9, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6065" },
+    { "path": "index.html:6087", "role": "HUD hM：准星、弹药、罗盘、任务提示与字幕", "read_order": 10, "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6087" }
+  ],
+  "run": [
+    { "label": "直接打开", "command": "start index.html", "note": "Windows 双击或拖进浏览器；需要 WebGL2" },
+    { "label": "本地静态服务", "command": "python -m http.server 8000", "note": "打开 http://localhost:8000/index.html" },
+    { "label": "低画质", "command": "index.html?q=low", "note": "在 URL 后加查询参数；低配设备从 low 档开始" },
+    { "label": "内置性能采样", "command": "index.html?bench=1", "note": "采样 30 s，控制台输出 avg / p99 / median、GPU、draw calls、tris" },
+    { "label": "控制台统计", "command": "window.__stats()", "note": "运行时查看纹理、材质与渲染统计" },
+    { "label": "改源码", "command": "编辑 index.html 后刷新", "note": "无构建步骤；修改后建议同时跑 ?bench=1 看是否掉档" }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "purpose": "唯一分支：单文件交付，没有并行开发分支或发布分支。",
+      "diff": "HEAD ce22e9a · index.html 1,425,707 B · 6,214 行",
+      "url": "https://github.com/FlyForkFork/jimao-3a-src/commits/main"
+    }
+  ],
+  "contribute": [
+    {
+      "title": "这是个人归档，不是社区项目",
+      "detail": "没有 Issue/PR 流程或 CI；上游 README 只说明运行方式与操作。想改就直接 fork，不必等维护者接受补丁。",
+      "url": "https://github.com/FlyForkFork/jimao-3a-src"
+    },
+    {
+      "title": "先补可观测性再改画面",
+      "detail": "改材质、后处理或关卡前先跑 ?bench=1 和 window.__stats()，否则很容易把帧率问题误判成“代码没生效”。",
+      "url": "https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/05-performance.md"
+    },
+    {
+      "title": "最值得动手的三处",
+      "detail": "把 C1 的硬编码关卡数据抽成 JSON；给材质/关卡加 schema 校验；把单文件拆成构建产物但保留单 HTML 发布。",
+      "url": "https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/08-takeaways.md"
+    }
+  ],
+  "cheats": [
+    {
+      "q": "1.43 MB 的体积账怎么拆？",
+      "a": "script 1,390,078 B 占 97.5%，其中 Three.js 约 701,719 B、游戏代码约 688,251 B；gzip 449 KB。没有图片/音频/data URI，所以不需要资源解码，但首次启动要现场生成纹理。"
+    },
+    {
+      "q": "贴图到底从哪来？",
+      "a": "Gg 在 GPU 上用全屏 quad 跑 shader：e3 的噪声库 + Tn 的 27 个表面函数，一次输出 albedo/ORM/height 三张 MRT，再用 i3 从 height 生成 normal；29 个 texture set 缓存在 Map 里。"
+    },
+    {
+      "q": "为什么下载小、显存却不小？",
+      "a": "下载的是生成程序，显存里放的是成品。按 D*D*4*1.34 估算，low 约 34.4 MB、medium/high 约 137.7 MB、ultra 约 185.9 MB；省的是仓库体积，不是运行时内存。"
+    },
+    {
+      "q": "26 个全屏 pass 会不会太贵？",
+      "a": "会，所以有 15 种 pass 的可配置链和五档画质；动态分辨率按 45 帧窗口把帧时间压到 21.5/17.4 ms，最低 scale 0.6。低配应先砍 AO、体积光、streak。"
+    },
+    {
+      "q": "敌人 AI 的核心是什么？",
+      "a": "不是复杂行为树，而是“感知 + 全局 token + rally”：45 m / 200° 视锥、0.11–0.19 s 感知间隔、exposure 不对称累积；最多 2 个（人多 3 个）敌人同时开火，tokenGap 1.25 s。"
+    },
+    {
+      "q": "为什么物理不用现成引擎？",
+      "a": "静态关卡用 AABB 列表 + slab raycast + moveCapsule 子步进就够，零依赖、确定性强、易调试；代价是旋转道具要切最多 10 段 AABB，斜坡/楼梯只能近似，高速冲刺可能穿薄盒。"
+    },
+    {
+      "q": "单文件是架构吗？",
+      "a": "不是。gM 只是模块注册表，模块边界靠函数和启动顺序维持；单文件是发布约束。真要长期维护，应把源码拆模块、保留构建产物，而不是把 6,214 行当开发结构。"
+    },
+    {
+      "q": "如果重做，优先级怎么排？",
+      "a": "先拆构建但保留单 HTML 产物，再离线烘焙贴图，再做关卡 JSON schema，最后才动 AI/物理；没有回归测试就重写核心系统，风险最高。"
+    }
+  ],
+  "sources": [
+    { "title": "jimao-3a-src/index.html（源码基线，1,425,707 B）", "url": "https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html", "date": "2026-11-11" },
+    { "title": "FlyForkFork/jimao-3a（公开 fork）", "url": "https://github.com/FlyForkFork/jimao-3a", "date": "2026-11-11" },
+    { "title": "ForkYou 分析：程序化资产深挖", "url": "https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/04-deep-dive-procedural-assets.md", "date": "2026-11-11" },
+    { "title": "ForkYou 分析：性能与降档", "url": "https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/05-performance.md", "date": "2026-11-11" }
+  ]
+}

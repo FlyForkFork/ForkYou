@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>几猫 3A 大作 · ForkYou Guide</title>
+<style>
+  :root{
+    --bg:#070b12; --bg2:#0b1220; --panel:#111a28; --panel2:#162235;
+    --line:#23324a; --text:#e8eef7; --muted:#8fa3bd; --dim:#5d7290;
+    --accent:#4cc9f0; --accent2:#f72585; --ok:#3ddc97; --warn:#ffb703;
+    --radius:16px; --shadow:0 18px 60px rgba(0,0,0,.45);
+    --max:1180px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:
+      radial-gradient(1000px 600px at 15% -10%, rgba(76,201,240,.14), transparent 60%),
+      radial-gradient(900px 500px at 95% 5%, rgba(247,37,133,.10), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--sans); line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  #progress{position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2)); z-index:100}
+  .topbar{
+    position:sticky; top:0; z-index:90; backdrop-filter:blur(14px);
+    background:rgba(7,11,18,.82); border-bottom:1px solid rgba(35,50,74,.7);
+  }
+  .topbar-inner{max-width:var(--max); margin:0 auto; padding:12px 22px; display:flex; align-items:center; gap:18px}
+  .brand{font-weight:800; letter-spacing:.5px; white-space:nowrap}
+  .brand span{color:var(--accent)}
+  .nav{display:flex; gap:14px; overflow:auto; scrollbar-width:none; flex:1}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{color:var(--muted); font-size:13px; white-space:nowrap; padding:4px 0; border-bottom:2px solid transparent}
+  .nav a.active,.nav a:hover{color:var(--text); border-bottom-color:var(--accent); text-decoration:none}
+  main{max-width:var(--max); margin:0 auto; padding:0 22px 80px}
+  .section{padding:64px 0 12px}
+  .section-head{margin-bottom:24px}
+  .eyebrow{font-size:12px; letter-spacing:2.4px; text-transform:uppercase; color:var(--accent); font-weight:700}
+  .section-title{font-size:clamp(24px,3.2vw,36px); line-height:1.2; margin:8px 0 6px; letter-spacing:-.5px}
+  .section-sub{color:var(--muted); margin:0; max-width:780px}
+  .hero{padding:80px 0 30px; display:grid; grid-template-columns:1.25fr .75fr; gap:44px; align-items:center}
+  .hero-kicker{font-size:13px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; font-weight:700}
+  .hero-title{font-size:clamp(46px,8vw,92px); line-height:.95; letter-spacing:-3px; margin:12px 0 18px; font-weight:900}
+  .hero-title .grad{background:linear-gradient(90deg,var(--accent),#a78bfa 55%,var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero-sub{font-size:clamp(16px,2vw,21px); color:#c4d2e5; max-width:680px; margin:0 0 22px}
+  .meta-row{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 24px}
+  .chip{border:1px solid var(--line); background:rgba(22,34,53,.75); color:#b9c9dd; border-radius:999px; padding:5px 11px; font-size:12px; font-family:var(--mono)}
+  .chip strong{color:var(--text)}
+  .actions{display:flex; flex-wrap:wrap; gap:10px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border-radius:12px; padding:11px 16px; font-weight:700; font-size:14px; border:1px solid var(--line); color:var(--text); background:var(--panel); cursor:pointer}
+  .btn:hover{text-decoration:none; border-color:#35527a; transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#2f8fd8); color:#04121f; border-color:transparent}
+  .hero-side{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:22px; padding:22px; box-shadow:var(--shadow)}
+  .hero-side h3{margin:0 0 12px; font-size:13px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .stat{background:rgba(7,11,18,.45); border:1px solid rgba(35,50,74,.8); border-radius:12px; padding:12px}
+  .stat .v{font-size:19px; font-weight:800; line-height:1.2}
+  .stat .l{font-size:11px; color:var(--muted); margin-top:3px}
+  .cards-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .card{background:linear-gradient(180deg,rgba(22,34,53,.86),rgba(12,20,33,.86)); border:1px solid var(--line); border-radius:var(--radius); padding:20px; transition:transform .2s,border-color .2s}
+  .card:hover{transform:translateY(-3px); border-color:#35527a}
+  .card .num{font-family:var(--mono); color:var(--accent); font-size:12px; letter-spacing:1px}
+  .card h3{margin:8px 0 8px; font-size:18px}
+  .card p{margin:0; color:var(--muted); font-size:14px}
+  .arch-wrap{display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:stretch}
+  .arch-canvas{background:rgba(10,17,28,.72); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; min-height:420px}
+  .arch-svg{width:100%; height:auto; display:block}
+  .arch-detail{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:20px}
+  .arch-detail h3{margin:0 0 8px; font-size:18px}
+  .arch-detail p{margin:0; color:var(--muted); font-size:14px}
+  .arch-detail .who{font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:10px}
+  .node{cursor:pointer}
+  .node rect{fill:#111d2e; stroke:#2a4264; stroke-width:1.5; rx:12}
+  .node:hover rect,.node.active rect{fill:#162b46; stroke:var(--accent); stroke-width:2}
+  .node.hl rect{fill:#1d3a5c; stroke:var(--accent2); stroke-width:2.5; filter:drop-shadow(0 0 10px rgba(247,37,133,.35))}
+  .node text{fill:#dce9f8; font-family:var(--sans); font-size:14px; font-weight:700; pointer-events:none}
+  .node .sub{fill:#7f95b2; font-size:10px; font-weight:500}
+  .edge{fill:none; stroke:#2b4a6d; stroke-width:1.6; marker-end:url(#arrow)}
+  .edge-label{fill:#6e86a4; font-size:10px; font-family:var(--mono)}
+  .mech{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start}
+  .mech-list{display:flex; flex-direction:column; gap:8px}
+  .mech-step{text-align:left; border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:12px; padding:12px 14px; cursor:pointer; display:flex; gap:10px; align-items:flex-start}
+  .mech-step:hover{border-color:#35527a; color:var(--text)}
+  .mech-step.active{border-color:var(--accent); color:var(--text); background:#132238}
+  .mech-step .idx{font-family:var(--mono); color:var(--accent); font-size:11px; margin-top:2px}
+  .mech-panel{background:linear-gradient(180deg,rgba(22,34,53,.9),rgba(12,20,33,.9)); border:1px solid var(--line); border-radius:var(--radius); padding:22px; min-height:330px}
+  .mech-panel h3{margin:0 0 10px; font-size:22px}
+  .mech-panel p{color:#b9c9dd; margin:0 0 14px; white-space:pre-wrap}
+  .mech-panel pre{margin:0; background:#07101b; border:1px solid #1c2c44; border-radius:10px; padding:12px; overflow:auto; font-family:var(--mono); font-size:12px; color:#b7d7ff; max-height:180px; white-space:pre-wrap}
+  .mech-controls{display:flex; gap:8px; margin-top:16px; align-items:center}
+  .mech-controls .btn{padding:7px 12px; font-size:13px}
+  .mech-controls .hint{color:var(--dim); font-size:12px; margin-left:auto}
+  .code-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .code-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; grid-template-columns:36px 1fr; gap:12px}
+  .code-card .ord{font-family:var(--mono); color:var(--accent); font-size:12px; padding-top:2px}
+  .code-card .path{font-family:var(--mono); font-size:12px; color:#cfe3ff; word-break:break-all}
+  .code-card .role{font-size:12px; color:var(--muted); margin-top:4px}
+  .run-list{display:flex; flex-direction:column; gap:10px}
+  .run-row{display:grid; grid-template-columns:150px 1fr auto; gap:12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .run-row .label{font-weight:700; font-size:14px}
+  .run-row code{font-family:var(--mono); font-size:12.5px; color:#b7d7ff; overflow:auto; white-space:nowrap}
+  .copy{border:1px solid var(--line); background:#0d1726; color:var(--muted); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px}
+  .copy:hover{color:var(--text); border-color:#35527a}
+  .branch-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .branch{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .branch h3{margin:0 0 6px; font-family:var(--mono); font-size:15px}
+  .branch p{margin:0 0 8px; color:var(--muted); font-size:13px}
+  .branch .diff{font-family:var(--mono); font-size:11px; color:var(--warn)}
+  .cheat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+  .cheat{perspective:1000px; min-height:150px; background:none; border:0; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit; display:block; width:100%; -webkit-appearance:none; appearance:none}
+  .cheat-inner{position:relative; display:grid; width:100%; min-height:150px; transition:transform .55s cubic-bezier(.2,.8,.2,1); -webkit-transform-style:preserve-3d; transform-style:preserve-3d}
+  .cheat.flipped .cheat-inner{transform:rotateY(180deg)}
+  .cheat-face{position:relative; grid-area:1/1; min-height:150px; -webkit-backface-visibility:hidden; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:center}
+  .cheat-front{background:linear-gradient(140deg,#14243a,#0d1726)}
+  .cheat-back{background:linear-gradient(140deg,#2a1630,#160f24); transform:rotateY(180deg); overflow:auto}
+  .cheat-face .q{font-size:15px; font-weight:800; line-height:1.4}
+  .cheat-face .a{font-size:13px; color:#d7c9e8; line-height:1.55}
+  .cheat-face .tag{font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:1px; margin-bottom:8px}
+  .source-list{color:var(--muted); font-size:13px}
+  .source-list li{margin:6px 0}
+  .footer{border-top:1px solid var(--line); color:var(--dim); font-size:12px; padding:24px 0 40px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between}
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1; transform:none}
+  .empty{color:var(--dim); font-size:14px; padding:14px; border:1px dashed var(--line); border-radius:12px}
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr; gap:24px}
+    .arch-wrap{grid-template-columns:1fr}
+    .cards-3{grid-template-columns:1fr}
+    .code-grid{grid-template-columns:1fr}
+    .branch-grid{grid-template-columns:1fr}
+    .cheat-grid{grid-template-columns:1fr}
+    .mech{grid-template-columns:1fr}
+    .mech-list{flex-direction:row; overflow:auto; padding-bottom:4px}
+    .mech-step{min-width:220px}
+  }
+  @media (max-width:620px){
+    main{padding:0 14px 60px}
+    .topbar-inner{padding:10px 14px}
+    .run-row{grid-template-columns:1fr auto}
+    .run-row .label{grid-column:1/-1}
+    .hero{padding-top:48px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{scroll-behavior:auto!important; animation:none!important; transition:none!important}
+    .reveal{opacity:1; transform:none}
+  }
+  @media print{
+    body{background:#fff;color:#111}
+    .topbar,#progress,.actions,.mech-controls,.copy{display:none!important}
+    .card,.hero-side,.arch-detail,.mech-panel,.code-card,.run-row,.branch,.cheat-face{border-color:#ddd;background:#fff;color:#111}
+    .section{padding:24px 0}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Fork<span>You</span></div>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#model">心智模型</a>
+      <a href="#architecture">架构</a>
+      <a href="#mechanism">核心机制</a>
+      <a href="#code">代码地图</a>
+      <a href="#run">跑起来</a>
+      <a href="#branches">分支</a>
+      <a href="#contribute">贡献</a>
+      <a href="#cheats">吹B卡片</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <div>
+      <div class="hero-kicker" id="heroKicker">ForkYou · Deep Guide</div>
+      <h1 class="hero-title"><span class="grad" id="heroTitle">几猫 3A 大作</span></h1>
+      <p class="hero-sub" id="heroSub">1.4 MB 单文件 WebGL2 港口突袭 FPS：零图片、零音频，贴图/几何/音效全部运行时生成</p>
+      <div class="meta-row" id="metaRow"></div>
+      <div class="actions" id="heroActions"></div>
+    </div>
+    <aside class="hero-side">
+      <h3>一眼看穿</h3>
+      <div class="stat-grid" id="statGrid"></div>
+    </aside>
+  </section>
+
+  <section class="section reveal" id="model">
+    <div class="section-head">
+      <div class="eyebrow">01 · Mental Model</div>
+      <h2 class="section-title">60 秒心智模型</h2>
+      <p class="section-sub" id="modelSub">先用三句话建立地图，再往下看细节。</p>
+    </div>
+    <div class="cards-3" id="modelGrid"></div>
+  </section>
+
+  <section class="section reveal" id="architecture">
+    <div class="section-head">
+      <div class="eyebrow">02 · Architecture</div>
+      <h2 class="section-title" id="archTitle">架构图</h2>
+      <p class="section-sub">点一个模块，右侧看它负责什么。核心机制播放时，相关模块会高亮。</p>
+    </div>
+    <div class="arch-wrap">
+      <div class="arch-canvas"><div id="archSvg"></div></div>
+      <aside class="arch-detail" id="archDetail"></aside>
+    </div>
+  </section>
+
+  <section class="section reveal" id="mechanism">
+    <div class="section-head">
+      <div class="eyebrow">03 · Mechanism</div>
+      <h2 class="section-title" id="mechTitle">核心机制</h2>
+      <p class="section-sub">按步骤走一遍真实链路。可以自动播放，也可以手动翻。</p>
+    </div>
+    <div class="mech">
+      <div class="mech-list" id="mechList" role="tablist" aria-label="机制步骤"></div>
+      <div class="mech-panel">
+        <div id="mechBody"></div>
+        <div class="mech-controls">
+          <button class="btn" id="mechPrev" type="button">← 上一步</button>
+          <button class="btn primary" id="mechPlay" type="button">▶ 播放</button>
+          <button class="btn" id="mechNext" type="button">下一步 →</button>
+          <span class="hint" id="mechHint"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="code">
+    <div class="section-head">
+      <div class="eyebrow">04 · Code Map</div>
+      <h2 class="section-title">先读这几个文件</h2>
+      <p class="section-sub">按顺序读，别从 3000 个文件里随机游走。</p>
+    </div>
+    <div class="code-grid" id="codeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="run">
+    <div class="section-head">
+      <div class="eyebrow">05 · Run It</div>
+      <h2 class="section-title">跑起来</h2>
+      <p class="section-sub">复制命令即可。平台差异写在备注里。</p>
+    </div>
+    <div class="run-list" id="runList"></div>
+  </section>
+
+  <section class="section reveal" id="branches">
+    <div class="section-head">
+      <div class="eyebrow">06 · Branches</div>
+      <h2 class="section-title">分支差异</h2>
+      <p class="section-sub">默认分支之外的代码，可能才是你要找的答案。</p>
+    </div>
+    <div class="branch-grid" id="branchGrid"></div>
+  </section>
+
+  <section class="section reveal" id="contribute">
+    <div class="section-head">
+      <div class="eyebrow">07 · Contribute</div>
+      <h2 class="section-title">怎么参与</h2>
+      <p class="section-sub">从能跑、能测，到第一个能被接受的改动。</p>
+    </div>
+    <div class="cards-3" id="contributeGrid"></div>
+  </section>
+
+  <section class="section reveal" id="cheats">
+    <div class="section-head">
+      <div class="eyebrow">08 · Cheat Cards</div>
+      <h2 class="section-title">面试 / 吹B卡片</h2>
+      <p class="section-sub">点卡片翻面。先自己答，再看答案。</p>
+    </div>
+    <div class="cheat-grid" id="cheatGrid"></div>
+  </section>
+
+  <section class="section reveal" id="sources">
+    <div class="section-head">
+      <div class="eyebrow">Sources</div>
+      <h2 class="section-title">来源</h2>
+    </div>
+    <ol class="source-list" id="sourceList"></ol>
+  </section>
+
+  <footer class="footer">
+    <div>Generated by ForkYou · <span id="genDate">2026-11-11</span> · commit <span id="genCommit">ce22e9a5</span></div>
+    <div><a href="https://github.com/FlyForkFork/jimao-3a-src" target="_blank" rel="noreferrer">上游仓库</a> · <a href="README.md">项目 README</a></div>
+  </footer>
+</main>
+
+<script>window.GUIDE_DATA = {"slug":"jimao-3a","title":"几猫 3A 大作","subtitle":"1.4 MB 单文件 WebGL2 港口突袭 FPS：零图片、零音频，贴图/几何/音效全部运行时生成","one_liner":"把 Three.js、程序化 PBR 贴图、敌人 AI、AABB 物理和 WebAudio 塞进一个 HTML 的开发体验版 FPS。","category":"06-web","tags":["WebGL2","Three.js","Single-file","Procedural Generation","FPS","GLSL"],"meta":{"upstream":"FlyForkFork/jimao-3a-src","license":"NOASSERTION","stars":0,"language":"HTML + JavaScript","commit":"ce22e9a592fc8c4b2960a26a32437732d92ed2dd","updated":"2026-11-11"},"links":{"github":"https://github.com/FlyForkFork/jimao-3a-src","homepage":"https://github.com/FlyForkFork/jimao-3a","docs":"https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/README.md"},"stats":[{"label":"文件大小","value":"1,425,707 B"},{"label":"行数","value":"6,214 行"},{"label":"gzip","value":"449,312 B"},{"label":"Three.js","value":"701,719 B"},{"label":"图片 / 音频","value":"0 / 0"},{"label":"贴图 Set","value":"29 套"}],"mental_model":[{"title":"它是谁","body":"一个单文件 WebGL2 第一人称射击游戏：港区里有三处上行中继，玩家要切断它们、穿过机械飞鸥与机械猎犬的封锁，最后登船撤离。整个游戏只有一个 index.html，Three.js r185 也内嵌在里面。"},{"title":"怎么工作","body":"启动时 QC 初始化模块，C1 用基本体和 36 种道具原型搭出港区；Gg 在 GPU 上用 27 个表面函数烘焙 29 套 PBR 贴图；Hg 渲染、jy 做约 26 个全屏后处理；x_ 处理玩家移动，Em 用状态机、token 和 0.5 m 网格 A* 驱动敌人。"},{"title":"为什么特别","body":"没有一张图片、一段音频，也没有 data URI。下载体积只有 1.4 MB，代价是首次启动要现场生成几十 MB 纹理；这不是“压缩得好”，而是把资产换成了生成资产的程序。"}],"architecture":{"title":"单文件里的五层","layers":[{"name":"页面与输入","nodes":[{"id":"dom","label":"DOM / CSS HUD","desc":"标题页、设置、暂停、死亡与结算界面；HUD 由 hM 更新（index.html:6087）。键盘鼠标、触屏与 Gamepad 输入统一进输入层。"},{"id":"input","label":"输入 / 指针锁","desc":"WASD、鼠标视角、左键开火、右键瞄准、R 换弹、E 交互、Space 跳跃、Shift 冲刺、C/Ctrl 蹲伏。"}]},{"name":"游戏逻辑","nodes":[{"id":"game","label":"mM 状态机","desc":"title / intro / playing / paused / dead / complete 六态；管理三处中继、波次、撤离、评分与检查点（index.html:6202）。"},{"id":"player","label":"x_ 玩家","desc":"胶囊体移动、冲刺、蹲伏、跳跃、坠落伤害、镜头 bob/recoil/shake、ADS 与 FOV 过渡（index.html:5939）。"},{"id":"combat","label":"zv 战斗","desc":"PAC9 步枪的射速、扩散、后坐力、命中判定、弹孔与抛壳；武器 viewmodel 动画在 dm（index.html:6065）。"},{"id":"enemy","label":"Em 敌人","desc":"飞鸥远程弹丸、猎犬四足近战；patrol / investigate / search / engage 状态机 + 全局 token 协调 + rally（index.html:6065）。"}]},{"name":"世界构建","nodes":[{"id":"level","label":"C1 关卡","desc":"3 个中继、42 个敌人生成点、55 个掩体点、12 个电影机位，分成 yard / shed / quay 三区（index.html:5453）。"},{"id":"props","label":"ob / Gi 道具","desc":"box/slab/cyl/tube/ibeam/stairs/catwalk 等 builder，36 种道具原型；按材质 UUID + 阴影 + layer 合并静态网格，减少 draw call。"},{"id":"physics","label":"d3 物理","desc":"AABB 列表、slab raycast、lineOfSight、groundHeight、moveCapsule 子步进与圆形 push-out；0.5 m 网格 A*，9,000 节点上限（index.html:5453）。"}]},{"name":"资产与渲染","nodes":[{"id":"mats","label":"Gg 材质工厂","desc":"全屏 quad + ShaderMaterial 把 27 个 Tn 表面函数烘焙成 29 个 texture set × 3 张 MRT：albedo / ORM / height，再由 i3 生成 normal（index.html:5453、5294、4833-5280）。"},{"id":"ground","label":"O1 地面","desc":"Rb 生成 1024/512 水洼 mask，Cb 生成 detail albedo+normal，Pb 用 canvas 2048/1024 画车道线与中文路面字，N1 包成 DataTexture（index.html:5474、5825）。"},{"id":"render","label":"Hg 渲染器","desc":"WebGLRenderer、阴影、天空、平面反射、动态分辨率；z() 以 21.5/17.4 ms 为目标调整 scale，最低 0.6（index.html:4744）。"},{"id":"post","label":"jy 后处理","desc":"15 种 pass、约 26 个全屏 pass：depthcopy、AO、体积光、Bloom、motion blur、自适应曝光、FXAA/grain/sharpen（index.html:4743）。"}]},{"name":"平台","nodes":[{"id":"webgl","label":"WebGL2","desc":"唯一运行时依赖是浏览器；Three.js r185 以文本内嵌，无外部脚本、图片、字体或音频文件。"},{"id":"audio","label":"WebAudio","desc":"u_ 预渲染 PCM 缓冲，按 6 ms 时间片在空闲时合成；枪声、脚步、环境声与动态配乐都不是音频文件。"}]}],"edges":[{"from":"input","to":"game","label":"事件"},{"from":"game","to":"player","label":"更新"},{"from":"game","to":"combat","label":"开火"},{"from":"game","to":"enemy","label":"波次"},{"from":"player","to":"physics","label":"moveCapsule"},{"from":"enemy","to":"physics","label":"raycast / A*"},{"from":"level","to":"props","label":"place"},{"from":"props","to":"render","label":"meshes"},{"from":"mats","to":"render","label":"materials"},{"from":"ground","to":"render","label":"terrain"},{"from":"render","to":"post","label":"HDR"},{"from":"post","to":"webgl","label":"final"},{"from":"game","to":"audio","label":"sfx"},{"from":"dom","to":"game","label":"menu"}]},"mechanism":{"title":"一帧从输入到画面","steps":[{"title":"启动：模块注册表按序初始化","detail":"QC 把 mats / level / backdrop / ground / fx / weapon / enemies / props / render 等模块注册进 gM，再用 r() 逐个执行；只有 render 和 level 没有 stub，其余模块失败会退回占位实现，保证流程能跑完。","highlight":["game","render"],"code":"const M = r('mats', () => Gg(...));\nconst L = r('level', () => C1(...));\n// render / level: 核心模块，失败应 fatal"},{"title":"建关：基本体与 36 种道具原型","detail":"C1 调用 ob 的 box/slab/cyl/tube/ibeam/stairs/catwalk 等 builder，把集装箱、防撞墩、灯杆、岗亭、闸杆、系缆桩、货架、冷藏箱等摆成 yard / shed / quay 三区，并记录 42 个敌人生成点与 55 个掩体点。","highlight":["level","props"],"code":"const L = new C1(scene, mats);\nL.build();\n// stats: relays 3, spawns 42, covers 55, cameras 12"},{"title":"材质：27 个表面函数烘焙 29 套 PBR","detail":"Gg 为每个 set 拼一个 fragment shader：e3 提供 pcg3/h3/gn/fbm/vor/scr 等噪声函数，Tn[fn] 描述这一类表面；一次渲染到 3 张 MRT，再用 i3 从 height 生成 normal。结果缓存在 Map 里，同名材质复用。","highlight":["mats","render"],"code":"renderTarget0: albedo (sqrt gamma)\nrenderTarget1: AO / roughness / metal\nrenderTarget2: height\nnormal = i3(height)"},{"title":"玩家：胶囊体移动 + 武器状态","detail":"x_ 以 walk 3.8 / sprint 6.4 / crouch 1.9 m/s 移动，gravity 21、jumpApex 1、coyote 0.12 s、jumpBuffer 0.13 s；d3 把位移切成子步，逐步做圆形 push-out。dm 处理弹匣、枪机、换弹关键帧与后坐力。","highlight":["player","combat","physics"],"code":"const steps = Math.ceil(hypot(dx, dz) / (radius * 0.6));\nfor (let i = 0; i \u003c steps; i++) moveCapsule(dx / steps, dz / steps);"},{"title":"敌人：感知、token、寻路","detail":"Em 每 0.11–0.19 s 做一次感知：45 m 视野、200° 视锥、3.5 m 内忽略视锥；exposure 上升 0.1 / 下降 0.45，4 s 失去目标、8 s 搜索。全局 token 限制同时开火人数 2（人多时 3），间隔 1.25 s；猎犬用 0.5 m 网格 A* 追人。","highlight":["enemy","physics"],"code":"if (exposure > 1 && requestToken(enemy)) engage();\n// maxTokens 2 / maxTokensCrowd 3 / tokenGap 1.25s"},{"title":"渲染：约 26 个全屏 pass 收尾","detail":"Hg 先渲染不透明与透明物体，jy 依次跑 depthcopy/depthhalf、AO、体积光、composite、motion、bloom down/up、streak、adapt、dirt、grade、final。动态分辨率按 45 帧窗口的帧时间调 scale，连续降档后还会继续退。","highlight":["render","post","webgl"],"code":"// 15 pass types, ~26 fullscreen draws\n// target 21.5ms (desktop) / 17.4ms (high refresh)\nscale = clamp(scale * 0.9, 0.6, 1.0)"}]},"code_map":[{"path":"index.html:6202","role":"启动 + 游戏状态机：QC/mM/gM 模块注册表，先读这里建立全局","read_order":1,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6202"},{"path":"index.html:5453","role":"材质工厂 Gg、关卡 C1、物理 d3：单文件里最密的三个系统","read_order":2,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5453"},{"path":"index.html:5294","role":"29 个 texture set c3 + 48 个材质预设 l1：调参从这里开始","read_order":3,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5294"},{"path":"index.html:4833-5280","role":"27 个表面函数 Tn：沥青、混凝土、锈蚀、链条网等“美术语言”","read_order":4,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4833-L5280"},{"path":"index.html:4744","role":"渲染器 Hg + 公共 GLSL e3：光照、阴影、天空与噪声库","read_order":5,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4744"},{"path":"index.html:4743","role":"后处理 jy：15 种 pass 的排列与开销","read_order":6,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L4743"},{"path":"index.html:5474","role":"地面 Rb/Cb/Pb + 平面反射：水洼、车道线、中文路面字","read_order":7,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5474"},{"path":"index.html:5939","role":"玩家 x_、战斗 zv、音频 c_：移动、开火、合成音效","read_order":8,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L5939"},{"path":"index.html:6065","role":"敌人 Em、武器 dm、常量 Ui：状态机、token、四足 IK","read_order":9,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6065"},{"path":"index.html:6087","role":"HUD hM：准星、弹药、罗盘、任务提示与字幕","read_order":10,"url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html#L6087"}],"run":[{"label":"直接打开","command":"start index.html","note":"Windows 双击或拖进浏览器；需要 WebGL2"},{"label":"本地静态服务","command":"python -m http.server 8000","note":"打开 http://localhost:8000/index.html"},{"label":"低画质","command":"index.html?q=low","note":"在 URL 后加查询参数；低配设备从 low 档开始"},{"label":"内置性能采样","command":"index.html?bench=1","note":"采样 30 s，控制台输出 avg / p99 / median、GPU、draw calls、tris"},{"label":"控制台统计","command":"window.__stats()","note":"运行时查看纹理、材质与渲染统计"},{"label":"改源码","command":"编辑 index.html 后刷新","note":"无构建步骤；修改后建议同时跑 ?bench=1 看是否掉档"}],"branches":[{"name":"main","purpose":"唯一分支：单文件交付，没有并行开发分支或发布分支。","diff":"HEAD ce22e9a · index.html 1,425,707 B · 6,214 行","url":"https://github.com/FlyForkFork/jimao-3a-src/commits/main"}],"contribute":[{"title":"这是个人归档，不是社区项目","detail":"没有 Issue/PR 流程或 CI；上游 README 只说明运行方式与操作。想改就直接 fork，不必等维护者接受补丁。","url":"https://github.com/FlyForkFork/jimao-3a-src"},{"title":"先补可观测性再改画面","detail":"改材质、后处理或关卡前先跑 ?bench=1 和 window.__stats()，否则很容易把帧率问题误判成“代码没生效”。","url":"https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/05-performance.md"},{"title":"最值得动手的三处","detail":"把 C1 的硬编码关卡数据抽成 JSON；给材质/关卡加 schema 校验；把单文件拆成构建产物但保留单 HTML 发布。","url":"https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/08-takeaways.md"}],"cheats":[{"q":"1.43 MB 的体积账怎么拆？","a":"script 1,390,078 B 占 97.5%，其中 Three.js 约 701,719 B、游戏代码约 688,251 B；gzip 449 KB。没有图片/音频/data URI，所以不需要资源解码，但首次启动要现场生成纹理。"},{"q":"贴图到底从哪来？","a":"Gg 在 GPU 上用全屏 quad 跑 shader：e3 的噪声库 + Tn 的 27 个表面函数，一次输出 albedo/ORM/height 三张 MRT，再用 i3 从 height 生成 normal；29 个 texture set 缓存在 Map 里。"},{"q":"为什么下载小、显存却不小？","a":"下载的是生成程序，显存里放的是成品。按 D*D*4*1.34 估算，low 约 34.4 MB、medium/high 约 137.7 MB、ultra 约 185.9 MB；省的是仓库体积，不是运行时内存。"},{"q":"26 个全屏 pass 会不会太贵？","a":"会，所以有 15 种 pass 的可配置链和五档画质；动态分辨率按 45 帧窗口把帧时间压到 21.5/17.4 ms，最低 scale 0.6。低配应先砍 AO、体积光、streak。"},{"q":"敌人 AI 的核心是什么？","a":"不是复杂行为树，而是“感知 + 全局 token + rally”：45 m / 200° 视锥、0.11–0.19 s 感知间隔、exposure 不对称累积；最多 2 个（人多 3 个）敌人同时开火，tokenGap 1.25 s。"},{"q":"为什么物理不用现成引擎？","a":"静态关卡用 AABB 列表 + slab raycast + moveCapsule 子步进就够，零依赖、确定性强、易调试；代价是旋转道具要切最多 10 段 AABB，斜坡/楼梯只能近似，高速冲刺可能穿薄盒。"},{"q":"单文件是架构吗？","a":"不是。gM 只是模块注册表，模块边界靠函数和启动顺序维持；单文件是发布约束。真要长期维护，应把源码拆模块、保留构建产物，而不是把 6,214 行当开发结构。"},{"q":"如果重做，优先级怎么排？","a":"先拆构建但保留单 HTML 产物，再离线烘焙贴图，再做关卡 JSON schema，最后才动 AI/物理；没有回归测试就重写核心系统，风险最高。"}],"sources":[{"title":"jimao-3a-src/index.html（源码基线，1,425,707 B）","url":"https://github.com/FlyForkFork/jimao-3a-src/blob/ce22e9a592fc8c4b2960a26a32437732d92ed2dd/index.html","date":"2026-11-11"},{"title":"FlyForkFork/jimao-3a（公开 fork）","url":"https://github.com/FlyForkFork/jimao-3a","date":"2026-11-11"},{"title":"ForkYou 分析：程序化资产深挖","url":"https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/04-deep-dive-procedural-assets.md","date":"2026-11-11"},{"title":"ForkYou 分析：性能与降档","url":"https://github.com/FlyForkFork/ForkYou/blob/main/06-web/jimao-3a/05-performance.md","date":"2026-11-11"}]};</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/animejs/3.2.2/anime.min.js" onerror="this.onerror=null;this.src='https://cdn.staticfile.org/animejs/3.2.2/anime.min.js'"></script>
+<script>
+(function(){
+  "use strict";
+  const D = window.GUIDE_DATA || {};
+  const $ = (s, el) => (el || document).querySelector(s);
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = (v) => {
+    const s = String(v || "");
+    return /^https?:\/\//i.test(s) ? s : "";
+  };
+  const setText = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v; };
+
+  setText("heroTitle", D.title || "Unknown Project");
+  setText("heroSub", D.subtitle || D.one_liner || "");
+  setText("heroKicker", "ForkYou · " + (D.category || "Deep Guide"));
+  document.title = (D.title || "Project") + " · ForkYou Guide";
+
+  // meta chips
+  const meta = D.meta || {};
+  const links = D.links || {};
+  const chips = [];
+  if (meta.language) chips.push(["语言", meta.language]);
+  if (meta.license) chips.push(["License", meta.license]);
+  if (meta.stars != null) chips.push(["Stars", meta.stars]);
+  if (meta.commit) chips.push(["Commit", String(meta.commit).slice(0, 8)]);
+  if (meta.updated) chips.push(["更新", meta.updated]);
+  $("#metaRow").innerHTML = chips.map(([k,v]) => `<span class="chip">${esc(k)} <strong>${esc(v)}</strong></span>`).join("");
+
+  // actions
+  const actions = [];
+  if (safeUrl(links.github)) actions.push([links.github, "上游 GitHub", "primary"]);
+  if (safeUrl(links.homepage)) actions.push([links.homepage, "应用 / 官网", ""]);
+  if (safeUrl(links.docs)) actions.push([links.docs, "官方文档", ""]);
+  actions.push(["README.md", "项目 README", ""]);
+  $("#heroActions").innerHTML = actions.map(([href,label,cls]) =>
+    `<a class="btn ${cls}" href="${esc(href)}" ${safeUrl(href) ? 'target="_blank" rel="noreferrer"' : ""}>${esc(label)}</a>`
+  ).join("");
+
+  // stats
+  const stats = Array.isArray(D.stats) ? D.stats : [];
+  $("#statGrid").innerHTML = stats.length ? stats.map(s =>
+    `<div class="stat"><div class="v">${esc(s.value)}</div><div class="l">${esc(s.label)}</div></div>`
+  ).join("") : `<div class="empty">暂无统计数据</div>`;
+
+  // mental model
+  const model = Array.isArray(D.mental_model) ? D.mental_model : [];
+  $("#modelGrid").innerHTML = model.length ? model.map((m,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(m.title)}</h3><p>${esc(m.body)}</p></article>`
+  ).join("") : `<div class="empty">暂无内容</div>`;
+
+  // architecture
+  const arch = D.architecture || {};
+  setText("archTitle", arch.title || "架构图");
+  const layers = Array.isArray(arch.layers) ? arch.layers : [];
+  const positions = {};
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = [];
+  const W = 1000;
+  const rowH = 150;
+  const nodeW = 170, nodeH = 64;
+  const H = Math.max(420, layers.length * rowH + 100);
+  layers.forEach((layer, li) => {
+    const nodes = Array.isArray(layer.nodes) ? layer.nodes : [];
+    const n = Math.max(1, nodes.length);
+    const gap = n > 1 ? Math.min(230, 820 / (n - 1)) : 0;
+    const totalW = gap * (n - 1) + nodeW;
+    const startX = (W - totalW) / 2;
+    nodes.forEach((node, ni) => {
+      positions[node.id] = { x: startX + ni * gap, y: 60 + li * rowH, w: nodeW, h: nodeH, node, layer: layer.name };
+    });
+  });
+  const edges = Array.isArray(arch.edges) ? arch.edges : [];
+  svg.push(`<svg class="arch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(arch.title || "architecture diagram")}">`);
+  svg.push(`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b648f"/></marker></defs>`);
+  // layer labels
+  layers.forEach((layer, li) => {
+    svg.push(`<text x="24" y="${60 + li * rowH + 36}" fill="#4f6b8c" font-size="11" font-family="ui-monospace,monospace">${esc(layer.name || "")}</text>`);
+  });
+  // edges first
+  edges.forEach((e, i) => {
+    const a = positions[e.from], b = positions[e.to];
+    if (!a || !b) return;
+    let x1, y1, x2, y2, d;
+    if (a.layer === b.layer) {
+      const right = a.x < b.x;
+      x1 = right ? a.x + a.w : a.x; y1 = a.y + a.h/2;
+      x2 = right ? b.x : b.x + b.w; y2 = b.y + b.h/2;
+      d = `M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}`;
+    } else {
+      const down = a.y < b.y;
+      x1 = a.x + a.w/2; y1 = down ? a.y + a.h : a.y;
+      x2 = b.x + b.w/2; y2 = down ? b.y : b.y + b.h;
+      const midY = (y1 + y2) / 2;
+      d = `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+    }
+    svg.push(`<path class="edge" d="${d}" data-edge="${i}"/>`);
+    if (e.label) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      svg.push(`<text class="edge-label" x="${mx}" y="${my - 6}" text-anchor="middle">${esc(e.label)}</text>`);
+    }
+  });
+  // nodes
+  Object.entries(positions).forEach(([id, p]) => {
+    svg.push(`<g class="node" data-id="${esc(id)}" tabindex="0" role="button" aria-label="${esc(p.node.label || id)}">`);
+    svg.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="12"/>`);
+    svg.push(`<text x="${p.x + p.w/2}" y="${p.y + 27}" text-anchor="middle">${esc(p.node.label || id)}</text>`);
+    svg.push(`<text class="sub" x="${p.x + p.w/2}" y="${p.y + 45}" text-anchor="middle">${esc(p.layer || "")}</text>`);
+    svg.push(`</g>`);
+  });
+  svg.push(`</svg>`);
+  $("#archSvg").innerHTML = layers.length ? svg.join("") : `<div class="empty" style="padding:24px">暂无架构数据</div>`;
+
+  let activeNode = null;
+  function selectNode(id) {
+    const p = positions[id];
+    if (!p) return;
+    activeNode = id;
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("active", el.dataset.id === id));
+    $("#archDetail").innerHTML = `<div class="who">${esc(p.layer || "")}</div><h3>${esc(p.node.label || id)}</h3><p>${esc(p.node.desc || "暂无说明")}</p>`;
+  }
+  document.querySelectorAll(".node").forEach(el => {
+    el.addEventListener("click", () => selectNode(el.dataset.id));
+    el.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(el.dataset.id); } });
+  });
+  const firstNode = Object.keys(positions)[0];
+  if (firstNode) selectNode(firstNode); else $("#archDetail").innerHTML = `<div class="empty">暂无模块</div>`;
+
+  function highlightNodes(ids) {
+    const set = new Set(Array.isArray(ids) ? ids : []);
+    document.querySelectorAll(".node").forEach(el => el.classList.toggle("hl", set.has(el.dataset.id)));
+  }
+
+  // mechanism
+  const mech = D.mechanism || {};
+  setText("mechTitle", mech.title || "核心机制");
+  const steps = Array.isArray(mech.steps) ? mech.steps : [];
+  let stepIndex = 0;
+  let timer = null;
+  $("#mechList").innerHTML = steps.map((s,i) =>
+    `<button class="mech-step" type="button" role="tab" data-i="${i}" aria-selected="${i===0}"><span class="idx">${String(i+1).padStart(2,"0")}</span><span>${esc(s.title || "步骤")}</span></button>`
+  ).join("") || `<div class="empty">暂无机制数据</div>`;
+  function renderStep(i) {
+    if (!steps.length) return;
+    stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+    const s = steps[stepIndex];
+    document.querySelectorAll(".mech-step").forEach(el => {
+      const on = Number(el.dataset.i) === stepIndex;
+      el.classList.toggle("active", on);
+      el.setAttribute("aria-selected", String(on));
+    });
+    $("#mechBody").innerHTML = `<h3>${esc(s.title || "")}</h3><p>${esc(s.detail || "")}</p>${s.code ? `<pre>${esc(s.code)}</pre>` : ""}`;
+    highlightNodes(s.highlight);
+    setText("mechHint", `${stepIndex + 1} / ${steps.length}`);
+  }
+  document.querySelectorAll(".mech-step").forEach(el => el.addEventListener("click", () => { stopPlay(); renderStep(Number(el.dataset.i)); }));
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; } const b = $("#mechPlay"); if (b) b.textContent = "▶ 播放"; }
+  $("#mechPrev").addEventListener("click", () => { stopPlay(); renderStep(stepIndex - 1); });
+  $("#mechNext").addEventListener("click", () => { stopPlay(); renderStep(stepIndex + 1); });
+  $("#mechPlay").addEventListener("click", () => {
+    if (timer) { stopPlay(); return; }
+    if (!steps.length) return;
+    if (stepIndex >= steps.length - 1) renderStep(0);
+    $("#mechPlay").textContent = "⏸ 暂停";
+    timer = setInterval(() => {
+      if (stepIndex >= steps.length - 1) { stopPlay(); return; }
+      renderStep(stepIndex + 1);
+    }, 2600);
+  });
+  renderStep(0);
+
+  // code map
+  const codeMap = Array.isArray(D.code_map) ? D.code_map : [];
+  $("#codeGrid").innerHTML = codeMap.length ? codeMap.map((c,i) =>
+    `<article class="code-card"><div class="ord">${String(c.read_order || i+1).padStart(2,"0")}</div><div><div class="path">${safeUrl(c.url) ? `<a href="${esc(c.url)}" target="_blank" rel="noreferrer">${esc(c.path)}</a>` : esc(c.path)}</div><div class="role">${esc(c.role)}</div></div></article>`
+  ).join("") : `<div class="empty">暂无代码地图</div>`;
+
+  // run
+  const runs = Array.isArray(D.run) ? D.run : [];
+  $("#runList").innerHTML = runs.length ? runs.map((r,i) =>
+    `<div class="run-row"><div class="label">${esc(r.label)}</div><div><code id="cmd-${i}">${esc(r.command)}</code><div class="role" style="color:var(--dim);font-size:11px;margin-top:3px">${esc(r.note || "")}</div></div><button class="copy" type="button" data-cmd="cmd-${i}">复制</button></div>`
+  ).join("") : `<div class="empty">暂无运行说明</div>`;
+  document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", async () => {
+    const el = document.getElementById(btn.dataset.cmd);
+    if (!el) return;
+    try { await navigator.clipboard.writeText(el.textContent); btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1400); }
+    catch { btn.textContent = "复制失败"; }
+  }));
+
+  // branches
+  const branches = Array.isArray(D.branches) ? D.branches : [];
+  $("#branchGrid").innerHTML = branches.length ? branches.map(b =>
+    `<article class="branch"><h3>${esc(b.name)}</h3><p>${esc(b.purpose || "")}</p><div class="diff">${esc(b.diff || "")}</div>${safeUrl(b.url) ? `<p style="margin-top:8px"><a href="${esc(b.url)}" target="_blank" rel="noreferrer">看 diff →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无分支数据</div>`;
+
+  // contribute
+  const contribute = Array.isArray(D.contribute) ? D.contribute : [];
+  $("#contributeGrid").innerHTML = contribute.length ? contribute.map((c,i) =>
+    `<article class="card"><div class="num">0${i+1}</div><h3>${esc(c.title)}</h3><p>${esc(c.detail)}</p>${safeUrl(c.url) ? `<p style="margin-top:10px"><a href="${esc(c.url)}" target="_blank" rel="noreferrer">入口 →</a></p>` : ""}</article>`
+  ).join("") : `<div class="empty">暂无贡献说明</div>`;
+
+  // cheats
+  const cheats = Array.isArray(D.cheats) ? D.cheats : [];
+  $("#cheatGrid").innerHTML = cheats.length ? cheats.map((c,i) =>
+    `<button class="cheat" type="button" aria-pressed="false" data-i="${i}"><span class="cheat-inner"><span class="cheat-face cheat-front"><span class="tag">Q${String(i+1).padStart(2,"0")}</span><span class="q">${esc(c.q)}</span></span><span class="cheat-face cheat-back"><span class="tag">A</span><span class="a">${esc(c.a)}</span></span></span></button>`
+  ).join("") : `<div class="empty">暂无卡片</div>`;
+  document.querySelectorAll(".cheat").forEach(el => el.addEventListener("click", () => {
+    const on = el.classList.toggle("flipped");
+    el.setAttribute("aria-pressed", String(on));
+  }));
+
+  // sources
+  const sources = Array.isArray(D.sources) ? D.sources : [];
+  $("#sourceList").innerHTML = sources.length ? sources.map(s =>
+    `<li>${safeUrl(s.url) ? `<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.title || s.url)}</a>` : esc(s.title || "")}${s.date ? ` <span style="color:var(--dim)">(${esc(s.date)})</span>` : ""}</li>`
+  ).join("") : `<li>暂无来源</li>`;
+
+  // nav active + progress
+  const navLinks = Array.from(document.querySelectorAll(".nav a"));
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  function onScroll() {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    $("#progress").style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    let current = sections[0];
+    for (const s of sections) if (s.getBoundingClientRect().top <= 140) current = s;
+    navLinks.forEach(a => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+  // anime.js enhancement (optional)
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (window.anime && !reduce) {
+    try {
+      anime.timeline({ easing: "easeOutExpo", duration: 800 })
+        .add({ targets: ".hero-title", translateY: [24, 0], opacity: [0, 1] })
+        .add({ targets: ".hero-sub, .meta-row, .actions", translateY: [14, 0], opacity: [0, 1] }, "-=500")
+        .add({ targets: ".hero-side", translateY: [18, 0], opacity: [0, 1] }, "-=600")
+        .add({ targets: ".node", scale: [0.92, 1], opacity: [0, 1], delay: anime.stagger(45) }, "-=500");
+    } catch (e) { /* CSS fallback */ }
+  }
+})();
+</script>
+</body>
+</html>
